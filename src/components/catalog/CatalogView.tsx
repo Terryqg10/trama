@@ -86,7 +86,9 @@ export async function CatalogView({
               </Link>
             </div>
           ) : (
-            <ul className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-3">
+            // Rejilla del estilo v1: 2 columnas hasta `--bp-md` y 3 desde `--bp-md`. Con la
+            // columna lateral (≥ `--bp-lg`) se mantienen 3, no 4 (PLAN-001 §5b, T-016).
+            <ul className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
               {products.map((product) => (
                 <li key={product.id}>
                   <ProductCard product={product} />
