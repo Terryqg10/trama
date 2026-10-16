@@ -372,5 +372,21 @@ cambiar el alcance. No se registra ADR: no hay alternativas de coste alto de rev
 **Nuevas tareas derivadas:** T-015 (imagen LCP con prioridad) y T-016 (rejilla del listado según
 el estilo). El número de columnas con la columna lateral (≥ 1024 px) queda por decidir en T-016.
 
+### Enmienda 9 — 2026-10-16 — sin ADR
+
+**Origen:** T-016 dejó por decidir cuántas columnas de tarjetas llevar con la columna lateral de
+filtros (≥ 1024 px). El estilo `v1-soft-commerce` pide 4 desde `--bp-lg`, pero la columna lateral
+(256 px más 32 px de separación) deja a 1280 px unos 864 px útiles: 4 columnas serían tarjetas de
+unos 200 px. El usuario decidió mantener 3. Se concreta sin cambiar el alcance; la desviación del
+estilo queda registrada en PLAN-001 §5b.
+
+**Qué cambia:** se añade un criterio de aceptación. Ningún RF cambia.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-55 | RF-01 | Un usuario | Carga un listado del catálogo a 1024, 1280 y 1440 px, con la columna lateral de filtros | El listado muestra 3 columnas de tarjetas, ninguna de menos de 200 px de ancho | test e2e `catalog-grid-columns`: nº de columnas y ancho de tarjeta por geometría |
+
+**Nuevas tareas derivadas:** ninguna (se aplica en T-016).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.

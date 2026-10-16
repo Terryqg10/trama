@@ -86,6 +86,7 @@ Tipos TypeScript generados con `pnpm db:types`. No se escriben a mano.
 | Botones del pie del drawer: Aplicar (izq.), Limpiar (der.) | v1-soft-commerce pide Limpiar (izq.), Aplicar (der.) | Error en T-009, se corrige en T-011 | Se restaura la convención del estilo |
 | Drawer móvil abierto por hash `#filtros-movil` | No aplica (convención de la web, no del sector) | Fallback sin JavaScript, requerido por RF-07 | Sin JS: filtros usables. Con JS: mismo comportamiento, sincronizado con React |
 | Menú móvil abierto por hash `#menu-movil` | No aplica (convención de la web, no del sector) | Fallback sin JavaScript, igual que el drawer de filtros | Sin JS: navegación usable en móvil. Con JS: mismo comportamiento, sincronizado con React |
+| Rejilla del listado con la columna lateral de filtros: 3 columnas desde `--bp-lg` (≥ 1024 px) | v1-soft-commerce pide 4 columnas desde `--bp-lg`; las tiendas de referencia con columna lateral (Zalando, ASOS) muestran 3 | La columna lateral (256 px y 32 px de separación) deja a 1280 px unos 864 px útiles: 4 columnas darían tarjetas de ≈ 200 px, con títulos y precios apretados. Decisión del usuario, 2026-10-16 | Tarjetas de ≈ 280 px legibles y con imagen suficiente. Reversible: cambiar una clase de la rejilla (`CatalogView`) |
 
 Referencia completa en `SPEC-002-filtros-catalogo.md` y
 `ADR-005-filtros-progressive-enhancement.md`.
