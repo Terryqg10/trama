@@ -202,3 +202,13 @@ T-005b no cambian. Las tareas nuevas siguen desde T-027.
 
 Las fases ordenan el trabajo por dependencias (el carrito necesita la ficha, el checkout necesita
 carrito y cuenta, el panel admin necesita pedidos y productos). Una tarea por sesión.
+
+### Enmienda 2 — 2026-10-16 — sin ADR — T-012 absorbida por T-026
+
+**Origen:** T-012 (indicador de carga al navegar al catálogo) lleva abierta sin criterios de
+aceptación desde que se quitó `loading.tsx` (ADR-006). Es rendimiento percibido y con datos locales
+no se aprecia.
+
+**Qué cambia:** T-012 pasa a `absorbida` y su alcance se evalúa dentro de **T-026** (accesibilidad,
+movimiento y rendimiento), con latencias reales del despliegue. Si T-026 concluye que no hace falta,
+queda descartada. No cambia ningún CA.
