@@ -353,5 +353,24 @@ concreta sin cambiar el alcance. No se registra ADR: no hay alternativas de cost
 
 **Nuevas tareas derivadas:** T-014 (pase de pulido visual).
 
+### Enmienda 8 — 2026-10-16 — sin ADR
+
+**Origen:** la revisión visual de T-014 (hallazgos 5 y 6) detectó dos desajustes del listado del
+catálogo: la primera imagen de producto, que es la mayor del contenido visible, se carga en
+diferido (el aviso de LCP de Next en desarrollo), y la rejilla de tarjetas no sigue la regla del
+estilo `v1-soft-commerce` (2 columnas hasta `--bp-md` y 3 desde `--bp-md`; hoy son 2 columnas
+hasta 1023 px). RF-01 y RF-14 piden el listado pero no su carga ni su rejilla. Se concretan sin
+cambiar el alcance. No se registra ADR: no hay alternativas de coste alto de revertir.
+
+**Qué cambia:** se añaden dos criterios de aceptación. Ningún RF cambia.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-53 | RF-01 | Un usuario | Carga un listado del catálogo (/hombre, /mujer, /novedades) | La primera imagen de producto se carga con prioridad (no en diferido) y el navegador no avisa de LCP sin prioridad | test e2e `catalog-lcp`: la primera imagen no tiene `loading="lazy"` y lleva `fetchpriority="high"`; sin aviso de LCP en consola |
+| CA-54 | RF-01 | Un usuario | Carga un listado del catálogo a 768 y 1023 px | El listado muestra 3 columnas de tarjetas (2 por debajo de 768 px) | test e2e `catalog-grid-columns`: nº de columnas por geometría a 375, 768 y 1023 px |
+
+**Nuevas tareas derivadas:** T-015 (imagen LCP con prioridad) y T-016 (rejilla del listado según
+el estilo). El número de columnas con la columna lateral (≥ 1024 px) queda por decidir en T-016.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
