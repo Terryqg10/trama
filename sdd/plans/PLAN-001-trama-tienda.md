@@ -229,3 +229,20 @@ una sola tarea atómica.
 
 Se usan los dos primeros números libres de la Enmienda 1. Las tareas nuevas siguen desde T-029. Los CA
 no cambian.
+
+### Enmienda 4 — 2026-10-16 — sin ADR — T-018 dividida: carrito de invitado y carrito de la cuenta
+
+**Origen:** T-018 agrupaba el carrito de invitado en el navegador (CA-05, CA-28, más la interfaz) y el
+carrito de la cuenta con fusión al iniciar sesión (CA-04, base de datos y RLS). Son dos capas
+distintas y no caben en una sola tarea atómica. El usuario eligió dividirla y guardar el carrito del
+invitado en `localStorage` (RF-03: «persiste en el navegador»).
+
+**Qué cambia:**
+
+| Tarea | Resumen | CA |
+|---|---|---|
+| T-018 | Carrito de invitado: lógica de importes y stock, botón «Añadir» en la ficha, página del carrito y envío gratis desde 50 € | CA-05, CA-28, CA-29 (carrito), CA-60, CA-61, CA-62 |
+| **T-031** | Carrito de la cuenta en BD y fusión con el de invitado al iniciar sesión | CA-04 |
+
+T-031 depende de T-017 y de T-018. Los números de la Enmienda 1 no cambian; las tareas nuevas siguen
+desde T-032.

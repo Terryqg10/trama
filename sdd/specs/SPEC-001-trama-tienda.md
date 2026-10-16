@@ -448,5 +448,25 @@ la cubre (CA-06 y CA-07 solo cubren registro e inicio de sesión). Sin CA no hay
 
 **Nuevas tareas derivadas:** ninguna; CA-59 entra en T-017.
 
+### Enmienda 14 — 2026-10-16 — sin ADR — CA-60 a CA-62 del carrito de invitado
+
+**Origen:** al crear T-018 se comprobó que RF-03 pide añadir, cambiar la cantidad, quitar y persistir
+en el navegador, pero los CA existentes (CA-04, CA-05 y CA-28) solo cubren la fusión, el tope por
+stock y el envío gratis. Tampoco hay CA para la línea cuyo producto se retiró, caso límite de la
+sección 5. Sin CA no hay tarea ni prueba.
+
+**Qué cambia:** se añaden tres criterios de aceptación. RF-03, RF-15, CA-04, CA-05 y CA-28 no
+cambian. CA-29 (bloque de envío y devolución) pasa a cumplirse también en el carrito, que hasta
+ahora no lo mostraba.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-60 | RF-03 | Una ficha con color y talla elegidos y con stock | Se pulsa «Añadir al carrito» | La línea aparece en el carrito con cantidad 1; si esa variante ya estaba, la cantidad sube en 1 sin pasar del stock | test e2e `cart-add` |
+| CA-61 | RF-03 | Un invitado con líneas en el carrito | Recarga la página, cambia una cantidad o quita una línea | Las líneas siguen ahí tras recargar; subtotal, envío y total se recalculan con cada cambio | test e2e `cart-persist-edit` |
+| CA-62 | RF-03 | Un invitado con una línea cuya variante ya no existe o cuyo producto está retirado | Abre el carrito | Esa línea se avisa como no disponible, no cuenta en los totales y se puede quitar | test de componente `cart-unavailable-line` |
+
+**Nuevas tareas derivadas:** ninguna por esta enmienda; CA-60 a CA-62 entran en T-018. La fusión con el
+carrito de la cuenta (CA-04) pasa a T-031 por la Enmienda 4 del plan.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
