@@ -68,6 +68,41 @@ test.describe('CA-03: el chip se aplica al clic, sin recargar', () => {
   });
 });
 
+test.describe('CA-10: «Ordenar por» se aplica al cambiar, sin recargar', () => {
+  test('ordena por precio y cambia la URL sin recargar el documento', async ({ page }) => {
+    await open(page, '/mujer');
+    await page.evaluate(() => {
+      (window as unknown as { __sinRecarga?: boolean }).__sinRecarga = true;
+    });
+
+    await panel(page).locator('select[name="orden"]').selectOption('precio-asc');
+
+    await expect(page).toHaveURL(/orden=precio-asc/);
+    await expect
+      .poll(async () => {
+        const prices = await page.locator('article').evaluateAll((cards) =>
+          cards.map((card) => {
+            const match = /(\d+),(\d{2})\s*€/.exec(card.textContent ?? '');
+            return match ? Number(match[1]) * 100 + Number(match[2]) : Number.NaN;
+          }),
+        );
+        return prices.length > 1 && prices.every((p, i) => i === 0 || p >= (prices[i - 1] ?? 0));
+      })
+      .toBe(true);
+    const marca = await page.evaluate(
+      () => (window as unknown as { __sinRecarga?: boolean }).__sinRecarga,
+    );
+    expect(marca, 'el documento no se ha recargado').toBe(true);
+  });
+
+  test('conserva los chips activos al cambiar el orden', async ({ page }) => {
+    await open(page, '/mujer?categoria=blusas');
+    await panel(page).locator('select[name="orden"]').selectOption('precio-desc');
+    await expect(page).toHaveURL(/categoria=blusas/);
+    await expect(page).toHaveURL(/orden=precio-desc/);
+  });
+});
+
 test.describe('CA-04: el precio no se aplica hasta pulsar «Aplicar»', () => {
   test('escribir y salir del campo no cambia la URL; Enter sí la aplica', async ({ page }) => {
     await open(page, '/mujer');

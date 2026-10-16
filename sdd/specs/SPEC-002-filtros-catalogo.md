@@ -114,3 +114,24 @@ y que `loading.tsx` impide ver el catálogo sin JavaScript.
   y atenuación del panel mientras dura el filtrado; sin esqueleto de ruta».
 - El mecanismo previsto en ADR-005 (`requestSubmit()`) pasa a navegación blanda (`router.push`),
   como exige CA-03 («sin recargar»). RF y CA no cambian.
+
+### Enmienda 2 — 2026-10-16 — sin ADR
+
+**Origen:** al cerrar T-009 quedaron dos puntos abiertos: RF-01 y RF-02 dejaban sin definir
+el panel entre 768 y 1023 px, y el selector «Ordenar por» exigía «Aplicar filtros»
+(RF-03 solo habla de chips). Se concretan sin cambiar el alcance. No se registra ADR:
+no hay alternativas de coste alto de revertir.
+
+**Qué cambia:**
+
+- **RF-02:** el drawer se usa por debajo de `--bp-lg` (< 1024 px), no de `--bp-md`. Así
+  tablet tiene siempre un panel de filtros (la columna lateral de RF-01 empieza en `--bp-lg`).
+- **RF-03:** además de los chips, el selector «Ordenar por» se aplica al cambiar. Los campos de
+  precio siguen requiriendo «Aplicar» (RF-04).
+- Se añade el criterio CA-10. CA-02 se verifica a 375 px y, además, a 768 px.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-10 | RF-03 | Un usuario con JS activo | Cambia «Ordenar por» a «Precio: de menor a mayor» | El listado se reordena sin recargar y la URL lleva `orden=precio-asc` | Test e2e: `selectOption` + esperar URL y orden de precios; marca en `window` sigue presente |
+
+**Nuevas tareas derivadas:** T-010 (Ordenar por al cambiar y drawer en tablet).

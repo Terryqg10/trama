@@ -64,6 +64,32 @@ test.describe('CA-02: el botón «Filtros» abre un drawer a pantalla completa',
   });
 });
 
+test.describe('CA-02 en tablet: por debajo de --bp-lg también hay drawer', () => {
+  for (const width of [768, 1023]) {
+    test(`a ${width} px el botón abre el drawer y no hay columna lateral`, async ({ page }) => {
+      await open(page, '/mujer', width);
+      await expect(page.locator('[data-testid="filters-sidebar"]')).toBeHidden();
+      await trigger(page).click();
+      await expect(drawer(page)).toBeVisible();
+      await expect(drawer(page)).toHaveAttribute('aria-modal', 'true');
+    });
+  }
+
+  test('a 1024 px aparece la columna lateral y desaparece el botón', async ({ page }) => {
+    await open(page, '/mujer', 1024);
+    await expect(page.locator('[data-testid="filters-sidebar"]')).toBeVisible();
+    await expect(trigger(page)).toBeHidden();
+  });
+
+  test('«Ordenar por» se aplica al cambiar y el drawer sigue abierto', async ({ page }) => {
+    await open(page, '/mujer');
+    await trigger(page).click();
+    await drawer(page).locator('select[name="orden"]').selectOption('precio-desc');
+    await expect(page).toHaveURL(/orden=precio-desc/);
+    await expect(drawer(page)).toBeVisible();
+  });
+});
+
 test.describe('cierre, foco y teclado', () => {
   test('Esc cierra el drawer y el foco vuelve al botón «Filtros»', async ({ page }) => {
     await open(page, '/mujer');

@@ -7,8 +7,9 @@ import { useEffect, useRef, useTransition, type FormEvent, type ReactNode } from
 /**
  * Mejora progresiva del formulario de filtros (ADR-006). El `<form method="get">` lo
  * pinta el servidor y funciona sin JavaScript. Con JavaScript:
- * - un chip (radio) se aplica al instante, sin recargar el documento (RF-03);
- * - los campos de precio y el orden solo se aplican con «Aplicar filtros» o Enter (RF-04);
+ * - un chip (radio) y el selector «Ordenar por» se aplican al instante, sin recargar el
+ *   documento (RF-03, Enmienda 2 de SPEC-002);
+ * - los campos de precio solo se aplican con «Aplicar filtros» o Enter (RF-04);
  * - los controles se sincronizan con la URL tras cada navegación («Limpiar», «Atrás»).
  */
 export function FilterChips({
@@ -40,9 +41,9 @@ export function FilterChips({
 
   function onChange(event: FormEvent<HTMLFormElement>): void {
     const target = event.target;
-    if (target instanceof HTMLInputElement && target.type === 'radio') {
-      apply(event.currentTarget);
-    }
+    const isChip = target instanceof HTMLInputElement && target.type === 'radio';
+    const isSort = target instanceof HTMLSelectElement && target.name === 'orden';
+    if (isChip || isSort) apply(event.currentTarget);
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>): void {
