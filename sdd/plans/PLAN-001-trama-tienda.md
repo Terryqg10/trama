@@ -169,7 +169,7 @@ es un cambio de numeración, sin alternativas de coste alto de revertir.
 
 **Regla:** donde un documento anterior (plan §9, enmiendas de SPEC-001) cite una de las tareas de la
 columna «Número en el plan §9», se entiende la de la columna «Número vigente». T-003c, T-003d y
-T-005b no cambian. Las tareas nuevas siguen desde T-027.
+T-005b no cambian. Las tareas nuevas siguen desde T-029 (T-027 y T-028 las usa la Enmienda 3).
 
 **Tareas ya hechas con los números reservados (no cambian):**
 
@@ -212,3 +212,20 @@ no se aprecia.
 **Qué cambia:** T-012 pasa a `absorbida` y su alcance se evalúa dentro de **T-026** (accesibilidad,
 movimiento y rendimiento), con latencias reales del despliegue. Si T-026 concluye que no hace falta,
 queda descartada. No cambia ningún CA.
+
+### Enmienda 3 — 2026-10-16 — sin ADR — T-005b dividida en tres tareas
+
+**Origen:** T-005b agrupaba la ficha de producto, la guía de tallas y los datos de ajuste (CA-03,
+CA-31 y CA-33; RF-02, RF-18 y RF-20). Son tres temas con datos y pantallas distintos y no caben en
+una sola tarea atómica.
+
+**Qué cambia:**
+
+| Tarea | Resumen | CA |
+|---|---|---|
+| T-005b | Ficha de producto y tarjetas del listado enlazadas (sin botón «Añadir» hasta T-018) | CA-03 |
+| **T-027** | Guía de tallas accesible desde la ficha | CA-31 |
+| **T-028** | Datos de ajuste en la ficha: modelo, composición y cuidados | CA-33 |
+
+Se usan los dos primeros números libres de la Enmienda 1. Las tareas nuevas siguen desde T-029. Los CA
+no cambian.
