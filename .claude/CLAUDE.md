@@ -98,5 +98,7 @@ si alguna puerta falla.
 - `rules/scripts.md` — cross-platform, Windows.
 - `rules/ui-decisions.md` — convención del sector y cómo justificar
   apartarse de ella.
+- `rules/process.md` — no te adelantes: pregunta si dudas, no hagas más
+  de lo pedido, revisa antes de cada commit.
 
 Léelas cuando la tarea las toque. No las repitas en la respuesta; cítalas.
