@@ -12,7 +12,7 @@ palette:
 deploy: vercel
 status: aprobada
 created: 2026-10-12
-updated: 2026-10-12
+updated: 2026-10-16
 ---
 
 # PLAN-001 — Trama: tienda e-commerce de ropa
@@ -156,3 +156,49 @@ historial de precios; al no editarse un ADR aceptado, esa referencia pasa a ser 
 | T-011 | Accesibilidad, movimiento y rendimiento | CA-21, CA-22 |
 
 Las tareas T-002 en adelante se crean con `/new-task` cuando toque.
+
+## 10. Enmiendas
+
+### Enmienda 1 — 2026-10-16 — sin ADR — numeración de tareas y fases
+
+**Origen:** el §9 reservó los números T-006 a T-011 para Auth, Carrito, Checkout, Historial,
+Panel admin y Accesibilidad. Esos números se usaron después para el rediseño de filtros (SPEC-002),
+el menú móvil y el pulido visual (T-006 a T-016). Los archivos, las reviews y los commits de esas
+tareas ya existen y no se renombran. Se resuelve con una tabla de equivalencias. No se registra ADR:
+es un cambio de numeración, sin alternativas de coste alto de revertir.
+
+**Regla:** donde un documento anterior (plan §9, enmiendas de SPEC-001) cite una de las tareas de la
+columna «Número en el plan §9», se entiende la de la columna «Número vigente». T-003c, T-003d y
+T-005b no cambian. Las tareas nuevas siguen desde T-027.
+
+**Tareas ya hechas con los números reservados (no cambian):**
+
+| Número | Qué es en realidad | Spec |
+|---|---|---|
+| T-006 a T-011 | Filtros: parámetros, columna lateral, chips al clic, drawer, orden, hash | SPEC-002 |
+| T-012 | Indicador de carga al navegar al catálogo (pendiente, sin CA) | — |
+| T-013 | Menú móvil a pantalla completa | SPEC-001, Enmienda 6 |
+| T-014 | Pulido visual: chevrón del select | SPEC-001, Enmienda 7 |
+| T-015 | Imagen LCP con prioridad | SPEC-001, Enmiendas 8 y 10 |
+| T-016 | Rejilla del listado | SPEC-001, Enmiendas 8 y 9 |
+
+**Equivalencias y fases del trabajo que queda:**
+
+| Fase | Número en el plan §9 | Número vigente | Resumen | CA |
+|---|---|---|---|---|
+| 1. Catálogo completo | T-005b | T-005b | Ficha de producto, guía de tallas y datos de ajuste | CA-03, CA-31, CA-33 |
+| 2. Cuenta y carrito | T-006 | **T-017** | Auth y perfil | CA-06 a CA-08 |
+| 2. Cuenta y carrito | T-007 | **T-018** | Carrito con umbral de envío gratis (50 €) | CA-04, CA-05, CA-28 |
+| 3. Compra | T-008 | **T-019** | Checkout, reserva y webhook | CA-09 a CA-13, CA-18, CA-19 |
+| 3. Compra | T-009 | **T-020** | Historial de pedidos | CA-14 |
+| 4. Panel admin | T-003d | T-003d | Esquema de `shop_settings` y `role_audit_log` con RLS | CA-36, CA-39 |
+| 4. Panel admin | T-010a | **T-021** | Productos, variantes, imágenes y stock | CA-15, CA-16 |
+| 4. Panel admin | T-010b | **T-022** | Pedidos y transiciones de estado | CA-17 |
+| 4. Panel admin | T-010c | **T-023** | Guías de tallas y ajustes de envío | CA-35, CA-37, CA-38 |
+| 4. Panel admin | T-010d | **T-024** | Usuarios y roles, con auditoría | CA-40 a CA-43 |
+| 5. Cierre | T-011 | **T-026** | Accesibilidad, movimiento y rendimiento | CA-21, CA-22 |
+| 5. Cierre (bloqueado) | T-003c | T-003c | Precio de referencia e historial (previo ADR-004 y verificación legal) | CA-30 |
+| 5. Cierre (bloqueado) | T-010e | **T-025** | Panel admin: precio de referencia | CA-44 |
+
+Las fases ordenan el trabajo por dependencias (el carrito necesita la ficha, el checkout necesita
+carrito y cuenta, el panel admin necesita pedidos y productos). Una tarea por sesión.
