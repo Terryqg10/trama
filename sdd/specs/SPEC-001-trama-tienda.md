@@ -317,5 +317,25 @@ cambian.
 
 **Nuevas tareas derivadas:** ninguna (se aplica en T-008).
 
+### Enmienda 6 — 2026-10-16 — sin ADR
+
+**Origen:** el menú móvil se despliega como un dropdown bajo la cabecera. En e-commerce móvil la
+convención es un overlay a pantalla completa que bloquea el fondo (`rules/ui-decisions.md`).
+RF-13 pide navegación definida pero no dice cómo se presenta en móvil. Se concreta sin cambiar
+el alcance. No se registra ADR: no hay alternativas de coste alto de revertir.
+
+**Qué cambia:** se añaden cinco criterios de aceptación. RF-13 no cambia. Los ids son CA-46 a
+CA-50; no pueden ser CA-12 a CA-16, que ya existen en esta spec.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-46 | RF-13 | Un usuario en móvil (< `--bp-md`) | Pulsa el icono de menú | Se abre un overlay a 100dvh y el fondo no se desplaza | test e2e `mobile-menu` a 375 px: overlay con la altura del viewport, `body` con `overflow: hidden` |
+| CA-47 | RF-13 | Overlay abierto | Pulsa Esc | Se cierra y el foco vuelve al icono de menú | test e2e `mobile-menu` |
+| CA-48 | RF-13 | Overlay abierto | Navega con Tab y Mayús+Tab | El foco no sale del overlay | test e2e `mobile-menu` |
+| CA-49 | RF-13 | Un usuario sin JavaScript | Carga la página con `#menu-movil` | El overlay está abierto (CSS `:target`) | test e2e `mobile-menu` con `javaScriptEnabled: false` |
+| CA-50 | RF-13 | Un usuario en escritorio (≥ `--bp-md`) | Carga la página | El menú es horizontal en la cabecera, sin overlay ni icono de menú | test e2e `mobile-menu` a 1280 px |
+
+**Nuevas tareas derivadas:** T-013 (menú móvil a pantalla completa).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
