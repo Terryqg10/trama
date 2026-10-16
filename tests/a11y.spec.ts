@@ -68,7 +68,7 @@ test.describe('accesibilidad', () => {
   test('el menú móvil abierto no tiene violaciones graves', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
     await page.goto('/');
-    await page.getByRole('button', { name: 'Abrir menú' }).click();
+    await page.getByRole('link', { name: 'Abrir menú' }).click();
     const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
     const serious = results.violations.filter(
       (v) => v.impact === 'serious' || v.impact === 'critical',

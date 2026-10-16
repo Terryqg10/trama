@@ -1,41 +1,19 @@
 'use client';
 
 import { SlidersHorizontal, X } from 'lucide-react';
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type KeyboardEvent,
-  type MouseEvent,
-  type ReactNode,
-} from 'react';
+import { useRef, type ReactNode } from 'react';
+import { useHashOverlay } from '../useHashOverlay';
 
 const DRAWER_ID = 'filtros-movil';
-
-// Estado del navegador leído como almacén externo: en el servidor no hay hash ni montaje.
-function subscribeHash(callback: () => void): () => void {
-  window.addEventListener('hashchange', callback);
-  return () => window.removeEventListener('hashchange', callback);
-}
-const hashIsDrawer = (): boolean => window.location.hash === `#${DRAWER_ID}`;
-const noSubscription = (): (() => void) => () => undefined;
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])';
 
 /**
  * Drawer de filtros a pantalla completa para móvil y tablet (SPEC-002 RF-02, RF-05).
  *
  * Mejora progresiva (ADR-006): el botón es un enlace a `#filtros-movil` y el panel se
  * muestra con `:target`, así que sin JavaScript también se abre y se cierra. Con
- * JavaScript se gestiona por estado: Esc cierra, el foco queda atrapado dentro, se
- * bloquea el scroll de fondo y el foco vuelve al botón. No hay animación: el cambio es
- * instantáneo, así que `prefers-reduced-motion` ya queda cubierto.
- *
- * El hash (SPEC-002, Enmienda 3): con JavaScript, entrar con `#filtros-movil` abre el
- * drawer al montar y cerrarlo limpia el hash. Una vez montado, el CSS `:target` deja de
- * usarse: `history.replaceState` no actualiza `:target`, y el panel no se cerraría.
+ * JavaScript lo gestiona `useHashOverlay` (hash de entrada, Esc, foco, scroll de fondo).
+ * No hay animación: el cambio es instantáneo, así que `prefers-reduced-motion` ya queda
+ * cubierto. Hash y `:target`: SPEC-002, Enmienda 3.
  */
 export function FiltersDrawer({
   activeCount,
@@ -44,89 +22,14 @@ export function FiltersDrawer({
   readonly activeCount: number;
   readonly children: ReactNode;
 }) {
-  // Se abre a mano (botón) o porque la URL trae el hash (`#filtros-movil`).
-  const [manualOpen, setManualOpen] = useState(false);
-  const hashOpen = useSyncExternalStore(subscribeHash, hashIsDrawer, () => false);
-  const open = manualOpen || hashOpen;
-  // `false` en el servidor y al hidratar; `true` en el cliente ya montado.
-  const mounted = useSyncExternalStore(noSubscription, () => true, () => false);
   const triggerRef = useRef<HTMLAnchorElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLAnchorElement>(null);
-  const wasOpen = useRef(false);
-
-  function close(): void {
-    if (hashIsDrawer()) {
-      // Se conserva `history.state`: ahí guarda su estado el enrutador de Next.
-      window.history.replaceState(
-        window.history.state,
-        '',
-        `${window.location.pathname}${window.location.search}`,
-      );
-      // `replaceState` no avisa del cambio: se emite a mano para que se relea el hash.
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
-    }
-    setManualOpen(false);
-  }
-
-  // Foco al abrir (en el botón de cerrar) y al cerrar (de vuelta al botón «Filtros»).
-  useEffect(() => {
-    if (open) {
-      wasOpen.current = true;
-      closeRef.current?.focus();
-    } else if (wasOpen.current) {
-      wasOpen.current = false;
-      triggerRef.current?.focus();
-    }
-  }, [open]);
-
-  // Sin scroll de fondo mientras el drawer está abierto.
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
-
-  // Si la pantalla crece hasta el escritorio, aparece la columna lateral: se cierra el drawer.
-  useEffect(() => {
-    if (!open) return;
-    const width = getComputedStyle(document.documentElement).getPropertyValue('--bp-lg').trim();
-    if (!width) return;
-    const query = window.matchMedia(`(min-width: ${width})`);
-    const onChange = (event: MediaQueryListEvent): void => {
-      if (event.matches) close();
-    };
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, [open]);
-
-  function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      close();
-    }
-  }
-
-  // Trampa de foco con dos centinelas (a la entrada y a la salida del drawer). No se mide
-  // el primer y el último elemento: en Safari los enlaces no se alcanzan con Tab, así que el
-  // «último» podría no ser el último tabulable.
-  function focusEdge(edge: 'first' | 'last'): void {
-    const items = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
-    const target = edge === 'first' ? items[0] : items[items.length - 1];
-    target?.focus();
-  }
-
-  // «Limpiar» (enlace) y el envío con «Aplicar filtros» cierran el drawer para ver el
-  // resultado; los chips y los campos no.
-  function onClick(event: MouseEvent<HTMLDivElement>): void {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const link = target.closest('a[href]');
-    if (link && link !== closeRef.current && drawerRef.current?.contains(link)) close();
-  }
+  const overlay = useHashOverlay(DRAWER_ID, '--bp-lg', {
+    trigger: triggerRef,
+    overlay: drawerRef,
+    close: closeRef,
+  });
 
   return (
     <div className="lg:hidden">
@@ -135,10 +38,10 @@ export function FiltersDrawer({
         href={`#${DRAWER_ID}`}
         data-testid="filters-open"
         aria-haspopup="dialog"
-        aria-expanded={open}
+        aria-expanded={overlay.open}
         onClick={(event) => {
           event.preventDefault();
-          setManualOpen(true);
+          overlay.openOverlay();
         }}
         className="inline-flex min-h-11 items-center gap-2 rounded-control border border-border-strong bg-surface px-4 text-sm font-semibold text-fg hover:bg-accent-soft"
       >
@@ -161,18 +64,18 @@ export function FiltersDrawer({
         aria-modal="true"
         aria-labelledby="filters-drawer-title"
         data-testid="filters-drawer"
-        onKeyDown={onKeyDown}
-        onClick={onClick}
-        onSubmit={close}
+        onKeyDown={overlay.onKeyDown}
+        onClick={overlay.onClick}
+        onSubmit={overlay.close}
         className={
-          open
+          overlay.open
             ? 'fixed inset-0 z-50 flex flex-col bg-bg'
-            : mounted
+            : overlay.mounted
               ? 'hidden'
               : 'hidden target:fixed target:inset-0 target:z-50 target:flex target:flex-col target:bg-bg'
         }
       >
-        <span tabIndex={0} onFocus={() => focusEdge('last')} data-focus-guard="start" />
+        <span tabIndex={0} onFocus={() => overlay.focusEdge('last')} data-focus-guard="start" />
         <div className="flex min-h-14 shrink-0 items-center justify-between border-b border-border bg-surface px-5">
           <div className="flex items-center gap-3">
             <h2 id="filters-drawer-title" className="text-base font-semibold text-fg">
@@ -189,12 +92,12 @@ export function FiltersDrawer({
           </div>
           <a
             ref={closeRef}
-            href="#"
+            href="#cerrar-filtros"
             aria-label="Cerrar filtros"
             data-testid="filters-close"
             onClick={(event) => {
               event.preventDefault();
-              close();
+              overlay.close();
             }}
             className="inline-flex size-11 items-center justify-center rounded-control text-fg hover:bg-accent-soft"
           >
@@ -202,7 +105,7 @@ export function FiltersDrawer({
           </a>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto bg-surface">{children}</div>
-        <span tabIndex={0} onFocus={() => focusEdge('first')} data-focus-guard="end" />
+        <span tabIndex={0} onFocus={() => overlay.focusEdge('first')} data-focus-guard="end" />
       </div>
     </div>
   );

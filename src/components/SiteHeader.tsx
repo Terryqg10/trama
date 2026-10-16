@@ -2,10 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Menu, ShoppingBag, User, X } from 'lucide-react';
 import { ACTION_NAV, MAIN_NAV } from '@/lib/domain/navigation';
 import { Logo } from './Logo';
+import { useHashOverlay } from './useHashOverlay';
+
+const MENU_ID = 'menu-movil';
 
 const linkBase =
   'inline-flex min-h-11 items-center rounded-control px-4 text-sm font-medium';
@@ -14,43 +17,37 @@ const linkCurrent = 'bg-accent-soft text-accent-text';
 const iconButton =
   'inline-flex min-h-11 min-w-11 items-center justify-center rounded-control text-fg hover:bg-accent-soft hover:text-accent-text';
 
+/** Enlaces del menú a pantalla completa: tipografía grande (≥ 20 px) y áreas amplias. */
+const overlayLinkBase =
+  'flex min-h-14 w-full items-center rounded-control px-4 text-xl font-semibold';
+
+/**
+ * Cabecera. En escritorio (≥ `--bp-md`) el menú es horizontal. En móvil es un overlay a
+ * pantalla completa (SPEC-001, Enmienda 6): mejora progresiva con `#menu-movil` y `:target`
+ * sin JavaScript; con JavaScript lo gestiona `useHashOverlay` (hash de entrada, Esc, foco,
+ * scroll de fondo). Sin animación: `prefers-reduced-motion` ya queda cubierto.
+ */
 export function SiteHeader() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
-  const toggleRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setOpen(false);
-        toggleRef.current?.focus();
-      }
-    }
-
-    function onPointerDown(event: MouseEvent) {
-      const target = event.target;
-      if (target instanceof Node && !headerRef.current?.contains(target)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('mousedown', onPointerDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('mousedown', onPointerDown);
-    };
-  }, [open]);
+  const triggerRef = useRef<HTMLAnchorElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLAnchorElement>(null);
+  const overlay = useHashOverlay(MENU_ID, '--bp-md', {
+    trigger: triggerRef,
+    overlay: menuRef,
+    close: closeRef,
+  });
 
   function itemClass(href: string): string {
     return `${linkBase} ${pathname === href ? linkCurrent : linkIdle}`;
   }
 
+  function overlayItemClass(href: string): string {
+    return `${overlayLinkBase} ${pathname === href ? linkCurrent : linkIdle}`;
+  }
+
   return (
-    <header ref={headerRef} className="border-b border-border bg-surface">
+    <header className="border-b border-border bg-surface">
       <div className="mx-auto flex min-h-(--nav-height) max-w-(--layout-container) items-center gap-2 px-(--layout-gutter)">
         <Logo />
 
@@ -74,42 +71,95 @@ export function SiteHeader() {
           <Link href={ACTION_NAV.cart.href} aria-label={ACTION_NAV.cart.label} className={iconButton}>
             <ShoppingBag aria-hidden="true" />
           </Link>
-          <button
-            ref={toggleRef}
-            type="button"
+          <a
+            ref={triggerRef}
+            href={`#${MENU_ID}`}
+            data-testid="menu-open"
+            aria-haspopup="dialog"
+            aria-expanded={overlay.open}
+            aria-label="Abrir menú"
+            onClick={(event) => {
+              event.preventDefault();
+              overlay.openOverlay();
+            }}
             className={`${iconButton} md:hidden`}
-            aria-expanded={open}
-            aria-controls="menu-movil"
-            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-            onClick={() => setOpen((value) => !value)}
           >
-            {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
-          </button>
+            <Menu aria-hidden="true" />
+          </a>
         </div>
       </div>
 
-      {open ? (
-        <nav
-          id="menu-movil"
-          aria-label="Menú móvil"
-          className="border-t border-border bg-surface md:hidden"
+      <div className="md:hidden">
+        <div
+          ref={menuRef}
+          id={MENU_ID}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menú"
+          data-testid="menu-overlay"
+          onKeyDown={overlay.onKeyDown}
+          onClick={overlay.onClick}
+          className={
+            overlay.open
+              ? 'fixed inset-0 z-50 flex h-dvh flex-col bg-surface'
+              : overlay.mounted
+                ? 'hidden'
+                : 'hidden target:fixed target:inset-0 target:z-50 target:flex target:h-dvh target:flex-col target:bg-surface'
+          }
         >
-          <ul className="mx-auto flex max-w-(--layout-container) flex-col gap-1 px-(--layout-gutter) py-3">
-            {MAIN_NAV.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  aria-current={pathname === item.href ? 'page' : undefined}
-                  className={`${itemClass(item.href)} w-full`}
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      ) : null}
+          <span tabIndex={0} onFocus={() => overlay.focusEdge('last')} data-focus-guard="start" />
+          <div className="flex min-h-(--nav-height) shrink-0 items-center justify-between border-b border-border px-(--layout-gutter)">
+            <Logo />
+            <a
+              ref={closeRef}
+              href="#cerrar-menu"
+              aria-label="Cerrar menú"
+              data-testid="menu-close"
+              onClick={(event) => {
+                event.preventDefault();
+                overlay.close();
+              }}
+              className={iconButton}
+            >
+              <X aria-hidden="true" />
+            </a>
+          </div>
+
+          <nav aria-label="Menú móvil" className="min-h-0 flex-1 overflow-y-auto px-(--layout-gutter) py-6">
+            <ul className="flex flex-col gap-2">
+              {MAIN_NAV.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={pathname === item.href ? 'page' : undefined}
+                    className={overlayItemClass(item.href)}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="flex shrink-0 gap-3 border-t border-border px-(--layout-gutter) py-4">
+            <Link
+              href={ACTION_NAV.account.href}
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-control border border-border-strong bg-surface text-sm font-semibold text-fg hover:bg-accent-soft"
+            >
+              <User aria-hidden="true" className="size-5" />
+              {ACTION_NAV.account.label}
+            </Link>
+            <Link
+              href={ACTION_NAV.cart.href}
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-control border border-border-strong bg-surface text-sm font-semibold text-fg hover:bg-accent-soft"
+            >
+              <ShoppingBag aria-hidden="true" className="size-5" />
+              {ACTION_NAV.cart.label}
+            </Link>
+          </div>
+          <span tabIndex={0} onFocus={() => overlay.focusEdge('first')} data-focus-guard="end" />
+        </div>
+      </div>
     </header>
   );
 }

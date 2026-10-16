@@ -73,9 +73,9 @@ test.describe('cabecera en escritorio', () => {
 test.describe('menú móvil', () => {
   test.use({ viewport: { width: 390, height: 800 } });
 
-  test('se abre, se cierra con Escape y devuelve el foco al botón', async ({ page }) => {
+  test('se abre, se cierra con Escape y devuelve el foco al icono de menú', async ({ page }) => {
     await page.goto('/');
-    const toggle = page.getByRole('button', { name: 'Abrir menú' });
+    const toggle = page.getByRole('link', { name: 'Abrir menú' });
     await toggle.click();
     const menu = page.getByRole('navigation', { name: 'Menú móvil' });
     await expect(menu).toBeVisible();
@@ -84,21 +84,21 @@ test.describe('menú móvil', () => {
     }
     await page.keyboard.press('Escape');
     await expect(menu).toBeHidden();
-    await expect(page.getByRole('button', { name: 'Abrir menú' })).toBeFocused();
+    await expect(page.getByRole('link', { name: 'Abrir menú' })).toBeFocused();
   });
 
-  test('se cierra al hacer clic fuera', async ({ page }) => {
+  test('se cierra con el botón de cerrar', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Abrir menú' }).click();
+    await page.getByRole('link', { name: 'Abrir menú' }).click();
     const menu = page.getByRole('navigation', { name: 'Menú móvil' });
     await expect(menu).toBeVisible();
-    await page.locator('main').click({ position: { x: 5, y: 200 } });
+    await page.getByRole('link', { name: 'Cerrar menú' }).click();
     await expect(menu).toBeHidden();
   });
 
   test('se cierra al elegir un enlace y navega', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Abrir menú' }).click();
+    await page.getByRole('link', { name: 'Abrir menú' }).click();
     await page.getByRole('navigation', { name: 'Menú móvil' }).getByRole('link', { name: 'Ofertas' }).click();
     await expect(page).toHaveURL(/\/ofertas$/);
     await expect(page.getByRole('navigation', { name: 'Menú móvil' })).toBeHidden();
