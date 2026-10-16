@@ -126,6 +126,24 @@ function FilterForm({
 }: CatalogFiltersProps & { readonly testId: string; readonly footerSticky?: boolean }) {
   const genderOptions: Option[] = GENDERS.map((g: Gender) => ({ value: g, label: capitalize(g) }));
 
+  const buttonLayout = footerSticky ? ' flex-1 justify-center' : '';
+  const applyButton = (
+    <button
+      type="submit"
+      className={`inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover${buttonLayout}`}
+    >
+      Aplicar filtros
+    </button>
+  );
+  const clearLink = (
+    <Link
+      href={clearHref(basePath, filters.sort)}
+      className={`inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface px-6 text-sm font-semibold text-fg hover:bg-accent-soft${buttonLayout}`}
+    >
+      Limpiar
+    </Link>
+  );
+
   return (
     <FilterChips
       action={basePath}
@@ -207,18 +225,10 @@ function FilterForm({
             : 'flex flex-wrap gap-3'
         }
       >
-        <button
-          type="submit"
-          className="inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
-        >
-          Aplicar filtros
-        </button>
-        <Link
-          href={clearHref(basePath, filters.sort)}
-          className="inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface px-6 text-sm font-semibold text-fg hover:bg-accent-soft"
-        >
-          Limpiar
-        </Link>
+        {/* Pie del drawer (estilo v1): Limpiar a la izquierda y Aplicar a la derecha. El orden del
+            DOM es el visual, así que la tabulación coincide con lo que se ve. */}
+        {footerSticky ? clearLink : applyButton}
+        {footerSticky ? applyButton : clearLink}
       </div>
     </FilterChips>
   );

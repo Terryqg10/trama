@@ -1,9 +1,25 @@
 'use client';
 
 import { SlidersHorizontal, X } from 'lucide-react';
-import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 
 const DRAWER_ID = 'filtros-movil';
+
+// Estado del navegador leído como almacén externo: en el servidor no hay hash ni montaje.
+function subscribeHash(callback: () => void): () => void {
+  window.addEventListener('hashchange', callback);
+  return () => window.removeEventListener('hashchange', callback);
+}
+const hashIsDrawer = (): boolean => window.location.hash === `#${DRAWER_ID}`;
+const noSubscription = (): (() => void) => () => undefined;
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])';
@@ -16,6 +32,10 @@ const FOCUSABLE =
  * JavaScript se gestiona por estado: Esc cierra, el foco queda atrapado dentro, se
  * bloquea el scroll de fondo y el foco vuelve al botón. No hay animación: el cambio es
  * instantáneo, así que `prefers-reduced-motion` ya queda cubierto.
+ *
+ * El hash (SPEC-002, Enmienda 3): con JavaScript, entrar con `#filtros-movil` abre el
+ * drawer al montar y cerrarlo limpia el hash. Una vez montado, el CSS `:target` deja de
+ * usarse: `history.replaceState` no actualiza `:target`, y el panel no se cerraría.
  */
 export function FiltersDrawer({
   activeCount,
@@ -24,17 +44,29 @@ export function FiltersDrawer({
   readonly activeCount: number;
   readonly children: ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  // Se abre a mano (botón) o porque la URL trae el hash (`#filtros-movil`).
+  const [manualOpen, setManualOpen] = useState(false);
+  const hashOpen = useSyncExternalStore(subscribeHash, hashIsDrawer, () => false);
+  const open = manualOpen || hashOpen;
+  // `false` en el servidor y al hidratar; `true` en el cliente ya montado.
+  const mounted = useSyncExternalStore(noSubscription, () => true, () => false);
   const triggerRef = useRef<HTMLAnchorElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLAnchorElement>(null);
   const wasOpen = useRef(false);
 
   function close(): void {
-    if (window.location.hash === `#${DRAWER_ID}`) {
-      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    if (hashIsDrawer()) {
+      // Se conserva `history.state`: ahí guarda su estado el enrutador de Next.
+      window.history.replaceState(
+        window.history.state,
+        '',
+        `${window.location.pathname}${window.location.search}`,
+      );
+      // `replaceState` no avisa del cambio: se emite a mano para que se relea el hash.
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
     }
-    setOpen(false);
+    setManualOpen(false);
   }
 
   // Foco al abrir (en el botón de cerrar) y al cerrar (de vuelta al botón «Filtros»).
@@ -65,7 +97,7 @@ export function FiltersDrawer({
     if (!width) return;
     const query = window.matchMedia(`(min-width: ${width})`);
     const onChange = (event: MediaQueryListEvent): void => {
-      if (event.matches) setOpen(false);
+      if (event.matches) close();
     };
     query.addEventListener('change', onChange);
     return () => query.removeEventListener('change', onChange);
@@ -93,7 +125,7 @@ export function FiltersDrawer({
     const target = event.target;
     if (!(target instanceof Element)) return;
     const link = target.closest('a[href]');
-    if (link && link !== closeRef.current && drawerRef.current?.contains(link)) setOpen(false);
+    if (link && link !== closeRef.current && drawerRef.current?.contains(link)) close();
   }
 
   return (
@@ -106,7 +138,7 @@ export function FiltersDrawer({
         aria-expanded={open}
         onClick={(event) => {
           event.preventDefault();
-          setOpen(true);
+          setManualOpen(true);
         }}
         className="inline-flex min-h-11 items-center gap-2 rounded-control border border-border-strong bg-surface px-4 text-sm font-semibold text-fg hover:bg-accent-soft"
       >
@@ -131,11 +163,13 @@ export function FiltersDrawer({
         data-testid="filters-drawer"
         onKeyDown={onKeyDown}
         onClick={onClick}
-        onSubmit={() => setOpen(false)}
+        onSubmit={close}
         className={
           open
             ? 'fixed inset-0 z-50 flex flex-col bg-bg'
-            : 'hidden target:fixed target:inset-0 target:z-50 target:flex target:flex-col target:bg-bg'
+            : mounted
+              ? 'hidden'
+              : 'hidden target:fixed target:inset-0 target:z-50 target:flex target:flex-col target:bg-bg'
         }
       >
         <span tabIndex={0} onFocus={() => focusEdge('last')} data-focus-guard="start" />

@@ -90,6 +90,90 @@ test.describe('CA-02 en tablet: por debajo de --bp-lg también hay drawer', () =
   });
 });
 
+test.describe('CA-11: entrar con #filtros-movil abre el drawer (con JS)', () => {
+  test('abierto, con el foco dentro, sin scroll de fondo; Esc cierra y limpia el hash', async ({
+    page,
+  }) => {
+    await open(page, '/mujer#filtros-movil');
+    await expect(drawer(page)).toBeVisible();
+    await expect(drawer(page)).toHaveAttribute('aria-modal', 'true');
+    await expect(page.locator('[data-testid="filters-close"]')).toBeFocused();
+    expect(await focusInsideDrawer(page)).toBe(true);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+    await expect(trigger(page)).toHaveAttribute('aria-expanded', 'true');
+
+    await page.keyboard.press('Escape');
+    await expect(drawer(page)).toBeHidden();
+    expect(page.url()).not.toContain('#');
+    expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
+    await expect(trigger(page)).toBeFocused();
+  });
+
+  test('el botón de cerrar también cierra y limpia el hash', async ({ page }) => {
+    await open(page, '/mujer#filtros-movil');
+    await expect(drawer(page)).toBeVisible();
+    await page.locator('[data-testid="filters-close"]').click();
+    await expect(drawer(page)).toBeHidden();
+    expect(page.url()).not.toContain('#');
+  });
+
+  test('«Aplicar filtros» desde un drawer abierto por hash lo cierra', async ({ page }) => {
+    await open(page, '/mujer#filtros-movil');
+    await drawer(page).locator('input[name="max"]').fill('45');
+    await drawer(page).getByRole('button', { name: 'Aplicar filtros' }).click();
+    await expect(page).toHaveURL(/max=45/);
+    await expect(drawer(page)).toBeHidden();
+  });
+
+  test('en escritorio el hash no abre nada', async ({ page }) => {
+    await open(page, '/mujer#filtros-movil', 1280);
+    await expect(drawer(page)).toBeHidden();
+    await expect(page.locator('[data-testid="filters-sidebar"]')).toBeVisible();
+  });
+});
+
+test.describe('pie del drawer: Limpiar a la izquierda y Aplicar a la derecha', () => {
+  test('el orden visual coincide con el del DOM y la tabulación', async ({ page }) => {
+    await open(page, '/mujer');
+    await trigger(page).click();
+    const clear = drawer(page).getByRole('link', { name: 'Limpiar' });
+    const apply = drawer(page).getByRole('button', { name: 'Aplicar filtros' });
+    const clearBox = await clear.boundingBox();
+    const applyBox = await apply.boundingBox();
+    expect(clearBox).not.toBeNull();
+    expect(applyBox).not.toBeNull();
+    if (clearBox && applyBox) {
+      expect(clearBox.x + clearBox.width).toBeLessThanOrEqual(applyBox.x);
+      expect(Math.abs(clearBox.y - applyBox.y)).toBeLessThan(2);
+    }
+    // En el DOM, Limpiar precede a Aplicar: la tabulación sigue el orden visual.
+    const domOrder = await drawer(page).evaluate((el) => {
+      const link = [...el.querySelectorAll('a')].find((a) => a.textContent?.trim() === 'Limpiar');
+      const button = [...el.querySelectorAll('button')].find((b) =>
+        b.textContent?.includes('Aplicar filtros'),
+      );
+      if (!link || !button) return null;
+      return link.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING ? 'ok' : 'mal';
+    });
+    expect(domOrder).toBe('ok');
+  });
+
+  test('en la columna de escritorio se mantiene Aplicar y luego Limpiar', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/mujer');
+    await expect(page.locator('article').first()).toBeVisible();
+    const panel = page.locator('[data-testid="filters-panel"]');
+    const applyBox = await panel.getByRole('button', { name: 'Aplicar filtros' }).boundingBox();
+    const clearBox = await panel.getByRole('link', { name: 'Limpiar' }).boundingBox();
+    expect(applyBox).not.toBeNull();
+    expect(clearBox).not.toBeNull();
+    // La columna es estrecha y los botones pueden envolver: Aplicar va antes en lectura.
+    if (applyBox && clearBox) {
+      expect(applyBox.y < clearBox.y || applyBox.x < clearBox.x).toBe(true);
+    }
+  });
+});
+
 test.describe('cierre, foco y teclado', () => {
   test('Esc cierra el drawer y el foco vuelve al botón «Filtros»', async ({ page }) => {
     await open(page, '/mujer');
