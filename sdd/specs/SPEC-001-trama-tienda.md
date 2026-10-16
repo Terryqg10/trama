@@ -419,5 +419,21 @@ verificación. RNF-01 no cambia.
 
 **Nuevas tareas derivadas:** T-029 (cumplir la invariante I2 en los tests).
 
+### Enmienda 12 — 2026-10-16 — ADR-007
+
+**Origen:** al revisar la ficha (T-005b) el usuario pidió que el selector de color muestre un círculo
+con el color real y un subtexto con el nombre del color elegido, en lugar de chips de texto. RF-02
+pide «selección de talla y color» pero no dice cómo se presenta. Los valores de color son un grupo
+nuevo de tokens fuera de la paleta de marca, y por eso se registra en ADR-007.
+
+**Qué cambia:** se añaden dos criterios de aceptación. RF-02 y CA-03 no cambian.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-57 | RF-02 | Un producto con varios colores | Se abre la ficha | Cada color se muestra como un círculo de su color real, con el nombre como nombre accesible; el color elegido lleva un anillo y un subtexto con su nombre; pulsar otro círculo cambia el color elegido, la imagen y el subtexto | test e2e `color-swatches` y test de componente |
+| CA-58 | RF-02 | Un color del producto sin token de muestra | Se abre la ficha | Ese color se muestra como chip de texto, no como un círculo de otro color | test de componente `color-swatches` |
+
+**Nuevas tareas derivadas:** T-030 (círculos de color en la ficha).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
