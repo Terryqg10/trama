@@ -68,11 +68,12 @@ export async function CatalogView({
         <FiltersSidebar {...filterProps} />
 
         <div className="min-w-0 lg:flex-1">
-          <FiltersMobile {...filterProps} />
-
-          <p aria-live="polite" className="mt-6 text-sm text-fg-muted lg:mt-0">
-            {products.length} {products.length === 1 ? 'producto' : 'productos'}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p aria-live="polite" className="text-sm text-fg-muted">
+              {products.length} {products.length === 1 ? 'producto' : 'productos'}
+            </p>
+            <FiltersMobile {...filterProps} />
+          </div>
 
           {products.length === 0 ? (
             <div className="mt-4 rounded-container border border-border bg-surface p-8 text-center">

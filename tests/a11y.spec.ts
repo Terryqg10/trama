@@ -53,11 +53,11 @@ test.describe('accesibilidad', () => {
     });
   }
 
-  test('el panel de filtros abierto no tiene violaciones graves', async ({ page }) => {
+  test('el panel de filtros (drawer en móvil) abierto no tiene violaciones graves', async ({ page }) => {
     await page.goto('/mujer');
     await expect(page.getByRole('status')).toHaveCount(0);
-    const summary = page.locator('summary', { hasText: 'Filtros y orden' });
-    if (await summary.isVisible()) await summary.click();
+    const open = page.locator('[data-testid="filters-open"]');
+    if (await open.isVisible()) await open.click();
     const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
     const serious = results.violations.filter(
       (v) => v.impact === 'serious' || v.impact === 'critical',

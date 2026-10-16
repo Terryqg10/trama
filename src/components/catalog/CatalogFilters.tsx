@@ -10,6 +10,7 @@ import {
   type Gender,
 } from '@/lib/catalog/filters';
 import { FilterChips } from './FilterChips';
+import { FiltersDrawer } from './FiltersDrawer';
 
 interface Option {
   readonly value: string;
@@ -121,7 +122,8 @@ function FilterForm({
   filters,
   showGender,
   testId,
-}: CatalogFiltersProps & { readonly testId: string }) {
+  footerSticky = false,
+}: CatalogFiltersProps & { readonly testId: string; readonly footerSticky?: boolean }) {
   const genderOptions: Option[] = GENDERS.map((g: Gender) => ({ value: g, label: capitalize(g) }));
 
   return (
@@ -198,7 +200,13 @@ function FilterForm({
         </label>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div
+        className={
+          footerSticky
+            ? 'sticky -bottom-5 z-10 -mx-5 -mb-5 flex gap-3 border-t border-border bg-surface px-5 py-3'
+            : 'flex flex-wrap gap-3'
+        }
+      >
         <button
           type="submit"
           className="inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
@@ -240,22 +248,14 @@ export function FiltersSidebar(props: CatalogFiltersProps) {
 }
 
 /**
- * Panel desplegable de móvil y tablet (< lg). Provisional: T-009 lo sustituye
- * por un drawer a pantalla completa (RF-02).
+ * Drawer de móvil y tablet (< lg): botón «Filtros» con contador y panel a pantalla
+ * completa (RF-02, RF-05). Ver `FiltersDrawer`.
  */
 export function FiltersMobile(props: CatalogFiltersProps) {
   const active = activeCount(props.filters, props.showGender);
   return (
-    <details
-      open={active > 0}
-      data-testid="filters-mobile"
-      className="rounded-container border border-border bg-surface lg:hidden"
-    >
-      <summary className="flex min-h-11 cursor-pointer items-center justify-between px-5 text-sm font-semibold text-fg">
-        <span>Filtros y orden</span>
-        <ActiveBadge active={active} testId="filters-count-mobile" />
-      </summary>
-      <FilterForm {...props} testId="filters-panel-mobile" />
-    </details>
+    <FiltersDrawer activeCount={active}>
+      <FilterForm {...props} testId="filters-panel-mobile" footerSticky />
+    </FiltersDrawer>
   );
 }

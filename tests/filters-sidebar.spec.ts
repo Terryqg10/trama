@@ -46,10 +46,10 @@ test.describe('CA-01: filtros en columna lateral izquierda (escritorio)', () => 
     }
   });
 
-  test('en móvil la columna no se muestra y sí el panel desplegable', async ({ page }) => {
+  test('en móvil la columna no se muestra y sí el botón «Filtros»', async ({ page }) => {
     await open(page, '/mujer', MOBILE);
     await expect(page.locator('[data-testid="filters-sidebar"]')).toBeHidden();
-    await expect(page.locator('[data-testid="filters-mobile"]')).toBeVisible();
+    await expect(page.locator('[data-testid="filters-open"]')).toBeVisible();
   });
 });
 

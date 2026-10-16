@@ -13,11 +13,14 @@ async function names(page: Page): Promise<string[]> {
   return page.locator('article h2').allInnerTexts();
 }
 
-// En escritorio los filtros van en la columna lateral (siempre visibles); en móvil, en un panel
-// desplegable que hay que abrir. Se abre solo si el resumen es visible.
+// En escritorio los filtros van en la columna lateral (siempre visibles); en móvil, en un drawer
+// que hay que abrir. Se abre solo si el botón «Filtros» es visible.
 async function openFilters(page: Page): Promise<void> {
-  const summary = page.locator('summary', { hasText: 'Filtros y orden' });
-  if (await summary.isVisible()) await summary.click();
+  const open = page.locator('[data-testid="filters-open"]');
+  if (await open.isVisible()) {
+    await open.click();
+    await expect(page.locator('[data-testid="filters-drawer"]')).toBeVisible();
+  }
 }
 
 const sorted = (values: string[]) => [...values].sort();
@@ -224,6 +227,7 @@ test.describe('interfaz del listado', () => {
 
   test('el chip seleccionado conserva su estado tras recargar', async ({ page }) => {
     await open(page, '/mujer?categoria=blusas');
+    await openFilters(page);
     await expect(page.getByRole('radio', { name: 'Blusas' })).toBeChecked();
   });
 
@@ -255,6 +259,7 @@ test.describe('interfaz del listado', () => {
 
   test('los controles del formulario miden al menos 44 px de alto', async ({ page }) => {
     await open(page, '/mujer?categoria=blusas');
+    await openFilters(page);
     const controls = page
       .locator('form:visible')
       .first()
