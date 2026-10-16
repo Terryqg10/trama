@@ -1,7 +1,7 @@
 ---
 id: SPEC-002-filtros-catalogo
 title: Filtros del catálogo (rediseño UX)
-status: borrador
+status: aprobada
 rigor_level: L
 created: 2026-10-16
 updated: 2026-10-16
