@@ -1,21 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { CatalogError } from './CatalogError';
-import { CatalogSkeleton } from './CatalogSkeleton';
-
-describe('CatalogSkeleton (estado de carga)', () => {
-  it('anuncia la carga a los lectores de pantalla', () => {
-    render(<CatalogSkeleton />);
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando productos');
-  });
-
-  it('solo anima si el usuario no pidió reducir el movimiento', () => {
-    const { container } = render(<CatalogSkeleton />);
-    for (const element of container.querySelectorAll('[class*="animate-pulse"]')) {
-      expect(element.className).toContain('motion-safe:animate-pulse');
-    }
-  });
-});
 
 describe('CatalogError (estado de error)', () => {
   it('muestra un mensaje y es una alerta', () => {

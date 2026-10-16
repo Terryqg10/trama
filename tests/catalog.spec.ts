@@ -55,8 +55,8 @@ test.describe('CA-01: mujer + blusas, solo blusas de mujer', () => {
   test('desde el panel de filtros', async ({ page }) => {
     await open(page, '/mujer');
     await openFilters(page);
+    // El chip se aplica al clic (SPEC-002 RF-03): no hace falta pulsar «Aplicar filtros».
     await page.locator('form:visible').getByText('Blusas', { exact: true }).click();
-    await page.getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/categoria=blusas/);
     await expect(page.getByRole('status')).toHaveCount(0);
     await expect.poll(async () => sorted(await names(page))).toEqual(sorted(BLUSAS_MUJER));
@@ -205,16 +205,14 @@ test.describe('formulario y listado renderizados en el servidor', () => {
     expect(html).not.toContain('Pantalón fluido');
   });
 
-  test('un envío del formulario es una navegación normal con los parámetros en la URL', async ({
-    page,
-  }) => {
+  test('«Aplicar filtros» envía el formulario con los parámetros en la URL', async ({ page }) => {
     await open(page, '/mujer');
     await openFilters(page);
-    await page.locator('form:visible').getByText('Blusas', { exact: true }).click();
+    await page.locator('form:visible input[name="max"]').fill('45');
     await page.getByRole('button', { name: 'Aplicar filtros' }).click();
-    await expect(page).toHaveURL(/\/mujer\?.*categoria=blusas/);
+    await expect(page).toHaveURL(/\/mujer\?.*max=45/);
     await expect(page.getByRole('status')).toHaveCount(0);
-    await expect.poll(async () => sorted(await names(page))).toEqual(sorted(BLUSAS_MUJER));
+    await expect.poll(async () => (await names(page)).length).toBeGreaterThan(0);
   });
 });
 

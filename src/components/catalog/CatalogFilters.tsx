@@ -9,6 +9,7 @@ import {
   type CatalogFilters as Filters,
   type Gender,
 } from '@/lib/catalog/filters';
+import { FilterChips } from './FilterChips';
 
 interface Option {
   readonly value: string;
@@ -109,8 +110,8 @@ interface CatalogFiltersProps {
 }
 
 /**
- * Formulario de filtros y orden: un formulario GET renderizado en servidor. Cada
- * envío recarga la página con los parámetros en la URL (sin JavaScript). Se pinta
+ * Formulario de filtros y orden: un formulario GET renderizado en servidor que
+ * funciona sin JavaScript; `FilterChips` lo mejora con JavaScript (ADR-006). Se pinta
  * dos veces (columna lateral y panel móvil); solo uno está visible según el ancho,
  * y el oculto con `display: none` ni se envía ni se lee con lector de pantalla.
  */
@@ -124,10 +125,9 @@ function FilterForm({
   const genderOptions: Option[] = GENDERS.map((g: Gender) => ({ value: g, label: capitalize(g) }));
 
   return (
-    <form
-      method="get"
+    <FilterChips
       action={basePath}
-      data-testid={testId}
+      testId={testId}
       className="space-y-5 border-t border-border p-5"
     >
       {showGender ? (
@@ -212,7 +212,7 @@ function FilterForm({
           Limpiar
         </Link>
       </div>
-    </form>
+    </FilterChips>
   );
 }
 

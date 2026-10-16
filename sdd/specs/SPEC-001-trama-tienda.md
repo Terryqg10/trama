@@ -305,5 +305,17 @@ alcance. No se registra ADR porque no hay alternativas de coste alto de revertir
 
 **Nuevas tareas derivadas:** T-005c (barra lateral de filtros).
 
+### Enmienda 5 — 2026-10-16 — ADR-006
+
+**Origen:** SPEC-002 exige que los filtros funcionen sin JavaScript (RF-07, CA-07). El
+esqueleto de `loading.tsx` lo impide: sin JS el listado no sustituye al esqueleto.
+
+**Qué cambia:** en la sección 6, fila Catálogo, el estado «Cargando» deja de ser
+«Esqueleto de tarjetas» y pasa a ser «Indicador de ocupado (`aria-busy`) durante el
+filtrado». Sustituye la decisión de T-005 de mantener el esqueleto. CA-01 a CA-45 no
+cambian.
+
+**Nuevas tareas derivadas:** ninguna (se aplica en T-008).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.

@@ -102,3 +102,15 @@ Ninguna.
 | CA-09 | RF-09 | Un usuario | Abre /mujer?talla=XXXL | La página carga sin ese filtro, sin alerta | Test e2e: no hay texto de alerta en la página |
 
 ## 12. Enmiendas
+
+### Enmienda 1 — 2026-10-16 — ADR-006
+
+**Origen:** al planificar T-008 se vio que `requestSubmit()` (ADR-005) recarga el documento
+y que `loading.tsx` impide ver el catálogo sin JavaScript.
+
+**Qué cambia:**
+
+- Sección 6, fila Catálogo, columna Cargando: de «Skeleton con forma del grid» a «`aria-busy`
+  y atenuación del panel mientras dura el filtrado; sin esqueleto de ruta».
+- El mecanismo previsto en ADR-005 (`requestSubmit()`) pasa a navegación blanda (`router.push`),
+  como exige CA-03 («sin recargar»). RF y CA no cambian.
