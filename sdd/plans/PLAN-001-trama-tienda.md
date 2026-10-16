@@ -78,6 +78,15 @@ Tipos TypeScript generados con `pnpm db:types`. No se escriben a mano.
 - Iconos con lucide-react, tipografía Geist, animación con Motion respetando `prefers-reduced-motion`.
 - Navegación definida: Inicio, Hombre, Mujer, Carrito, Cuenta; Admin solo para rol admin.
 
+## 5b. Decisiones de UI
+
+| Decisión | Convención del sector | Por qué nos apartamos | Qué gana el usuario |
+|---|---|---|---|
+| Filtros del catálogo: columna lateral izquierda sticky en escritorio, drawer en móvil, chips que aplican al clic | Zalando, Scalpers, ASOS, Mango usan esta disposición | La versión inicial del catálogo los colocó encima, en un panel plegable, y requería pulsar "Aplicar" para todo | Menos fricción, menos clics, encuentra productos en menos tiempo |
+
+Referencia completa en `SPEC-002-filtros-catalogo.md` y
+`ADR-005-filtros-progressive-enhancement.md`.
+
 ## 6. Estrategia de tests
 
 | Capa | Herramienta | Qué cubre |
