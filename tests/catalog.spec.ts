@@ -13,6 +13,13 @@ async function names(page: Page): Promise<string[]> {
   return page.locator('article h2').allInnerTexts();
 }
 
+// En escritorio los filtros van en la columna lateral (siempre visibles); en móvil, en un panel
+// desplegable que hay que abrir. Se abre solo si el resumen es visible.
+async function openFilters(page: Page): Promise<void> {
+  const summary = page.locator('summary', { hasText: 'Filtros y orden' });
+  if (await summary.isVisible()) await summary.click();
+}
+
 const sorted = (values: string[]) => [...values].sort();
 
 const BLUSAS_MUJER = ['Blusa de lino', 'Blusa de popelín con lazada', 'Blusa satinada'];
@@ -47,12 +54,12 @@ test.describe('CA-01: mujer + blusas, solo blusas de mujer', () => {
 
   test('desde el panel de filtros', async ({ page }) => {
     await open(page, '/mujer');
-    await page.getByText('Filtros y orden').click();
-    await page.getByText('Blusas', { exact: true }).click();
+    await openFilters(page);
+    await page.locator('form:visible').getByText('Blusas', { exact: true }).click();
     await page.getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/categoria=blusas/);
     await expect(page.getByRole('status')).toHaveCount(0);
-    expect(sorted(await names(page))).toEqual(sorted(BLUSAS_MUJER));
+    await expect.poll(async () => sorted(await names(page))).toEqual(sorted(BLUSAS_MUJER));
   });
 
   test('las blusas de mujer no aparecen en /hombre', async ({ page }) => {
@@ -202,19 +209,19 @@ test.describe('formulario y listado renderizados en el servidor', () => {
     page,
   }) => {
     await open(page, '/mujer');
-    await page.getByText('Filtros y orden').click();
-    await page.getByText('Blusas', { exact: true }).click();
+    await openFilters(page);
+    await page.locator('form:visible').getByText('Blusas', { exact: true }).click();
     await page.getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/\/mujer\?.*categoria=blusas/);
     await expect(page.getByRole('status')).toHaveCount(0);
-    expect(sorted(await names(page))).toEqual(sorted(BLUSAS_MUJER));
+    await expect.poll(async () => sorted(await names(page))).toEqual(sorted(BLUSAS_MUJER));
   });
 });
 
 test.describe('interfaz del listado', () => {
   test('el panel de filtros muestra el número de filtros activos', async ({ page }) => {
     await open(page, '/mujer?categoria=blusas&ocasion=vestir');
-    await expect(page.getByText('2 activos')).toBeVisible();
+    await expect(page.locator('[data-testid^="filters-count"]:visible')).toHaveText('2 activos');
   });
 
   test('el chip seleccionado conserva su estado tras recargar', async ({ page }) => {
@@ -251,7 +258,7 @@ test.describe('interfaz del listado', () => {
   test('los controles del formulario miden al menos 44 px de alto', async ({ page }) => {
     await open(page, '/mujer?categoria=blusas');
     const controls = page
-      .locator('form')
+      .locator('form:visible')
       .first()
       .locator('button:visible, select:visible, input[type="number"]:visible, a:visible');
     const count = await controls.count();

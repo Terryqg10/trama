@@ -83,120 +83,179 @@ function activeCount(filters: Filters, hasGenderFilter: boolean): number {
   ].filter(Boolean).length;
 }
 
-/**
- * Panel de filtros y orden: un formulario GET renderizado en servidor. Cada envío
- * recarga la página con los parámetros en la URL (sin JavaScript).
- */
-export function CatalogFilters({
-  basePath,
-  facets,
-  filters,
-  showGender,
-}: {
+function ActiveBadge({ active, testId }: { readonly active: number; readonly testId: string }) {
+  if (active === 0) return null;
+  return (
+    <span
+      data-testid={testId}
+      className="rounded-control bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-text"
+    >
+      {active} {active === 1 ? 'activo' : 'activos'}
+    </span>
+  );
+}
+
+/** "Limpiar" quita los filtros pero conserva el orden elegido (RF-06). */
+function clearHref(basePath: Route, sort: Filters['sort']) {
+  return sort === 'novedades' ? basePath : { pathname: basePath, query: { orden: sort } };
+}
+
+interface CatalogFiltersProps {
   readonly basePath: Route;
   readonly facets: CatalogFacets;
   readonly filters: Filters;
   /** Solo en Novedades, donde el género no viene fijado por la ruta. */
   readonly showGender: boolean;
-}) {
-  const active = activeCount(filters, showGender);
+}
+
+/**
+ * Formulario de filtros y orden: un formulario GET renderizado en servidor. Cada
+ * envío recarga la página con los parámetros en la URL (sin JavaScript). Se pinta
+ * dos veces (columna lateral y panel móvil); solo uno está visible según el ancho,
+ * y el oculto con `display: none` ni se envía ni se lee con lector de pantalla.
+ */
+function FilterForm({
+  basePath,
+  facets,
+  filters,
+  showGender,
+  testId,
+}: CatalogFiltersProps & { readonly testId: string }) {
   const genderOptions: Option[] = GENDERS.map((g: Gender) => ({ value: g, label: capitalize(g) }));
 
   return (
-    <details open={active > 0} className="rounded-container border border-border bg-surface">
+    <form
+      method="get"
+      action={basePath}
+      data-testid={testId}
+      className="space-y-5 border-t border-border p-5"
+    >
+      {showGender ? (
+        <ChipGroup legend="Género" name="genero" options={genderOptions} selected={filters.gender} />
+      ) : null}
+
+      <ChipGroup
+        legend="Categoría"
+        name="categoria"
+        options={facets.categories.map((c) => ({ value: c, label: capitalize(c) }))}
+        selected={filters.category}
+      />
+      <ChipGroup
+        legend="Ocasión"
+        name="ocasion"
+        options={OCCASIONS.map((o) => ({ value: o, label: capitalize(o) }))}
+        selected={filters.occasion}
+      />
+      <ChipGroup
+        legend="Talla"
+        name="talla"
+        options={facets.sizes.map((s) => ({ value: s, label: s }))}
+        selected={filters.size}
+      />
+      <ChipGroup
+        legend="Color"
+        name="color"
+        options={facets.colors.map((c) => ({ value: c, label: capitalize(c) }))}
+        selected={filters.color}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+        <label className="block text-sm font-semibold text-fg">
+          Precio mínimo (€)
+          <input
+            type="number"
+            name="min"
+            inputMode="numeric"
+            min={0}
+            max={99999}
+            step={1}
+            defaultValue={filters.minPriceCents === undefined ? '' : filters.minPriceCents / 100}
+            className={fieldClass}
+          />
+        </label>
+        <label className="block text-sm font-semibold text-fg">
+          Precio máximo (€)
+          <input
+            type="number"
+            name="max"
+            inputMode="numeric"
+            min={0}
+            max={99999}
+            step={1}
+            defaultValue={filters.maxPriceCents === undefined ? '' : filters.maxPriceCents / 100}
+            className={fieldClass}
+          />
+        </label>
+        <label className="block text-sm font-semibold text-fg">
+          Ordenar por
+          <select name="orden" defaultValue={filters.sort} className={fieldClass}>
+            {SORTS.map((sort) => (
+              <option key={sort} value={sort}>
+                {SORT_LABELS[sort]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="submit"
+          className="inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
+        >
+          Aplicar filtros
+        </button>
+        <Link
+          href={clearHref(basePath, filters.sort)}
+          className="inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface px-6 text-sm font-semibold text-fg hover:bg-accent-soft"
+        >
+          Limpiar
+        </Link>
+      </div>
+    </form>
+  );
+}
+
+/**
+ * Columna lateral de filtros (RF-01, RF-05, RF-08): solo en escritorio (≥ lg),
+ * siempre visible y fija al hacer scroll. Ancho: `--filter-sidebar-width`.
+ */
+export function FiltersSidebar(props: CatalogFiltersProps) {
+  const active = activeCount(props.filters, props.showGender);
+  return (
+    <aside
+      aria-labelledby="filters-sidebar-title"
+      data-testid="filters-sidebar"
+      className="hidden lg:sticky lg:top-4 lg:block lg:max-h-dvh lg:w-(--filter-sidebar-width) lg:shrink-0 lg:self-start lg:overflow-y-auto lg:rounded-container lg:border lg:border-border lg:bg-surface"
+    >
+      <div className="flex min-h-11 items-center justify-between px-5 py-2">
+        <h2 id="filters-sidebar-title" className="text-sm font-semibold text-fg">
+          Filtros y orden
+        </h2>
+        <ActiveBadge active={active} testId="filters-count" />
+      </div>
+      <FilterForm {...props} testId="filters-panel" />
+    </aside>
+  );
+}
+
+/**
+ * Panel desplegable de móvil y tablet (< lg). Provisional: T-009 lo sustituye
+ * por un drawer a pantalla completa (RF-02).
+ */
+export function FiltersMobile(props: CatalogFiltersProps) {
+  const active = activeCount(props.filters, props.showGender);
+  return (
+    <details
+      open={active > 0}
+      data-testid="filters-mobile"
+      className="rounded-container border border-border bg-surface lg:hidden"
+    >
       <summary className="flex min-h-11 cursor-pointer items-center justify-between px-5 text-sm font-semibold text-fg">
         <span>Filtros y orden</span>
-        {active > 0 ? (
-          <span className="rounded-control bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-text">
-            {active} {active === 1 ? 'activo' : 'activos'}
-          </span>
-        ) : null}
+        <ActiveBadge active={active} testId="filters-count-mobile" />
       </summary>
-
-      <form method="get" action={basePath} className="space-y-5 border-t border-border p-5">
-        {showGender ? (
-          <ChipGroup legend="Género" name="genero" options={genderOptions} selected={filters.gender} />
-        ) : null}
-
-        <ChipGroup
-          legend="Categoría"
-          name="categoria"
-          options={facets.categories.map((c) => ({ value: c, label: capitalize(c) }))}
-          selected={filters.category}
-        />
-        <ChipGroup
-          legend="Ocasión"
-          name="ocasion"
-          options={OCCASIONS.map((o) => ({ value: o, label: capitalize(o) }))}
-          selected={filters.occasion}
-        />
-        <ChipGroup
-          legend="Talla"
-          name="talla"
-          options={facets.sizes.map((s) => ({ value: s, label: s }))}
-          selected={filters.size}
-        />
-        <ChipGroup
-          legend="Color"
-          name="color"
-          options={facets.colors.map((c) => ({ value: c, label: capitalize(c) }))}
-          selected={filters.color}
-        />
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <label className="block text-sm font-semibold text-fg">
-            Precio mínimo (€)
-            <input
-              type="number"
-              name="min"
-              inputMode="numeric"
-              min={0}
-              max={99999}
-              step={1}
-              defaultValue={filters.minPriceCents === undefined ? '' : filters.minPriceCents / 100}
-              className={fieldClass}
-            />
-          </label>
-          <label className="block text-sm font-semibold text-fg">
-            Precio máximo (€)
-            <input
-              type="number"
-              name="max"
-              inputMode="numeric"
-              min={0}
-              max={99999}
-              step={1}
-              defaultValue={filters.maxPriceCents === undefined ? '' : filters.maxPriceCents / 100}
-              className={fieldClass}
-            />
-          </label>
-          <label className="block text-sm font-semibold text-fg">
-            Ordenar por
-            <select name="orden" defaultValue={filters.sort} className={fieldClass}>
-              {SORTS.map((sort) => (
-                <option key={sort} value={sort}>
-                  {SORT_LABELS[sort]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className="inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
-          >
-            Aplicar filtros
-          </button>
-          <Link
-            href={basePath}
-            className="inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface px-6 text-sm font-semibold text-fg hover:bg-accent-soft"
-          >
-            Limpiar
-          </Link>
-        </div>
-      </form>
+      <FilterForm {...props} testId="filters-panel-mobile" />
     </details>
   );
 }

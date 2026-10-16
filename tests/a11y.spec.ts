@@ -56,7 +56,8 @@ test.describe('accesibilidad', () => {
   test('el panel de filtros abierto no tiene violaciones graves', async ({ page }) => {
     await page.goto('/mujer');
     await expect(page.getByRole('status')).toHaveCount(0);
-    await page.getByText('Filtros y orden').click();
+    const summary = page.locator('summary', { hasText: 'Filtros y orden' });
+    if (await summary.isVisible()) await summary.click();
     const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
     const serious = results.violations.filter(
       (v) => v.impact === 'serious' || v.impact === 'critical',

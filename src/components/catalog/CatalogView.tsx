@@ -9,7 +9,7 @@ import {
 } from '@/lib/catalog/filters';
 import { listProducts } from '@/lib/catalog/queries';
 import { PageContainer } from '../PageContainer';
-import { CatalogFilters } from './CatalogFilters';
+import { FiltersMobile, FiltersSidebar } from './CatalogFilters';
 import { ProductCard } from './ProductCard';
 
 export interface CatalogScope {
@@ -58,42 +58,43 @@ export async function CatalogView({
 
   const products = await listProducts(filters);
 
+  const filterProps = { basePath, facets, filters, showGender: scope.gender === undefined };
+
   return (
     <PageContainer>
       <h1 className="text-display font-bold">{title}</h1>
 
-      <div className="mt-6">
-        <CatalogFilters
-          basePath={basePath}
-          facets={facets}
-          filters={filters}
-          showGender={scope.gender === undefined}
-        />
-      </div>
+      <div className="mt-6 lg:flex lg:items-start lg:gap-8">
+        <FiltersSidebar {...filterProps} />
 
-      <p aria-live="polite" className="mt-6 text-sm text-fg-muted">
-        {products.length} {products.length === 1 ? 'producto' : 'productos'}
-      </p>
+        <div className="min-w-0 lg:flex-1">
+          <FiltersMobile {...filterProps} />
 
-      {products.length === 0 ? (
-        <div className="mt-4 rounded-container border border-border bg-surface p-8 text-center">
-          <p className="text-lg font-semibold text-fg">No hay productos con estos filtros</p>
-          <p className="mx-auto mt-2 max-w-(--layout-prose-max) text-fg-muted">
-            Prueba con otras opciones o quita los filtros para ver todo el catálogo.
+          <p aria-live="polite" className="mt-6 text-sm text-fg-muted lg:mt-0">
+            {products.length} {products.length === 1 ? 'producto' : 'productos'}
           </p>
-          <Link href={basePath} className={`mt-6 ${linkButton}`}>
-            Limpiar filtros
-          </Link>
+
+          {products.length === 0 ? (
+            <div className="mt-4 rounded-container border border-border bg-surface p-8 text-center">
+              <p className="text-lg font-semibold text-fg">No hay productos con estos filtros</p>
+              <p className="mx-auto mt-2 max-w-(--layout-prose-max) text-fg-muted">
+                Prueba con otras opciones o quita los filtros para ver todo el catálogo.
+              </p>
+              <Link href={basePath} className={`mt-6 ${linkButton}`}>
+                Limpiar filtros
+              </Link>
+            </div>
+          ) : (
+            <ul className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-3">
+              {products.map((product) => (
+                <li key={product.id}>
+                  <ProductCard product={product} />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      ) : (
-        <ul className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => (
-            <li key={product.id}>
-              <ProductCard product={product} />
-            </li>
-          ))}
-        </ul>
-      )}
+      </div>
     </PageContainer>
   );
 }
