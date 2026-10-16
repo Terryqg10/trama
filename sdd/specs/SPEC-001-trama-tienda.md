@@ -337,5 +337,21 @@ CA-50; no pueden ser CA-12 a CA-16, que ya existen en esta spec.
 
 **Nuevas tareas derivadas:** T-013 (menú móvil a pantalla completa).
 
+### Enmienda 7 — 2026-10-16 — sin ADR
+
+**Origen:** el `<select>` «Ordenar por» del catálogo usa el chevrón nativo del navegador, que queda
+desalineado respecto al padding del control y no usa los iconos del estilo (lucide). Es un defecto
+visual que los tests funcionales no detectan. RF-14 pide ordenación pero no su presentación. Se
+concreta sin cambiar el alcance. No se registra ADR: no hay alternativas de coste alto de revertir.
+
+**Qué cambia:** se añaden dos criterios de aceptación. RF-14 no cambia.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-51 | RF-14 | Un usuario | Carga el catálogo | El `<select>` «Ordenar por» muestra un chevrón de lucide alineado con el padding del control, no el nativo del navegador | test e2e `select-chevron`: `appearance: none`, icono dentro del control, centrado en vertical y sin bloquear clics |
+| CA-52 | RF-14 | Un usuario | Carga el catálogo a 320, 375, 768 y 1280 px | No hay controles visualmente desalineados (chevrón fuera del borde, texto pegado al borde, iconos descentrados) | test e2e `catalog-controls-aligned` (geometría de los controles) y revisión visual anotada en `sdd/reviews/T-014.md` |
+
+**Nuevas tareas derivadas:** T-014 (pase de pulido visual).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
