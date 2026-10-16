@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Check } from 'lucide-react';
 import { capitalize } from '@/lib/catalog/facets';
+import { swatchClass } from '@/lib/catalog/swatches';
 import type { VariantSelection } from '@/lib/catalog/variant-selection';
 import { formatEuros } from '@/lib/domain/shop';
 
@@ -10,6 +11,13 @@ const chipIdle =
   'border-border-strong bg-surface text-fg hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 const chipSelected =
   'border-accent bg-accent font-semibold text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+// Círculo de color: el enlace mide 44 px (objetivo táctil) y el círculo, 28 px, con borde para que
+// el blanco y el beige no se pierdan sobre el fondo claro. El elegido lleva un anillo (no solo color).
+const swatchLink =
+  'relative inline-flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+const swatchDot = 'block size-7 rounded-full border border-border-strong';
+const swatchSelected = 'ring-2 ring-accent ring-offset-2 ring-offset-bg';
+
 const chipDisabled = 'cursor-not-allowed border-border bg-surface-muted text-fg-muted line-through';
 
 /**
@@ -40,6 +48,29 @@ export function VariantSelector({
         <ul className="flex flex-wrap gap-2">
           {selection.colors.map((color) => {
             const selected = color === selection.color;
+            const swatch = swatchClass(color);
+            if (swatch) {
+              // Círculo del color real. El nombre es texto solo para lectores de pantalla.
+              return (
+                <li key={color}>
+                  <Link
+                    href={href(color, selected ? selection.size : null)}
+                    scroll={false}
+                    aria-current={selected ? 'true' : undefined}
+                    title={capitalize(color)}
+                    data-swatch={color}
+                    className={swatchLink}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`${swatchDot} ${swatch} ${selected ? swatchSelected : ''}`}
+                    />
+                    <span className="sr-only">{capitalize(color)}</span>
+                  </Link>
+                </li>
+              );
+            }
+            // Sin token de muestra (CA-58): chip de texto, nunca un círculo de otro color.
             return (
               <li key={color}>
                 <Link

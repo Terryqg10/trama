@@ -180,6 +180,125 @@ test.describe('datos de ajuste (CA-33, T-028)', () => {
   });
 });
 
+test.describe('círculos de color (CA-57, T-030, test color-swatches)', () => {
+  const swatches = (page: Page) => page.getByRole('group', { name: /Color/ }).locator('a[data-swatch]');
+  const dot = (page: Page, color: string) =>
+    page.getByRole('group', { name: /Color/ }).locator(`a[data-swatch="${color}"] > span[aria-hidden="true"]`);
+
+  test('cada color del producto es un círculo y su enlace conserva el nombre accesible', async ({
+    page,
+  }) => {
+    await open(page, URL);
+    await expect(swatches(page)).toHaveCount(3);
+    for (const name of ['Azul', 'Blanco', 'Negro']) {
+      await expect(page.getByRole('group', { name: /Color/ }).getByRole('link', { name })).toBeVisible();
+    }
+    // Ya no hay chips de texto de color: el texto del nombre solo está para lectores de pantalla.
+    await expect(page.getByRole('group', { name: /Color/ }).locator('a:not([data-swatch])')).toHaveCount(0);
+  });
+
+  test('el círculo tiene el color real del token, no un color cualquiera', async ({ page }) => {
+    await open(page, URL);
+    for (const color of ['azul', 'blanco', 'negro']) {
+      const actual = await dot(page, color).evaluate((el) => getComputedStyle(el).backgroundColor);
+      // Se resuelve el token en un elemento de prueba y se compara el color calculado.
+      const expected = await page.evaluate((name) => {
+        const probe = document.createElement('span');
+        probe.style.backgroundColor = `var(--color-swatch-${name})`;
+        document.body.appendChild(probe);
+        const value = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return value;
+      }, color);
+      expect(actual, `color del círculo «${color}»`).toBe(expected);
+      expect(actual).not.toBe('rgba(0, 0, 0, 0)');
+    }
+  });
+
+  test('los círculos de colores distintos tienen colores distintos', async ({ page }) => {
+    await open(page, URL);
+    const colors = await Promise.all(
+      ['azul', 'blanco', 'negro'].map((c) => dot(page, c).evaluate((el) => getComputedStyle(el).backgroundColor)),
+    );
+    expect(new Set(colors).size).toBe(3);
+  });
+
+  test('el círculo mide 28 px con borde y el enlace, al menos 44×44 px', async ({ page }) => {
+    await open(page, URL, 375);
+    const first = swatches(page).first();
+    const link = await first.boundingBox();
+    expect(link?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(link?.height ?? 0).toBeGreaterThanOrEqual(44);
+    const dotBox = await dot(page, 'azul').boundingBox();
+    expect(Math.round(dotBox?.width ?? 0)).toBe(28);
+    expect(Math.round(dotBox?.height ?? 0)).toBe(28);
+    const border = await dot(page, 'blanco').evaluate((el) => getComputedStyle(el).borderTopWidth);
+    expect(border).toBe('1px');
+  });
+
+  test('el color elegido lleva aria-current y un anillo; los demás, ni uno ni otro', async ({ page }) => {
+    await open(page, `${URL}?color=negro`);
+    await expect(page.locator('a[data-swatch="negro"]')).toHaveAttribute('aria-current', 'true');
+    const ring = await dot(page, 'negro').evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(ring).not.toBe('none');
+    await expect(page.locator('a[data-swatch="azul"]')).not.toHaveAttribute('aria-current', 'true');
+    const noRing = await dot(page, 'azul').evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(noRing).toBe('none');
+  });
+
+  test('el subtexto con el nombre del color está siempre visible, también al entrar', async ({ page }) => {
+    await open(page, URL);
+    const label = page.locator('#ficha-color');
+    await expect(label).toBeVisible();
+    await expect(label).toHaveText('Color: Azul');
+  });
+
+  test('pulsar otro círculo cambia el color elegido, la imagen y el subtexto', async ({ page }) => {
+    await open(page, URL);
+    await expect(page.locator('#ficha-color')).toHaveText('Color: Azul');
+    await expect(page.locator('main img').first()).toHaveAttribute('alt', /color azul/);
+
+    await page.getByRole('group', { name: /Color/ }).getByRole('link', { name: 'Negro' }).click();
+
+    await expect(page).toHaveURL(/color=negro/);
+    await expect(page.locator('#ficha-color')).toHaveText('Color: Negro');
+    await expect(page.locator('main img').first()).toHaveAttribute('alt', /color negro/);
+    await expect(page.locator('a[data-swatch="negro"]')).toHaveAttribute('aria-current', 'true');
+    await expect(page.locator('a[data-swatch="azul"]')).not.toHaveAttribute('aria-current', 'true');
+  });
+
+  test('cada color del catálogo de ejemplo tiene círculo (ninguno cae a chip de texto)', async ({ page }) => {
+    // Productos del seed con colores distintos: azul, beige, blanco, burdeos, gris, negro y verde.
+    for (const slug of [
+      'polo-pique-basico',
+      'polo-punto-manga-larga',
+      'pantalon-chino-slim',
+      'blusa-lino-casual',
+      'blusa-satinada-vestir',
+      'polo-punto-mujer',
+    ]) {
+      await open(page, `/producto/${slug}`);
+      const links = page.getByRole('group', { name: /Color/ }).locator('a');
+      const total = await links.count();
+      expect(total, slug).toBeGreaterThan(0);
+      await expect(page.getByRole('group', { name: /Color/ }).locator('a[data-swatch]'), slug).toHaveCount(total);
+    }
+  });
+
+  test('sin JavaScript los círculos siguen siendo enlaces que cambian el color', async ({
+    browser,
+    baseURL,
+  }) => {
+    const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
+    const page = await context.newPage();
+    await page.goto(URL);
+    await page.getByRole('group', { name: /Color/ }).getByRole('link', { name: 'Blanco' }).click();
+    await expect(page).toHaveURL(/color=blanco/);
+    await expect(page.locator('#ficha-color')).toHaveText('Color: Blanco');
+    await context.close();
+  });
+});
+
 test.describe('404 de la ficha', () => {
   for (const slug of ['no-existe-este-producto', 'Slug_Invalido!', '..%2F..%2Fetc']) {
     test(`/producto/${slug} da 404 con enlace al catálogo`, async ({ page }) => {

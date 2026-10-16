@@ -1,0 +1,16 @@
+/*
+ * Muestras de color de la ficha (T-030, ADR-007). Son colores de CATÁLOGO, no de marca: no forman
+ * parte de palette.css (14 tokens de nombre fijo) y los componentes solo usan su nombre
+ * (`bg-swatch-<color>`), nunca el valor. Mismos valores que las imágenes de ejemplo
+ * (scripts/generate-placeholders.mjs), para que la muestra y la foto coincidan. Un color nuevo del
+ * catálogo necesita aquí su token y su entrada en src/lib/catalog/swatches.ts (un test avisa).
+ */
+@theme static {
+  --color-swatch-azul: #4a6f8f;
+  --color-swatch-beige: #c9b79c;
+  --color-swatch-blanco: #f1efe9;
+  --color-swatch-burdeos: #7a2e3b;
+  --color-swatch-gris: #8d9199;
+  --color-swatch-negro: #2a2c30;
+  --color-swatch-verde: #5d7a63;
+}

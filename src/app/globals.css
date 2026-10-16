@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../../design/styles/v1-soft-commerce/tokens.css";
 @import "../../palette.css";
+@import "./swatches.css";
 
 /* La ruta del primer @import cambia según el estilo del proyecto:
      v1-soft-commerce, v2-immersive-3d, v3-editorial-dark, v4-dense-workspace.
