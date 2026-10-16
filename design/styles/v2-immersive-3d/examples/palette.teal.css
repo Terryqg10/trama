@@ -1,0 +1,24 @@
+/* EJEMPLO / FIXTURE DE PRUEBA — NO USAR COMO VALOR POR DEFECTO.
+   source: sector   (variante fría, tipo producto técnico)
+   mode: claro
+   seed: #1a5b5e
+   rationale: ejemplo ilustrativo (teal oscuro, sensación de precisión)
+   approved_by: n/a
+   generated: 2026-10-10
+   check: pendiente de verificar por check-palette en el primer build */
+@theme static {
+  --color-bg: #f0f6f5;
+  --color-surface: #ffffff;
+  --color-surface-muted: #e0eae8;
+  --color-border: #d4e0de;
+  --color-border-strong: #6f8081;
+  --color-fg: #0f1c1c;
+  --color-fg-muted: #43524f;
+  --color-accent: #1a5b5e;
+  --color-accent-hover: #114145;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #d8ebe8;
+  --color-accent-text: #114145;
+  --color-danger: #b42318;
+  --color-success: #067647;
+}

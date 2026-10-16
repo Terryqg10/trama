@@ -1,0 +1,70 @@
+/*
+ * v3-editorial-dark — tokens.css  (v0.1.0, borrador)
+ *
+ * SOLO TOKENS ESTRUCTURALES: forma, elevación, tipografía, movimiento,
+ * layout. NO define colores. Cada proyecto deduce su paleta (modo oscuro)
+ * y la declara en su propio palette.css (ver design/palette-rules.md).
+ *
+ * Contrato de color (14 tokens, nombres fijos):
+ *   --color-bg  --color-surface  --color-surface-muted  --color-border
+ *   --color-border-strong  --color-fg  --color-fg-muted
+ *   --color-accent  --color-accent-hover  --color-accent-fg
+ *   --color-accent-soft  --color-accent-text  --color-danger  --color-success
+ *
+ * Uso en globals.css del proyecto:
+ *   @import "tailwindcss";
+ *   @import "<ruta-al-OS>/design/styles/v3-editorial-dark/tokens.css";
+ *   @import "./palette.css";
+ */
+
+@theme static {
+  /* Forma — esquinas rectas (firma del estilo) */
+  --radius-container: 0;
+  --radius-card: 0;
+  --radius-tile: 0;
+  --radius-control: 0;
+
+  /* Elevación — mínima, neutra (modo oscuro) */
+  --shadow-card:  0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-lift:  0 2px 6px rgb(0 0 0 / 0.5);
+
+  /* Tipografía */
+  --font-sans: var(--font-brand), ui-sans-serif, system-ui, sans-serif;
+
+  --text-display: clamp(2.5rem, 9vw, 7rem);
+  --text-display--line-height: 0.95;
+  --text-label:   0.875rem;
+  --text-label--line-height: 1.4;
+  --tracking-caps: 0.18em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+
+  --text-min: 0.875rem;
+
+  /* Movimiento (contenido: nada de parallax pesado) */
+  --duration-micro: 200ms;
+  --duration-enter: 400ms;
+  --duration-slide: 600ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --lift-y: -1px;
+  --press-scale: 0.995;
+
+  /* Layout — a sangre */
+  --layout-container: 100%;
+  --layout-prose-max: 68ch;
+  --layout-gutter: clamp(1rem, 3vw, 2rem);
+  --nav-height: 4.5rem;
+  --hero-height: 100dvh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-micro: 0.01ms;
+    --duration-enter: 0.01ms;
+    --duration-slide: 0.01ms;
+    --lift-y: 0px;
+    --press-scale: 1;
+  }
+}

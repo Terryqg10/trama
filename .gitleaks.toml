@@ -1,0 +1,17 @@
+# .gitleaks.toml — Configuración de gitleaks para este proyecto.
+# Se usa desde scripts/check-secrets.mjs y desde CI.
+
+title = "web-os project"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Excepciones del proyecto"
+paths = [
+  '''\.env\.example$''',
+  '''docs/''',
+  '''README\.md$''',
+  '''pnpm-lock\.yaml$''',
+  '''(^|/)\.next/''',
+]

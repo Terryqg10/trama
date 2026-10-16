@@ -1,0 +1,24 @@
+/* EJEMPLO / FIXTURE DE PRUEBA — NO USAR COMO VALOR POR DEFECTO.
+   source: sector   (marca editorial sobria, acento pizarra claro)
+   mode: oscuro
+   seed: #6b7a8f
+   rationale: ejemplo ilustrativo (pizarra fría, editorial sobria)
+   approved_by: n/a
+   generated: 2026-10-10
+   check: pendiente de verificar por check-palette en el primer build */
+@theme static {
+  --color-bg: #0d1014;
+  --color-surface: #161a20;
+  --color-surface-muted: #1e232a;
+  --color-border: #282e37;
+  --color-border-strong: #808893;
+  --color-fg: #eff1f4;
+  --color-fg-muted: #b2b8c2;
+  --color-accent: #93a5bd;
+  --color-accent-hover: #a4b4c9;
+  --color-accent-fg: #0f1318;
+  --color-accent-soft: #1c2330;
+  --color-accent-text: #a4b4c9;
+  --color-danger: #f08a80;
+  --color-success: #86d29b;
+}

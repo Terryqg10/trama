@@ -1,0 +1,24 @@
+/* EJEMPLO / FIXTURE DE PRUEBA — NO USAR COMO VALOR POR DEFECTO.
+   source: sector   (herramienta interna, verde sobrio)
+   mode: claro
+   seed: #2f5d3a
+   rationale: ejemplo ilustrativo (verde herramienta, poco saturado)
+   approved_by: n/a
+   generated: 2026-10-10
+   check: pendiente de verificar por check-palette en el primer build */
+@theme static {
+  --color-bg: #f7faf6;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef4ec;
+  --color-border: #e1e9df;
+  --color-border-strong: #647461;
+  --color-fg: #101a11;
+  --color-fg-muted: #485746;
+  --color-accent: #2f5d3a;
+  --color-accent-hover: #244a2d;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #dfeede;
+  --color-accent-text: #244a2d;
+  --color-danger: #b42318;
+  --color-success: #067647;
+}

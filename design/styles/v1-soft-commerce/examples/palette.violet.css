@@ -1,0 +1,24 @@
+/* EJEMPLO / FIXTURE DE PRUEBA — NO USAR COMO VALOR POR DEFECTO.
+   source: sector   (referencia visual: app móvil de cuidado de la piel)
+   mode: claro
+   seed: #5b3fc4
+   rationale: ejemplo ilustrativo
+   approved_by: n/a
+   generated: 2026-10-10
+   check: pendiente de verificar por check-palette en el primer build */
+@theme static {
+  --color-bg: #f7f5ff;
+  --color-surface: #ffffff;
+  --color-surface-muted: #efebfb;
+  --color-border: #e6e1f3;
+  --color-border-strong: #8a829f;
+  --color-fg: #1b1730;
+  --color-fg-muted: #5a5470;
+  --color-accent: #5b3fc4;
+  --color-accent-hover: #4a31a8;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #e9e3fb;
+  --color-accent-text: #4b33a8;
+  --color-danger: #b42318;
+  --color-success: #067647;
+}

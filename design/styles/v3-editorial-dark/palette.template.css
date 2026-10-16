@@ -1,0 +1,38 @@
+/*
+ * palette.css — PLANTILLA para proyectos con estilo v3-editorial-dark.
+ * Copiar al proyecto como palette.css y rellenar.
+ *
+ * Cabecera OBLIGATORIA (check-palette la lee; si dice TODO, falla):
+ *   source:      brand | assets | sector | asked
+ *   mode:        oscuro    (v3 usa "oscuro" por defecto)
+ *   seed:        #RRGGBB
+ *   rationale:   por qué esta semilla (1-2 líneas)
+ *   approved_by: user | pending
+ *   generated:   AAAA-MM-DD
+ *
+ * Los valores de abajo son marcadores: NO son una paleta por defecto.
+ * En v3, los valores reales vienen de la derivación en modo oscuro.
+ */
+/* source: TODO
+   mode: oscuro
+   seed: TODO
+   rationale: TODO
+   approved_by: pending
+   generated: TODO */
+
+@theme static {
+  --color-bg: #000000;             /* TODO L≈0.14 */
+  --color-surface: #000000;        /* TODO L≈0.18 */
+  --color-surface-muted: #000000;  /* TODO L≈0.22 */
+  --color-border: #000000;         /* TODO L≈0.28, decorativo */
+  --color-border-strong: #000000;  /* TODO L≈0.55, >= 3:1 sobre bg y surface */
+  --color-fg: #000000;             /* TODO L≈0.95 */
+  --color-fg-muted: #000000;       /* TODO L≈0.72 */
+  --color-accent: #000000;         /* TODO semilla ajustada, L 0.65-0.72 */
+  --color-accent-hover: #000000;   /* TODO L + 0.06 */
+  --color-accent-fg: #000000;      /* TODO normalmente OSCURO (L≈0.15) */
+  --color-accent-soft: #000000;    /* TODO L≈0.28, croma bajo */
+  --color-accent-text: #000000;    /* TODO acento aclarado si hace falta */
+  --color-danger: #000000;         /* TODO rojo claro, L≈0.70 */
+  --color-success: #000000;        /* TODO verde claro, L≈0.70 */
+}

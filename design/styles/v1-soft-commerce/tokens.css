@@ -1,0 +1,64 @@
+/*
+ * v1-soft-commerce — tokens.css  (v0.3.0, borrador)
+ *
+ * SOLO TOKENS ESTRUCTURALES: forma, elevación, tipografía, movimiento y
+ * layout. NO define colores. Cada proyecto deduce su paleta y la declara
+ * en su propio palette.css (ver design/palette-rules.md).
+ *
+ * Contrato de color (14 tokens, nombres fijos):
+ *   --color-bg  --color-surface  --color-surface-muted  --color-border
+ *   --color-border-strong  --color-fg  --color-fg-muted
+ *   --color-accent  --color-accent-hover  --color-accent-fg
+ *   --color-accent-soft  --color-accent-text  --color-danger  --color-success
+ *
+ * Uso en globals.css del proyecto:
+ *   @import "tailwindcss";
+ *   @import "<ruta-al-OS>/design/styles/v1-soft-commerce/tokens.css";
+ *   @import "./palette.css";
+ */
+
+@theme static {
+  /* Forma */
+  --radius-container: 1.5rem;
+  --radius-card: 1rem;
+  --radius-tile: 0.75rem;
+  --radius-control: 9999px;
+
+  /* Elevación (neutra: sin tinte de marca) */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.05), 0 16px 32px rgb(0 0 0 / 0.1);
+
+  /* Tipografía */
+  --font-sans: var(--font-brand), ui-sans-serif, system-ui, sans-serif;
+  --text-display: clamp(2rem, 5vw, 3rem);
+  --text-display--line-height: 1.1;
+  --text-min: 0.75rem;
+
+  /* Movimiento */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 200ms;
+  --duration-base: 300ms;
+  --duration-slow: 400ms;
+  --lift-y: -2px;
+  --lift-scale: 1.01;
+  --press-scale: 0.98;
+
+  /* Layout */
+  --layout-container: 72rem;
+  --layout-prose-max: 65ch;
+  --layout-gutter: clamp(1rem, 4vw, 1.5rem);
+  --nav-height: 4rem;
+  --tabbar-height: 4.5rem;
+  --hero-height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0.01ms;
+    --duration-base: 0.01ms;
+    --duration-slow: 0.01ms;
+    --lift-y: 0px;
+    --lift-scale: 1;
+    --press-scale: 1;
+  }
+}

@@ -1,0 +1,80 @@
+/*
+ * v2-immersive-3d — tokens.css  (v0.1.0, borrador)
+ *
+ * SOLO TOKENS ESTRUCTURALES: forma, elevación, tipografía, movimiento,
+ * parallax y layout. NO define colores. Cada proyecto deduce su paleta y
+ * la declara en su propio palette.css (ver design/palette-rules.md).
+ *
+ * Contrato de color (14 tokens, nombres fijos):
+ *   --color-bg  --color-surface  --color-surface-muted  --color-border
+ *   --color-border-strong  --color-fg  --color-fg-muted
+ *   --color-accent  --color-accent-hover  --color-accent-fg
+ *   --color-accent-soft  --color-accent-text  --color-danger  --color-success
+ *
+ * Uso en globals.css del proyecto:
+ *   @import "tailwindcss";
+ *   @import "<ruta-al-OS>/design/styles/v2-immersive-3d/tokens.css";
+ *   @import "./palette.css";
+ */
+
+@theme static {
+  /* Forma */
+  --radius-container: 2rem;
+  --radius-card: 1.25rem;
+  --radius-tile: 1rem;
+  --radius-control: 9999px;
+
+  /* Elevación (neutra: sin tinte de marca) */
+  --shadow-card:  0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.06);
+  --shadow-lift:  0 2px 4px rgb(0 0 0 / 0.05), 0 16px 32px rgb(0 0 0 / 0.10);
+  --shadow-float: 0 4px 8px rgb(0 0 0 / 0.06), 0 24px 48px rgb(0 0 0 / 0.14);
+
+  /* Tipografía */
+  --font-sans: var(--font-brand), ui-sans-serif, system-ui, sans-serif;
+  --text-display: clamp(2.75rem, 8vw, 6rem);
+  --text-display--line-height: 0.98;
+  --text-lead:    clamp(1.05rem, 2vw, 1.375rem);
+  --text-lead--line-height: 1.45;
+  --text-min: 0.75rem;
+
+  /* Movimiento */
+  --duration-micro:   300ms;
+  --duration-section: 600ms;
+  --duration-hero:    1400ms;
+  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --lift-y: -2px;
+  --lift-scale: 1.01;
+  --press-scale: 0.98;
+
+  /* Parallax (factores multiplicadores del scroll) */
+  --parallax-slow: 0.10;
+  --parallax-base: 0.22;
+  --parallax-fast: 0.40;
+
+  /* Layout */
+  --layout-container: 80rem;
+  --layout-prose-max: 65ch;
+  --layout-gutter: clamp(1rem, 4vw, 2rem);
+  --nav-height: 4.5rem;
+  --hero-height: 100dvh;
+
+  /* Presupuestos de peso (informativos) */
+  --weight-hero: 400kb;
+  --weight-3d-icon: 80kb;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-micro:   0.01ms;
+    --duration-section: 0.01ms;
+    --duration-hero:    0.01ms;
+    --parallax-slow: 0;
+    --parallax-base: 0;
+    --parallax-fast: 0;
+    --lift-y: 0px;
+    --lift-scale: 1;
+    --press-scale: 1;
+  }
+}

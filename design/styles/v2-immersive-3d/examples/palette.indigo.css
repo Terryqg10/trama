@@ -1,0 +1,24 @@
+/* EJEMPLO / FIXTURE DE PRUEBA — NO USAR COMO VALOR POR DEFECTO.
+   source: sector   (referencia visual: hero 3D de cripto)
+   mode: claro
+   seed: #2e3a8c
+   rationale: ejemplo ilustrativo (frío, tecnológico, tipo cripto)
+   approved_by: n/a
+   generated: 2026-10-10
+   check: pendiente de verificar por check-palette en el primer build */
+@theme static {
+  --color-bg: #f5f6fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #e8eaf3;
+  --color-border: #dfe2ec;
+  --color-border-strong: #737a95;
+  --color-fg: #161a2c;
+  --color-fg-muted: #4b526a;
+  --color-accent: #2e3a8c;
+  --color-accent-hover: #1f286e;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #e3e5f5;
+  --color-accent-text: #1f286e;
+  --color-danger: #b42318;
+  --color-success: #067647;
+}

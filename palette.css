@@ -1,0 +1,22 @@
+/* source: sector   (moda casual y de vestir; tienda "Trama", España)
+   mode: claro
+   seed: #1f4e5f
+   rationale: azul petróleo sobrio (evoca tejido y camisa), neutro respecto a hombre/mujer; deja a la ropa como protagonista. Sin marca previa.
+   approved_by: user
+   generated: 2026-10-12 */
+@theme static {
+  --color-bg: #f5f9fa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #e9f1f4;
+  --color-border: #dce6ea;
+  --color-border-strong: #6f848d;
+  --color-fg: #10222a;
+  --color-fg-muted: #46585f;
+  --color-accent: #1f4e5f;
+  --color-accent-hover: #173c49;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #e3eef2;
+  --color-accent-text: #1f4e5f;
+  --color-danger: #b42318;
+  --color-success: #067647;
+}

@@ -1,0 +1,24 @@
+/* EJEMPLO / FIXTURE DE PRUEBA — NO USAR COMO VALOR POR DEFECTO.
+   source: sector   (marca editorial con acento cálido sobre carbón)
+   mode: oscuro
+   seed: #c98a1a
+   rationale: ejemplo ilustrativo (ámbar cálido sobre fondo oscuro)
+   approved_by: n/a
+   generated: 2026-10-10
+   check: pendiente de verificar por check-palette en el primer build */
+@theme static {
+  --color-bg: #0f0d0a;
+  --color-surface: #191612;
+  --color-surface-muted: #221e18;
+  --color-border: #2d2820;
+  --color-border-strong: #8b8172;
+  --color-fg: #f4efe5;
+  --color-fg-muted: #b9b0a0;
+  --color-accent: #e3a433;
+  --color-accent-hover: #eeb648;
+  --color-accent-fg: #1d1407;
+  --color-accent-soft: #2e2414;
+  --color-accent-text: #eab849;
+  --color-danger: #f08a80;
+  --color-success: #86d29b;
+}

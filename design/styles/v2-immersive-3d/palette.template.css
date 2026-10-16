@@ -1,0 +1,37 @@
+/*
+ * palette.css — PLANTILLA para proyectos con estilo v2-immersive-3d.
+ * Copiar al proyecto como palette.css y rellenar.
+ *
+ * Cabecera OBLIGATORIA (check-palette la lee; si dice TODO, falla):
+ *   source:      brand | assets | sector | asked
+ *   mode:        claro | oscuro    (v2 usa "claro" por defecto)
+ *   seed:        #RRGGBB
+ *   rationale:   por qué esta semilla (1-2 líneas)
+ *   approved_by: user | pending
+ *   generated:   AAAA-MM-DD
+ *
+ * Los valores de abajo son marcadores: NO son una paleta por defecto.
+ */
+/* source: TODO
+   mode: claro
+   seed: TODO
+   rationale: TODO
+   approved_by: pending
+   generated: TODO */
+
+@theme static {
+  --color-bg: #000000;             /* TODO */
+  --color-surface: #000000;        /* TODO */
+  --color-surface-muted: #000000;  /* TODO */
+  --color-border: #000000;         /* TODO decorativo */
+  --color-border-strong: #000000;  /* TODO >= 3:1 sobre bg y surface */
+  --color-fg: #000000;             /* TODO */
+  --color-fg-muted: #000000;       /* TODO >= 4.5:1 sobre bg, surface, surface-muted */
+  --color-accent: #000000;         /* TODO semilla ajustada */
+  --color-accent-hover: #000000;   /* TODO */
+  --color-accent-fg: #000000;      /* TODO texto sobre accent */
+  --color-accent-soft: #000000;    /* TODO */
+  --color-accent-text: #000000;    /* TODO acento usado como texto; en v2 NUNCA uses accent crudo sobre fondo claro */
+  --color-danger: #000000;         /* TODO */
+  --color-success: #000000;        /* TODO */
+}

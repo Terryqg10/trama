@@ -1,0 +1,40 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Secretos (I4)
+.env
+.env.*
+!.env.example
+
+# Build de Next.js
+.next/
+out/
+dist/
+.turbo/
+*.tsbuildinfo
+
+# Coverage
+coverage/
+playwright-report/
+test-results/
+
+# Editores y sistema
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Backups locales
+backups/
+
+# Generado por Next.js
+/next-env.d.ts
+/AGENTS.md

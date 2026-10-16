@@ -1,0 +1,83 @@
+/*
+ * v4-dense-workspace — tokens.css  (v0.1.0, borrador sin referencias)
+ *
+ * SOLO TOKENS ESTRUCTURALES. NO define colores. Cada proyecto deduce su
+ * paleta y la declara en su propio palette.css (ver design/palette-rules.md).
+ *
+ * Contrato de color (14 tokens, nombres fijos):
+ *   --color-bg  --color-surface  --color-surface-muted  --color-border
+ *   --color-border-strong  --color-fg  --color-fg-muted
+ *   --color-accent  --color-accent-hover  --color-accent-fg
+ *   --color-accent-soft  --color-accent-text  --color-danger  --color-success
+ *
+ * Uso en globals.css del proyecto:
+ *   @import "tailwindcss";
+ *   @import "<ruta-al-OS>/design/styles/v4-dense-workspace/tokens.css";
+ *   @import "./palette.css";
+ */
+
+@theme static {
+  /* Forma — sobria, no píldora */
+  --radius-container: 1rem;
+  --radius-card: 0.75rem;
+  --radius-tile: 0.5rem;
+  --radius-control: 0.5rem;
+
+  /* Elevación — mínima */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.08);
+
+  /* Tipografía */
+  --font-sans: var(--font-brand), ui-sans-serif, system-ui, sans-serif;
+
+  --text-xs:   0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm:   0.8125rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.5;
+  --text-lg:   1.125rem;
+  --text-lg--line-height: 1.3;
+  --text-display: clamp(1.25rem, 2.5vw, 1.75rem);
+  --text-display--line-height: 1.2;
+
+  --tracking-tight: -0.01em;
+
+  --text-min: 0.75rem;
+
+  /* Movimiento */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --lift-y: -1px;
+  --press-scale: 0.995;
+
+  /* Layout — workspace */
+  --layout-container: 100rem;
+  --layout-prose-max: 68ch;
+  --layout-gutter: clamp(1rem, 2.5vw, 1.75rem);
+  --grid-gap: 0.75rem;
+
+  --sidebar-width: 16rem;
+  --sidebar-width-collapsed: 3.5rem;
+  --topbar-height: 3.5rem;
+  --nav-height: var(--topbar-height);
+
+  --row-height-compact: 2.5rem;
+  --row-height: 3rem;
+  --control-height: 2.25rem;
+  --modal-max: 35rem;
+
+  --grid-columns: 12;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0.01ms;
+    --duration-base: 0.01ms;
+    --lift-y: 0px;
+    --press-scale: 1;
+  }
+}

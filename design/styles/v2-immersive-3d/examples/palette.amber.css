@@ -1,0 +1,26 @@
+/* EJEMPLO / FIXTURE DE PRUEBA — NO USAR COMO VALOR POR DEFECTO.
+   Sirve para (a) mostrar la forma de salida y (b) probar el check-palette
+   y el swap de tokens en un contexto v2 (hero + secciones claras).
+   source: sector   (referencia visual: web de bebida energética)
+   mode: claro
+   seed: #8b3a08
+   rationale: ejemplo ilustrativo (cálido, alto impacto, tipo consumo energético)
+   approved_by: n/a
+   generated: 2026-10-10
+   check: pendiente de verificar por check-palette en el primer build */
+@theme static {
+  --color-bg: #fbf6ec;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3ead9;
+  --color-border: #ebe0cc;
+  --color-border-strong: #7d7566;
+  --color-fg: #1c1610;
+  --color-fg-muted: #57503f;
+  --color-accent: #8b3a08;
+  --color-accent-hover: #6e2d06;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #f5dfc8;
+  --color-accent-text: #6e2d06;
+  --color-danger: #b42318;
+  --color-success: #067647;
+}

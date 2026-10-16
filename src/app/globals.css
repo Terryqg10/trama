@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "../../design/styles/v1-soft-commerce/tokens.css";
+@import "../../palette.css";
+
+/* La ruta del primer @import cambia según el estilo del proyecto:
+     v1-soft-commerce, v2-immersive-3d, v3-editorial-dark, v4-dense-workspace.
+   Al instanciar con Copier se deja la del estilo elegido; ver
+   design/styles/index.md y sdd/plans/PLAN-xxx.md. */
+
+/* Foco visible para todos los controles (RNF-02). Usa solo tokens. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
