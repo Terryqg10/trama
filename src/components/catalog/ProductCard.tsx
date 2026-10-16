@@ -1,10 +1,11 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { formatEuros } from '@/lib/domain/shop';
 import type { CatalogProduct } from '@/lib/catalog/product';
 
 /**
- * Tarjeta de producto del listado. Sin enlace ni botón de compra por ahora: la
- * ficha llega con T-005b. Las insignias son texto, no solo color (WCAG AA).
+ * Tarjeta de producto del listado. Enlaza a su ficha (T-005b); sin botón de compra hasta
+ * el carrito (T-018). Las insignias son texto, no solo color (WCAG AA).
  */
 export function ProductCard({
   product,
@@ -23,7 +24,7 @@ export function ProductCard({
   const colorCount = product.colors.length;
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface shadow-card">
+    <article className="relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface shadow-card has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-accent">
       <div className="relative aspect-4/5 bg-surface-muted">
         {image ? (
           <Image
@@ -56,7 +57,15 @@ export function ProductCard({
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
-        <h2 className="text-base font-semibold text-fg">{product.name}</h2>
+        <h2 className="text-base font-semibold text-fg">
+          {/* Enlace extendido: toda la tarjeta es clicable, pero hay un único enlace con nombre. */}
+          <Link
+            href={`/producto/${product.slug}`}
+            className="after:absolute after:inset-0 hover:underline focus-visible:outline-none"
+          >
+            {product.name}
+          </Link>
+        </h2>
         <p className="text-sm text-fg-muted">
           {colorCount} {colorCount === 1 ? 'color' : 'colores'}
         </p>

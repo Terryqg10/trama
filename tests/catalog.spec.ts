@@ -231,9 +231,16 @@ test.describe('interfaz del listado', () => {
     await expect(page.getByRole('radio', { name: 'Blusas' })).toBeChecked();
   });
 
-  test('las tarjetas no son enlaces ni botones (la ficha llega en T-005b)', async ({ page }) => {
+  test('cada tarjeta tiene un único enlace a su ficha y ningún botón (T-005b)', async ({ page }) => {
     await open(page, '/mujer');
-    await expect(page.locator('article a')).toHaveCount(0);
+    const cards = page.locator('article');
+    const count = await cards.count();
+    expect(count).toBeGreaterThan(0);
+    for (let i = 0; i < count; i++) {
+      const links = cards.nth(i).locator('a');
+      await expect(links).toHaveCount(1);
+      expect(await links.first().getAttribute('href')).toMatch(/^\/producto\/[a-z0-9-]+$/);
+    }
     await expect(page.locator('article button')).toHaveCount(0);
   });
 

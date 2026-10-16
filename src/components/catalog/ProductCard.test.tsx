@@ -70,9 +70,12 @@ describe('ProductCard', () => {
     expect(screen.queryByText('Agotado')).not.toBeInTheDocument();
   });
 
-  it('no es un enlace ni tiene botones (la ficha llega en T-005b)', () => {
+  it('tiene un único enlace, a su ficha, y ningún botón (T-005b)', () => {
     render(<ProductCard product={product()} />);
-    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    const links = screen.getAllByRole('link');
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute('href', '/producto/polo-demo');
+    expect(links[0]).toHaveAccessibleName('Polo demo');
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 

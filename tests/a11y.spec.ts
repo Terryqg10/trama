@@ -38,6 +38,10 @@ test.describe('accesibilidad', () => {
     ['estado vacío del listado', '/mujer?categoria=pantalones&color=burdeos'],
     ['filtros inválidos ignorados', '/hombre?genero=niño&min=-5'],
     ['novedades con género', '/novedades?genero=mujer'],
+    ['ficha de producto', '/producto/polo-pique-basico'],
+    ['ficha con color y talla elegidos', '/producto/polo-pique-basico?color=negro&talla=M'],
+    ['ficha con una talla agotada', '/producto/polo-pique-basico?color=negro'],
+    ['404 de la ficha', '/producto/no-existe-este-producto'],
   ];
 
   for (const [label, url] of CATALOG_STATES) {

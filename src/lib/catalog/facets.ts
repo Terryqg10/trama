@@ -12,7 +12,7 @@ export interface CatalogFacets {
 
 const LETTER_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 
-function compareSizes(a: string, b: string): number {
+export function compareSizes(a: string, b: string): number {
   const ia = LETTER_SIZES.indexOf(a);
   const ib = LETTER_SIZES.indexOf(b);
   if (ia !== -1 && ib !== -1) return ia - ib;
