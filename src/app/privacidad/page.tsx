@@ -9,8 +9,10 @@ export default function PrivacidadPage() {
     <LegalPage title="Política de privacidad">
       <LegalHeading>Estado actual</LegalHeading>
       <p>
-        Todavía no hay cuentas de usuario activas y este sitio no recoge datos personales. Esta
-        página describe el tratamiento previsto cuando se activen las cuentas y los pedidos.
+        Las cuentas de usuario ya están activas: al registrarte guardamos tu email, tu contraseña
+        (cifrada), tu nombre y las direcciones que añadas. Los pedidos y los pagos todavía no
+        están activos; esta página describe también el tratamiento previsto para cuando lo
+        estén.
       </p>
 
       <LegalHeading>Datos previstos y para qué</LegalHeading>

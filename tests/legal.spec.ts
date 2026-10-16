@@ -64,7 +64,7 @@ test.describe('coherencia del contenido con la spec', () => {
     for (const expected of ['Email', 'Nombre', 'Direcciones de envío', 'Pedidos', 'Supabase', 'Stripe']) {
       expect(text).toContain(expected);
     }
-    expect(text).toContain('Todavía no hay cuentas de usuario activas');
+    expect(text).toContain('Las cuentas de usuario ya están activas');
   });
 
   test('cookies: solo técnicas, sin analítica ni publicidad', async ({ page }) => {

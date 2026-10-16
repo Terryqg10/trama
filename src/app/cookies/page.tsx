@@ -9,7 +9,7 @@ export default function CookiesPage() {
       <LegalHeading>Qué cookies usamos</LegalHeading>
       <p>
         Solo cookies técnicas necesarias para el funcionamiento del sitio, como mantener la sesión
-        cuando haya cuentas activas. No usamos cookies de analítica, de publicidad ni de
+        de tu cuenta. No usamos cookies de analítica, de publicidad ni de
         seguimiento.
       </p>
 

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ACTION_NAV, LEGAL_NAV, MAIN_NAV } from '../src/lib/domain/navigation';
+import { adminClient, createConfirmedUser, deleteUserByEmail, newCredentials } from './helpers/auth-users';
 
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 const ROUTES = [
@@ -9,6 +10,10 @@ const ROUTES = [
   ACTION_NAV.cart.href,
   ACTION_NAV.account.href,
   ...LEGAL_NAV.map((item) => item.href),
+  '/acceso',
+  '/registro',
+  '/recuperar',
+  '/recuperar?error=enlace',
 ];
 
 test.describe('accesibilidad', () => {
@@ -89,6 +94,41 @@ test.describe('accesibilidad', () => {
       (v) => v.impact === 'serious' || v.impact === 'critical',
     );
     expect(serious, 'violaciones graves o críticas de axe').toEqual([]);
+  });
+
+  test('la cuenta con sesión, el formulario de dirección y sus errores no tienen violaciones graves', async ({ page }) => {
+    const admin = adminClient();
+    const credentials = newCredentials('a11y');
+    await createConfirmedUser(admin, credentials);
+    try {
+      await page.goto('/acceso');
+      await page.getByLabel('Email').fill(credentials.email);
+      await page.getByLabel('Contraseña').fill(credentials.password);
+      await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+      await expect(page).toHaveURL(/\/cuenta$/);
+
+      const pages: ReadonlyArray<readonly [string, () => Promise<void>]> = [
+        ['cuenta sin direcciones', async () => {}],
+        ['formulario de dirección', async () => {
+          await page.getByRole('link', { name: 'Añadir dirección' }).click();
+          await expect(page.getByRole('heading', { level: 1, name: 'Nueva dirección' })).toBeVisible();
+        }],
+        ['formulario de dirección con errores', async () => {
+          await page.getByRole('button', { name: 'Guardar dirección' }).click();
+          await expect(page.getByLabel('Código postal')).toHaveAttribute('aria-invalid', 'true');
+        }],
+      ];
+      for (const [label, step] of pages) {
+        await step();
+        const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+        const serious = results.violations.filter(
+          (v) => v.impact === 'serious' || v.impact === 'critical',
+        );
+        expect(serious, `violaciones graves en: ${label}`).toEqual([]);
+      }
+    } finally {
+      await deleteUserByEmail(admin, credentials.email);
+    }
   });
 
   test('respeta prefers-reduced-motion', async ({ browser }) => {
