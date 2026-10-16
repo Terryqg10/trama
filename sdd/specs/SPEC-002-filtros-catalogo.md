@@ -135,3 +135,22 @@ no hay alternativas de coste alto de revertir.
 | CA-10 | RF-03 | Un usuario con JS activo | Cambia «Ordenar por» a «Precio: de menor a mayor» | El listado se reordena sin recargar y la URL lleva `orden=precio-asc` | Test e2e: `selectOption` + esperar URL y orden de precios; marca en `window` sigue presente |
 
 **Nuevas tareas derivadas:** T-010 (Ordenar por al cambiar y drawer en tablet).
+
+### Enmienda 3 — 2026-10-16 — ADR-006 (extensión)
+
+**Origen:** al revisar T-009 se vio que el hash `#filtros-movil` (fallback sin JavaScript de RF-07) no
+estaba documentado y que, con JavaScript, el CSS `:target` abre el drawer sin que React lo sepa.
+
+**Qué cambia:**
+
+- Se documenta el comportamiento del hash `#filtros-movil` como parte del fallback sin JavaScript de RF-07.
+- Con JS: el drawer se abre al montar si el hash es `#filtros-movil`, y se cierra limpiando el hash.
+- Sin JS: se mantiene el comportamiento actual de CSS `:target`.
+- Nuevo CA-11 (el CA-10 ya lo usa la Enmienda 2 para «Ordenar por»).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-11 | RF-07 | Un usuario con JS | Entra en `/mujer#filtros-movil` | El drawer está abierto, el foco está dentro, el fondo no scrollea y Esc lo cierra | Test e2e a 375 px: `goto('/mujer#filtros-movil')`, drawer visible, `activeElement` dentro, `body` con `overflow: hidden`, Esc cierra y el hash desaparece |
+
+**Nuevas tareas derivadas:** T-011 (orden de botones del drawer y sincronización del hash), T-012
+(indicador de carga al navegar al catálogo; sin CA todavía).

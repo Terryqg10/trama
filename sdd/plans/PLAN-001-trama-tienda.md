@@ -83,6 +83,8 @@ Tipos TypeScript generados con `pnpm db:types`. No se escriben a mano.
 | Decisión | Convención del sector | Por qué nos apartamos | Qué gana el usuario |
 |---|---|---|---|
 | Filtros del catálogo: columna lateral izquierda sticky en escritorio, drawer en móvil, chips que aplican al clic | Zalando, Scalpers, ASOS, Mango usan esta disposición | La versión inicial del catálogo los colocó encima, en un panel plegable, y requería pulsar "Aplicar" para todo | Menos fricción, menos clics, encuentra productos en menos tiempo |
+| Botones del pie del drawer: Aplicar (izq.), Limpiar (der.) | v1-soft-commerce pide Limpiar (izq.), Aplicar (der.) | Error en T-009, se corrige en T-011 | Se restaura la convención del estilo |
+| Drawer móvil abierto por hash `#filtros-movil` | No aplica (convención de la web, no del sector) | Fallback sin JavaScript, requerido por RF-07 | Sin JS: filtros usables. Con JS: mismo comportamiento, sincronizado con React |
 
 Referencia completa en `SPEC-002-filtros-catalogo.md` y
 `ADR-005-filtros-progressive-enhancement.md`.
