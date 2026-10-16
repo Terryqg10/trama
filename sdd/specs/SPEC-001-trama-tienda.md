@@ -388,5 +388,19 @@ estilo queda registrada en PLAN-001 §5b.
 
 **Nuevas tareas derivadas:** ninguna (se aplica en T-016).
 
+### Enmienda 10 — 2026-10-16 — sin ADR
+
+**Origen:** al implementar T-015 se vio que el aviso de LCP de Next en consola (solo en desarrollo)
+es intermitente: con tres imágenes del mismo tamaño en la primera fila, el navegador puede elegir
+como LCP una distinta de la primera (aprox. 1 de cada 6 a 10 cargas en paralelo). Un test e2e que
+lo exija fallaría de vez en cuando sin un fallo real. El usuario decidió quitar esa comprobación
+automática.
+
+**Qué cambia:** en la verificación de CA-53 se elimina «sin aviso de LCP en consola» como test
+automático. Pasa a ser una comprobación manual documentada en `sdd/reviews/T-015.md`. El CA no
+cambia: la primera imagen sigue cargándose con prioridad y sin `lazy`, y eso sí se prueba.
+
+**Nuevas tareas derivadas:** ninguna.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.

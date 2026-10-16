@@ -6,7 +6,14 @@ import type { CatalogProduct } from '@/lib/catalog/product';
  * Tarjeta de producto del listado. Sin enlace ni botón de compra por ahora: la
  * ficha llega con T-005b. Las insignias son texto, no solo color (WCAG AA).
  */
-export function ProductCard({ product }: { readonly product: CatalogProduct }) {
+export function ProductCard({
+  product,
+  priority = false,
+}: {
+  readonly product: CatalogProduct;
+  /** Solo la imagen que será LCP (la primera del listado): carga con prioridad, sin `lazy`. */
+  readonly priority?: boolean;
+}) {
   const image = product.images[0];
   const prices = new Set(product.variants.map((variant) => variant.priceCents));
   const priceLabel =
@@ -25,6 +32,11 @@ export function ProductCard({ product }: { readonly product: CatalogProduct }) {
             width={400}
             height={500}
             unoptimized
+            // `priority` de Next está obsoleto desde la 16 y solo quita el `lazy`: la carga con prioridad
+            // es `preload` y `fetchPriority="high"` (T-015).
+            preload={priority}
+            fetchPriority={priority ? 'high' : undefined}
+            loading={priority ? 'eager' : undefined}
             className="h-full w-full object-contain p-6"
           />
         ) : (

@@ -89,9 +89,9 @@ export async function CatalogView({
             // Rejilla del estilo v1: 2 columnas hasta `--bp-md` y 3 desde `--bp-md`. Con la
             // columna lateral (≥ `--bp-lg`) se mantienen 3, no 4 (PLAN-001 §5b, T-016).
             <ul className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <li key={product.id}>
-                  <ProductCard product={product} />
+                  <ProductCard product={product} priority={index === 0} />
                 </li>
               ))}
             </ul>
