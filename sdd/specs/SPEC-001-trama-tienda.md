@@ -435,5 +435,18 @@ nuevo de tokens fuera de la paleta de marca, y por eso se registra en ADR-007.
 
 **Nuevas tareas derivadas:** T-030 (círculos de color en la ficha).
 
+### Enmienda 13 — 2026-10-16 — sin ADR — CA-59 recuperación de contraseña
+
+**Origen:** al crear T-017 se comprobó que RF-04 incluye la recuperación de contraseña pero ningún CA
+la cubre (CA-06 y CA-07 solo cubren registro e inicio de sesión). Sin CA no hay tarea ni prueba.
+
+**Qué cambia:** se añade un criterio de aceptación. RF-04, CA-06 y CA-07 no cambian.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-59 | RF-04 | Una persona que olvidó su contraseña | Pide recuperarla con un email, exista o no en la tienda | Ve el mismo mensaje en ambos casos; con el enlace recibido fija una contraseña nueva válida y puede iniciar sesión con ella | test e2e `auth-recovery-request` (mensaje idéntico) y test de integración `auth-recovery-reset` (enlace generado con la API admin, nueva contraseña, inicio de sesión) |
+
+**Nuevas tareas derivadas:** ninguna; CA-59 entra en T-017.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
