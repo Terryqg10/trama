@@ -104,7 +104,7 @@ export function FiltersDrawer({
             <X aria-hidden="true" className="size-5" />
           </a>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto bg-surface">{children}</div>
+        <div className="min-h-0 flex-1 scroll-pb-24 overflow-y-auto bg-surface">{children}</div>
         <span tabIndex={0} onFocus={() => overlay.focusEdge('first')} data-focus-guard="end" />
       </div>
     </div>

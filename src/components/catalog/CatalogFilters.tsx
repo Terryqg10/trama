@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { capitalize, type CatalogFacets } from '@/lib/catalog/facets';
 import {
   GENDERS,
@@ -70,8 +70,9 @@ function ChipGroup({
   );
 }
 
-const fieldClass =
-  'mt-1 min-h-11 w-full rounded-control border border-border-strong bg-surface px-4 text-sm text-fg';
+const controlClass =
+  'min-h-11 w-full rounded-control border border-border-strong bg-surface px-4 text-sm text-fg';
+const fieldClass = `mt-1 ${controlClass}`;
 
 function activeCount(filters: Filters, hasGenderFilter: boolean): number {
   return [
@@ -126,11 +127,11 @@ function FilterForm({
 }: CatalogFiltersProps & { readonly testId: string; readonly footerSticky?: boolean }) {
   const genderOptions: Option[] = GENDERS.map((g: Gender) => ({ value: g, label: capitalize(g) }));
 
-  const buttonLayout = footerSticky ? ' flex-1 justify-center' : '';
+  const buttonLayout = footerSticky ? ' flex-1 justify-center whitespace-nowrap' : '';
   const applyButton = (
     <button
       type="submit"
-      className={`inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover${buttonLayout}`}
+      className={`inline-flex min-h-11 items-center rounded-control bg-accent text-sm font-semibold text-accent-fg hover:bg-accent-hover ${footerSticky ? 'px-3' : 'px-6'}${buttonLayout}`}
     >
       Aplicar filtros
     </button>
@@ -138,7 +139,7 @@ function FilterForm({
   const clearLink = (
     <Link
       href={clearHref(basePath, filters.sort)}
-      className={`inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface px-6 text-sm font-semibold text-fg hover:bg-accent-soft${buttonLayout}`}
+      className={`inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface text-sm font-semibold text-fg hover:bg-accent-soft ${footerSticky ? 'px-3' : 'px-6'}${buttonLayout}`}
     >
       Limpiar
     </Link>
@@ -148,7 +149,11 @@ function FilterForm({
     <FilterChips
       action={basePath}
       testId={testId}
-      className="space-y-5 border-t border-border p-5"
+      className={
+        footerSticky
+          ? 'flex min-h-full flex-col gap-5 border-t border-border p-5'
+          : 'space-y-5 border-t border-border p-5'
+      }
     >
       {showGender ? (
         <ChipGroup legend="Género" name="genero" options={genderOptions} selected={filters.gender} />
@@ -208,20 +213,34 @@ function FilterForm({
         </label>
         <label className="block text-sm font-semibold text-fg">
           Ordenar por
-          <select name="orden" defaultValue={filters.sort} className={fieldClass}>
-            {SORTS.map((sort) => (
-              <option key={sort} value={sort}>
-                {SORT_LABELS[sort]}
-              </option>
-            ))}
-          </select>
+          {/* Sin chevrón nativo (`appearance-none`): el de lucide va dentro del control, a la
+              misma distancia del borde que el texto (`px-4`), y no bloquea clics. */}
+          <span className="relative mt-1 block">
+            <select
+              name="orden"
+              defaultValue={filters.sort}
+              data-testid="filters-sort"
+              className={`${controlClass} appearance-none pr-12`}
+            >
+              {SORTS.map((sort) => (
+                <option key={sort} value={sort}>
+                  {SORT_LABELS[sort]}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              aria-hidden="true"
+              data-testid="filters-sort-chevron"
+              className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-fg"
+            />
+          </span>
         </label>
       </div>
 
       <div
         className={
           footerSticky
-            ? 'sticky -bottom-5 z-10 -mx-5 -mb-5 flex gap-3 border-t border-border bg-surface px-5 py-3'
+            ? 'sticky -bottom-5 z-10 -mx-5 -mb-5 mt-auto flex gap-3 border-t border-border bg-surface px-5 py-3'
             : 'flex flex-wrap gap-3'
         }
       >
