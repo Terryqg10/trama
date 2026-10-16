@@ -402,5 +402,22 @@ cambia: la primera imagen sigue cargándose con prioridad y sin `lazy`, y eso s�
 
 **Nuevas tareas derivadas:** ninguna.
 
+### Enmienda 11 — 2026-10-16 — sin ADR
+
+**Origen:** al cerrar T-027 se vio que cinco specs de Playwright (`filters-chips`, `filters-drawer`,
+`mobile-menu`, `product-page` y `size-guide`) usan `as unknown as` en 12 sitios, todos para la misma
+marca `window.__sinRecarga`. La invariante I2 de la constitución prohíbe `any`, `@ts-ignore` y
+`as unknown as`. RNF-01 de esta spec solo nombra `any` y `@ts-ignore`, y ESLint no detectaba el
+tercero. No se registra ADR: no hay alternativas de coste alto de revertir.
+
+**Qué cambia:** se añade un criterio de aceptación que cierra el hueco, con una regla de lint como
+verificación. RNF-01 no cambia.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-56 | RNF-01 | El código de `src/`, `tests/` y `scripts/` | Se ejecuta `pnpm lint` | No hay `any`, `@ts-ignore` ni `as unknown as`, y reintroducir uno hace fallar el lint | test unitario `lint-invariants` (ESLint sobre fragmentos con cada patrón) y `pnpm lint` |
+
+**Nuevas tareas derivadas:** T-029 (cumplir la invariante I2 en los tests).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
