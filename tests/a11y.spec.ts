@@ -36,7 +36,7 @@ test.describe('accesibilidad', () => {
   const CATALOG_STATES: ReadonlyArray<readonly [string, string]> = [
     ['listado de mujer con filtros', '/mujer?categoria=blusas&ocasion=vestir'],
     ['estado vacío del listado', '/mujer?categoria=pantalones&color=burdeos'],
-    ['aviso de filtros inválidos', '/hombre?genero=niño&min=-5'],
+    ['filtros inválidos ignorados', '/hombre?genero=niño&min=-5'],
     ['novedades con género', '/novedades?genero=mujer'],
   ];
 

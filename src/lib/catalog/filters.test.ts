@@ -1,17 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { parseCatalogParams } from './filters';
 
-function ok(raw: Record<string, string | string[] | undefined>) {
-  const result = parseCatalogParams(raw);
-  if (!result.ok) throw new Error(`Se esperaba éxito: ${result.errors.join(', ')}`);
-  return result.filters;
-}
-
-function errors(raw: Record<string, string | string[] | undefined>): readonly string[] {
-  const result = parseCatalogParams(raw);
-  if (result.ok) throw new Error('Se esperaba un error');
-  return result.errors;
-}
+const ok = parseCatalogParams;
+const DEFAULT = { onlyNew: false, sort: 'novedades' } as const;
 
 describe('parseCatalogParams: valores por defecto', () => {
   it('sin parámetros: sin filtros, ordenado por novedades', () => {
@@ -64,74 +55,39 @@ describe('parseCatalogParams: filtros válidos', () => {
   });
 });
 
-describe('parseCatalogParams: valores inválidos se rechazan, no se ignoran', () => {
-  it('género desconocido', () => {
-    expect(errors({ genero: 'niño' }).join(' ')).toContain('genero');
+describe('parseCatalogParams: valores inválidos se ignoran (CA-09, RF-09)', () => {
+  it.each([
+    ['género desconocido', { genero: 'niño' }],
+    ['categoría desconocida', { categoria: 'sombreros' }],
+    ['orden inexistente', { orden: 'aleatorio' }],
+    ['precio negativo', { min: '-5' }],
+    ['precio con decimales', { max: '10.5' }],
+    ['precio no numérico', { min: 'barato' }],
+    ['talla con caracteres raros', { talla: "M'; drop table products;--" }],
+    ['talla fuera de la lista (XXXL)', { talla: 'XXXXXXL' }],
+    ['color con números o símbolos', { color: 'azul<script>' }],
+    ['novedades con un valor distinto de 1', { novedades: 'si' }],
+    ['parámetro conocido repetido', { genero: ['hombre', 'mujer'] }],
+  ])('%s: se ignora sin fallar', (_label, raw) => {
+    expect(ok(raw)).toEqual(DEFAULT);
   });
 
-  it('categoría desconocida', () => {
-    expect(errors({ categoria: 'sombreros' }).join(' ')).toContain('categoria');
+  it('el valor inválido no anula los válidos de la misma URL', () => {
+    expect(ok({ genero: 'niño', categoria: 'blusas', orden: 'x' })).toEqual({
+      ...DEFAULT,
+      category: 'blusas',
+    });
   });
 
-  it('orden inexistente', () => {
-    expect(errors({ orden: 'aleatorio' }).join(' ')).toContain('orden');
+  it('mínimo mayor que máximo: se ignora el mínimo y se conserva el máximo', () => {
+    expect(ok({ min: '80', max: '20' })).toEqual({ ...DEFAULT, maxPriceCents: 2000 });
   });
 
-  it('precio negativo', () => {
-    expect(errors({ min: '-5' }).join(' ')).toContain('min');
-  });
-
-  it('precio con decimales', () => {
-    expect(errors({ max: '10.5' }).join(' ')).toContain('max');
-  });
-
-  it('precio no numérico', () => {
-    expect(errors({ min: 'barato' }).join(' ')).toContain('min');
-  });
-
-  it('mínimo mayor que máximo', () => {
-    expect(errors({ min: '80', max: '20' }).join(' ')).toContain('min');
-  });
-
-  it('talla con caracteres raros', () => {
-    expect(errors({ talla: "M'; drop table products;--" }).join(' ')).toContain('talla');
-  });
-
-  it('color con números o símbolos', () => {
-    expect(errors({ color: 'azul<script>' }).join(' ')).toContain('color');
-  });
-
-  it('novedades con un valor distinto de 1', () => {
-    expect(errors({ novedades: 'si' }).join(' ')).toContain('novedades');
-  });
-
-  it('parámetro conocido repetido', () => {
-    expect(errors({ genero: ['hombre', 'mujer'] }).join(' ')).toContain('repetido');
-  });
-
-  it('los mensajes de error están en español y listan las opciones', () => {
-    const message = errors({ genero: 'niño' }).join(' ');
-    expect(message).toContain('valor no permitido');
-    expect(message).toContain('hombre, mujer');
-    expect(message).not.toMatch(/invalid|expected/i);
-  });
-
-  it('todos los mensajes de error están en español', () => {
-    const all = errors({
-      genero: 'x',
-      categoria: 'x',
-      ocasion: 'x',
-      orden: 'x',
-      min: '-1',
-      max: 'x',
-      talla: '??',
-      color: '1',
-      novedades: 'x',
-    }).join(' ');
-    expect(all).not.toMatch(/invalid|expected|received/i);
-  });
-
-  it('acumula varios errores', () => {
-    expect(errors({ genero: 'x', orden: 'y' }).length).toBeGreaterThanOrEqual(2);
+  it('mínimo igual al máximo es válido', () => {
+    expect(ok({ min: '20', max: '20' })).toEqual({
+      ...DEFAULT,
+      minPriceCents: 2000,
+      maxPriceCents: 2000,
+    });
   });
 });

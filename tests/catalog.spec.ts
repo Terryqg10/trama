@@ -148,26 +148,23 @@ test.describe('orden y precio', () => {
   });
 });
 
-test.describe('parámetros inválidos se muestran, no se ignoran', () => {
-  test('muestra un aviso con lo que falló y enlace para quitar filtros', async ({ page }) => {
+test.describe('parámetros inválidos se ignoran (CA-09)', () => {
+  test('un valor inválido se ignora: sin aviso y con el listado completo', async ({ page }) => {
     await open(page, '/hombre?genero=niño&min=-5');
-    // Next añade su propio role="alert" (anunciador de rutas): se filtra por texto.
-    const alert = page.getByRole('alert').filter({ hasText: 'Algunos filtros' });
-    await expect(alert).toContainText('Algunos filtros no son válidos');
-    await expect(alert).toContainText('genero');
-    await expect(alert).toContainText('min');
-    expect(await names(page)).toEqual([]);
-
-    await page.getByRole('link', { name: 'Quitar filtros' }).click();
-    await expect(page).toHaveURL(/\/hombre$/);
+    await expect(page.getByRole('alert').filter({ hasText: 'Algunos filtros' })).toHaveCount(0);
     expect((await names(page)).length).toBeGreaterThan(0);
   });
 
-  test('un intento de inyección en un filtro se rechaza', async ({ page }) => {
+  test('un valor inválido no anula los filtros válidos de la misma URL', async ({ page }) => {
+    await open(page, '/mujer?talla=XXXL&categoria=blusas');
+    await expect(page.getByRole('alert').filter({ hasText: 'Algunos filtros' })).toHaveCount(0);
+    expect(sorted(await names(page))).toEqual(sorted(BLUSAS_MUJER));
+  });
+
+  test('un intento de inyección en un filtro se ignora', async ({ page }) => {
     await open(page, "/mujer?talla=M'; drop table products;--");
-    await expect(page.getByRole('alert').filter({ hasText: 'Algunos filtros' })).toContainText(
-      'talla',
-    );
+    await expect(page.getByRole('alert').filter({ hasText: 'Algunos filtros' })).toHaveCount(0);
+    expect((await names(page)).length).toBeGreaterThan(0);
   });
 
   test('el género de la ruta prevalece sobre el parámetro', async ({ page }) => {

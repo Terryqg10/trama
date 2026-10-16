@@ -25,7 +25,7 @@ const linkButton =
 /**
  * Listado de catálogo (RF-01, RF-13, RF-14, RF-19). Componente de servidor: valida
  * los parámetros, consulta los datos y pinta el listado. Los errores de datos se
- * propagan a `error.tsx`; los parámetros inválidos se muestran, no se ignoran.
+ * propagan a `error.tsx`; los parámetros inválidos se ignoran (SPEC-002 RF-09).
  */
 export async function CatalogView({
   title,
@@ -40,43 +40,23 @@ export async function CatalogView({
 }) {
   const parsed = parseCatalogParams(await searchParams);
 
-  if (!parsed.ok) {
-    return (
-      <PageContainer>
-        <h1 className="text-display font-bold">{title}</h1>
-        <div
-          role="alert"
-          className="mt-8 rounded-container border border-danger bg-surface p-6 text-fg"
-        >
-          <p className="font-semibold text-danger">Algunos filtros no son válidos</p>
-          <ul className="mt-3 list-disc space-y-1 pl-6 text-sm">
-            {parsed.errors.map((error) => (
-              <li key={error}>{error}</li>
-            ))}
-          </ul>
-          <Link href={basePath} className={`mt-5 ${linkButton}`}>
-            Quitar filtros
-          </Link>
-        </div>
-      </PageContainer>
-    );
-  }
-
   // La ruta manda: el género de /hombre o /mujer y "solo novedades" de /novedades.
   const filters: Filters = {
-    ...parsed.filters,
-    onlyNew: Boolean(scope.onlyNew) || parsed.filters.onlyNew,
+    ...parsed,
+    onlyNew: Boolean(scope.onlyNew) || parsed.onlyNew,
   };
   if (scope.gender) filters.gender = scope.gender;
 
   const scopeBase: Filters = { onlyNew: Boolean(scope.onlyNew), sort: 'novedades' };
   if (scope.gender) scopeBase.gender = scope.gender;
 
-  const [scopeProducts, products] = await Promise.all([
-    listProducts(scopeBase),
-    listProducts(filters),
-  ]);
-  const facets = deriveFacets(scopeProducts);
+  const facets = deriveFacets(await listProducts(scopeBase));
+
+  // Talla o color que no existen en este ámbito (p. ej. talla=XXXL) se ignoran (CA-09).
+  if (filters.size && !facets.sizes.includes(filters.size)) delete filters.size;
+  if (filters.color && !facets.colors.includes(filters.color)) delete filters.color;
+
+  const products = await listProducts(filters);
 
   return (
     <PageContainer>
