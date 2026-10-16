@@ -8,6 +8,16 @@ const config = [
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/ban-ts-comment': 'error',
+      // Invariante I2: sin `as unknown as` (doble aserción que se salta el sistema de tipos).
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'TSAsExpression[expression.type="TSAsExpression"][expression.typeAnnotation.type="TSUnknownKeyword"]',
+          message:
+            'Prohibido `as unknown as` (invariante I2). Valida con Zod o declara el tipo correcto.',
+        },
+      ],
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },

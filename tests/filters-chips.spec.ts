@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { expectNoReload, markDocument } from './helpers/no-reload';
 
 // SPEC-002 / T-008 / ADR-006: chips al clic con navegación blanda y degradación sin JS.
 
@@ -18,19 +19,14 @@ test.describe('CA-03: el chip se aplica al clic, sin recargar', () => {
     await open(page, '/mujer');
     const before = (await names(page)).length;
     // Marca en el documento: si la página se recargara, desaparecería.
-    await page.evaluate(() => {
-      (window as unknown as { __sinRecarga?: boolean }).__sinRecarga = true;
-    });
+    await markDocument(page);
 
     await panel(page).getByText('Pantalones', { exact: true }).click();
 
     await expect(page).toHaveURL(/categoria=pantalones/);
     await expect.poll(async () => (await names(page)).length).toBeLessThan(before);
     for (const name of await names(page)) expect(name.toLowerCase()).toContain('pantal');
-    const marca = await page.evaluate(
-      () => (window as unknown as { __sinRecarga?: boolean }).__sinRecarga,
-    );
-    expect(marca, 'el documento no se ha recargado').toBe(true);
+    await expectNoReload(page);
   });
 
   test('conserva el scroll y el chip queda marcado', async ({ page }) => {
@@ -71,9 +67,7 @@ test.describe('CA-03: el chip se aplica al clic, sin recargar', () => {
 test.describe('CA-10: «Ordenar por» se aplica al cambiar, sin recargar', () => {
   test('ordena por precio y cambia la URL sin recargar el documento', async ({ page }) => {
     await open(page, '/mujer');
-    await page.evaluate(() => {
-      (window as unknown as { __sinRecarga?: boolean }).__sinRecarga = true;
-    });
+    await markDocument(page);
 
     await panel(page).locator('select[name="orden"]').selectOption('precio-asc');
 
@@ -89,10 +83,7 @@ test.describe('CA-10: «Ordenar por» se aplica al cambiar, sin recargar', () =>
         return prices.length > 1 && prices.every((p, i) => i === 0 || p >= (prices[i - 1] ?? 0));
       })
       .toBe(true);
-    const marca = await page.evaluate(
-      () => (window as unknown as { __sinRecarga?: boolean }).__sinRecarga,
-    );
-    expect(marca, 'el documento no se ha recargado').toBe(true);
+    await expectNoReload(page);
   });
 
   test('conserva los chips activos al cambiar el orden', async ({ page }) => {

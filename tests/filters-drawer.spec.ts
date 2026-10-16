@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { expectNoReload, markDocument } from './helpers/no-reload';
 
 // SPEC-002 / T-009: drawer de filtros a pantalla completa en móvil (CA-02, RF-02, RF-05).
 
@@ -43,17 +44,12 @@ test.describe('CA-02: el botón «Filtros» abre un drawer a pantalla completa',
 
   test('no recarga el documento al abrir ni cerrar', async ({ page }) => {
     await open(page, '/mujer');
-    await page.evaluate(() => {
-      (window as unknown as { __sinRecarga?: boolean }).__sinRecarga = true;
-    });
+    await markDocument(page);
     await trigger(page).click();
     await expect(drawer(page)).toBeVisible();
     await page.locator('[data-testid="filters-close"]').click();
     await expect(drawer(page)).toBeHidden();
-    const marca = await page.evaluate(
-      () => (window as unknown as { __sinRecarga?: boolean }).__sinRecarga,
-    );
-    expect(marca).toBe(true);
+    await expectNoReload(page);
     expect(page.url()).not.toContain('#');
   });
 

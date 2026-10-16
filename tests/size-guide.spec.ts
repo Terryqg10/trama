@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { expectNoReload, markDocument } from './helpers/no-reload';
 
 // SPEC-001 T-027: guía de tallas desde la ficha (RF-18, CA-31, test `size-guide`). Requiere el seed
 // `supabase/seed/size-guides-demo.sql`. Producto de camisas: «camisa-oxford-algodon» (hombre).
@@ -127,16 +128,11 @@ test.describe('cierre y teclado', () => {
 
   test('abrir y cerrar no recarga el documento ni deja # en la URL', async ({ page }) => {
     await open(page, SHIRT);
-    await page.evaluate(() => {
-      (window as unknown as { __sinRecarga?: boolean }).__sinRecarga = true;
-    });
+    await markDocument(page);
     await trigger(page).click();
     await page.keyboard.press('Escape');
     await expect(modal(page)).toBeHidden();
-    const marca = await page.evaluate(
-      () => (window as unknown as { __sinRecarga?: boolean }).__sinRecarga,
-    );
-    expect(marca).toBe(true);
+    await expectNoReload(page);
     expect(page.url()).not.toContain('#');
   });
 

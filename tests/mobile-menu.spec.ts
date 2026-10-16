@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { expectNoReload, markDocument } from './helpers/no-reload';
 import { ACTION_NAV, MAIN_NAV } from '../src/lib/domain/navigation';
 
 // SPEC-001 Enmienda 6 / T-013: menú móvil a pantalla completa (CA-46 a CA-50).
@@ -66,17 +67,12 @@ test.describe('CA-46: el icono de menú abre un overlay a 100dvh', () => {
 
   test('abrir y cerrar no recarga el documento ni deja # en la URL', async ({ page }) => {
     await open(page, '/');
-    await page.evaluate(() => {
-      (window as unknown as { __sinRecarga?: boolean }).__sinRecarga = true;
-    });
+    await markDocument(page);
     await trigger(page).click();
     await expect(overlay(page)).toBeVisible();
     await page.locator('[data-testid="menu-close"]').click();
     await expect(overlay(page)).toBeHidden();
-    const marca = await page.evaluate(
-      () => (window as unknown as { __sinRecarga?: boolean }).__sinRecarga,
-    );
-    expect(marca).toBe(true);
+    await expectNoReload(page);
     expect(page.url()).not.toContain('#');
     expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
     await expect(trigger(page)).toBeFocused();

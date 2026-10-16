@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { expectNoReload, markDocument } from './helpers/no-reload';
 
 // SPEC-001 T-005b: ficha de producto (RF-02, CA-03). Datos del seed `catalog-demo.sql`:
 // «polo-pique-basico» (hombre, azul/blanco/negro, tallas S a XL, XL negro agotado, 29,90 €).
@@ -126,16 +127,13 @@ test.describe('selección de color y talla (CA-03)', () => {
 
   test('cambiar la selección no recarga el documento ni salta el scroll', async ({ page }) => {
     await open(page, URL, 375);
+    await markDocument(page);
     await page.evaluate(() => {
-      (window as unknown as { __sinRecarga?: boolean }).__sinRecarga = true;
       window.scrollTo(0, 150);
     });
     await page.getByRole('group', { name: /Talla/ }).getByRole('link', { name: 'L', exact: true }).click();
     await expect(page).toHaveURL(/talla=L/);
-    const marca = await page.evaluate(
-      () => (window as unknown as { __sinRecarga?: boolean }).__sinRecarga,
-    );
-    expect(marca).toBe(true);
+    await expectNoReload(page);
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   });
 });
