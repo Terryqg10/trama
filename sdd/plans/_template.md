@@ -27,6 +27,16 @@ updated: YYYY-MM-DD
 
 ## 5. UI
 
+## 5b. Decisiones de UI
+
+<!-- Solo si alguna decisión de UI se aparta de la convención del sector.
+     Si todo sigue la convención, escribir "Ninguna. Todas las decisiones
+     siguen la convención del sector para este tipo de web." -->
+
+| Decisión | Convención del sector | Por qué nos apartamos | Qué gana el usuario |
+|---|---|---|---|
+| ... | ... | ... | ... |
+
 ## 6. Estrategia de tests
 
 | Capa | Herramienta | Qué cubre |

@@ -1,7 +1,7 @@
 ---
 id: v1-soft-commerce
 name: Soft Commerce
-version: 0.3.0
+version: 0.4.0
 status: borrador
 surface: consumo
 layout: contenido-centrado
@@ -57,6 +57,47 @@ saturado para las acciones.
 | Insignias | Píldora, texto ≥ 12 px. |
 | Botón primario | Píldora, `accent` / `accent-fg`, hover `accent-hover`. |
 
+## Filtros y búsqueda
+
+Convención del sector para tiendas de consumo. No se inventa: se sigue
+salvo justificación explícita en `sdd/plans/` bajo `## Decisiones de UI`.
+
+### Escritorio (≥ --bp-lg)
+
+- **Columna lateral izquierda** con los filtros, ancho fijo
+  (`--filter-sidebar-width`, nuevo token en tokens.css si no existe;
+  por defecto 16rem / 256px). El catálogo ocupa el resto del ancho a la
+  derecha.
+- **La columna es sticky** al hacer scroll. Solo se mueven los
+  resultados, no los filtros.
+- Orden de los filtros: categoría → filtros específicos del producto
+  (talla, color, material) → rango de precio → disponibilidad →
+  etiquetas. El usuario ve primero lo que más usa.
+- Botones "Aplicar filtros" y "Limpiar" al final del panel.
+- Contador de filtros activos en la cabecera del panel ("3 activos").
+- La búsqueda vive en la **cabecera** de la página, no dentro del
+  panel de filtros.
+
+### Móvil (< --bp-md)
+
+- **Botón "Filtros"** flotante o en la cabecera de la página, junto al
+  contador de resultados.
+- Al pulsarlo, se abre un **drawer o bottom-sheet a pantalla completa**.
+- Cabecera del drawer: título "Filtros", botón de cerrar, contador de
+  activos.
+- Pie del drawer: "Limpiar" (izquierda) y "Aplicar filtros" (derecha,
+  en `accent`). Ancho completo.
+- El drawer no empuja los productos: se superpone.
+
+### Prohibido
+
+- Poner los filtros como panel desplegable **encima del catálogo** en
+  escritorio. Es lo que hace un formulario, no una tienda. Empuja los
+  productos hacia abajo y rompe la convención.
+- Filtrar sin contador de activos. El usuario tiene que saber cuántos
+  filtros ha aplicado.
+- Botones "Aplicar" fuera del área de filtros.
+
 ## Layout
 
 - Mobile-first. Contenedor `--layout-container`, margen `--layout-gutter`.
@@ -91,6 +132,31 @@ saturado para las acciones.
 - Sombras con color de marca.
 - Paleta copiada de `examples/` sin pasar por el proceso de deducción.
 
+## Responsive
+
+Mobile-first. El layout base es de una columna; el escritorio amplía.
+
+- **Rejilla de productos:** 2 columnas hasta `--bp-md`; 3 a partir de
+  `--bp-md`; 4 a partir de `--bp-lg`.
+- **Cabecera:** en móvil se reduce a logo + dos iconos (búsqueda y
+  carrito). Los enlaces de navegación se pliegan en un menú lateral o en
+  un drawer. En escritorio se muestran todos los enlaces en horizontal.
+- **Barra de pestañas inferior:** solo en móvil (`< --bp-md`). En
+  escritorio se oculta; la navegación pasa a la cabecera.
+- **Banner hero:** en móvil la imagen va arriba y el texto abajo, en
+  columna. En escritorio, el texto a la izquierda y el producto a la
+  derecha. El CTA siempre visible sin hacer scroll.
+- **Ficha de producto:** en móvil, imagen arriba y barra inferior fija
+  con el CTA. En escritorio, dos columnas: imagen a la izquierda,
+  información a la derecha.
+- **Fila de carrito:** en móvil, cada artículo ocupa el ancho completo
+  en dos líneas (miniatura + datos arriba, precio + stepper abajo). En
+  escritorio, una sola fila.
+- **Controles táctiles:** en móvil, ≥ 44×44 px. En escritorio pueden
+  reducirse a 36×36 px, pero nunca por debajo de 32×32.
+- **Tipografía display:** los tokens usan `clamp()`. El titular del
+  banner no baja de `--text-display` mínimo.
+
 ## Criterios de aceptación del estilo
 
 | ID | Criterio | Verificación |
@@ -120,6 +186,12 @@ saturado para las acciones.
 4. Una versión `aprobada` no se edita: un cambio crea 0.x nueva con ADR.
 
 ## Cambios
+
+### 0.4.0 — 2026-10-16
+- Añadida sección "Filtros y búsqueda" con la convención del sector
+  (columna lateral en escritorio, drawer en móvil).
+- Motivación: el proyecto Trama colocó los filtros encima del catálogo,
+  rompiendo la convención. A partir de ahora está documentado.
 
 ### 0.3.0 — 2026-10-10
 - Administrativo. La regla de paleta se generaliza a `design/palette-rules.md`. Este estilo pasa a ser un stub que apunta al general.

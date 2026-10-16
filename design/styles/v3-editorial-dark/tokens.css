@@ -57,6 +57,12 @@
   --layout-gutter: clamp(1rem, 3vw, 2rem);
   --nav-height: 4.5rem;
   --hero-height: 100dvh;
+
+  /* Breakpoints */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -24,6 +24,17 @@ tarea con una afirmación: la cierra con evidencia.
    - Cada botón tiene onClick o href válido.
    - Cero enlaces muertos.
    - La navegación está definida, no pospuesta.
+   - Responsive: a 320, 375, 768 y 1280 px no hay scroll horizontal
+     (salvo carruseles, bloques de código y tablas con overflow
+     explícito), ningún elemento estructural (header, nav, main, footer)
+     se sale del viewport, y la navegación tiene comportamiento móvil
+     declarado (menú plegable, drawer, tabs inferiores, o equivalente).
+   - Tipografía y espaciado escalan: no hay titulares gigantes ni
+     contenedores que se coman el contenido en móvil.
+   - Convenciones del sector: si la UI se aparta de la convención
+     esperada del sector (filtro lateral en e-commerce, horarios
+     visibles en restaurantes, etc.), existe una entrada en
+     `sdd/plans/` bajo `## Decisiones de UI` que lo justifica.
 8. Accesibilidad: axe sin violaciones graves; prefers-reduced-motion
    respetado; foco visible; 44×44 px táctil; texto ≥ 12 px.
 9. Privacidad: sección "Datos y privacidad" de la spec actualizada si se

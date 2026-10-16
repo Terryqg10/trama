@@ -116,6 +116,30 @@ paleta: por eso el color es parámetro del proyecto, no del estilo.
 - L2: vídeo o secuencia prerenderizada controlada por el scroll. ADR obligatorio.
 - L3: WebGL en tiempo real. ADR obligatorio.
 
+## Responsive
+
+Mobile-first. El hero se simplifica en móvil para no romper Core Web
+Vitals.
+
+- **Hero:** en móvil (`< --bp-md`) muestra solo la capa base y el texto.
+  El parallax se reduce a `--parallax-slow` o se desactiva. En
+  escritorio, las tres capas (`slow`/`base`/`fast`) activas.
+- **Nav:** en móvil, logo + icono de menú. Los enlaces se pliegan en un
+  drawer que ocupa la pantalla. En escritorio, nav completa horizontal.
+- **Titular hero:** `clamp()` en `--text-display`. En móvil no pasa de
+  2.75rem; en escritorio llega hasta 6rem.
+- **Objeto principal del hero:** en móvil, contenido dentro del
+  contenedor, sin romper márgenes. El "rompe márgenes" es un efecto de
+  escritorio (`≥ --bp-lg`).
+- **Tarjetas flotantes:** en móvil se apilan bajo el hero, en columna.
+  En escritorio, flotan alrededor del objeto.
+- **Secciones con transición:** en móvil, `--duration-section` se
+  reduce o se omite la entrada. En escritorio, entrada completa.
+- **Iconos 3D:** en móvil, versión ligera (≤ 40 KB cada uno). En
+  escritorio, versión completa (≤ 80 KB).
+- **Presupuesto del hero:** en móvil ≤ 250 KB (LCP crítico). En
+  escritorio ≤ 400 KB.
+
 ## Criterios de aceptación del estilo
 
 | ID | Criterio | Verificación |

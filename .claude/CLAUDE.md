@@ -39,6 +39,10 @@ Antes de crear o modificar cualquier UI:
    `design/styles/vX-…/palette-rules.md` antes.
 4. Usa solo nombres de token. Prohibido hex, rgb() o valores arbitrarios
    en componentes.
+5. Responsive: antes de cerrar cualquier tarea de UI, comprueba que
+   funciona a 320, 375, 768 y 1280 px. Sin scroll horizontal, sin
+   elementos cortados, con navegación móvil definida. El test
+   `tests/responsive.spec.ts` lo verifica automáticamente.
 
 Detalle en `.claude/rules/styles.md`.
 
@@ -55,6 +59,7 @@ Detalle en `.claude/rules/styles.md`.
 | 6 | /review | Cierra la tarea rellenando review.md con evidencia. |
 | — | /decide | Cuando aparece una decisión con alternativas reales. |
 | — | /style | Consulta o cambia el estilo del proyecto. |
+| — | /competencia | Investiga la competencia y la convierte en ADR, spec y tareas. |
 
 > Si el proyecto acaba de instanciarse y no hay specs todavía, el primer
 > comando es `/empezar`, no `/start`.
@@ -79,6 +84,9 @@ si alguna puerta falla.
 - Lo dudoso se marca VERIFICAR. Nunca inventes versiones, precios o
   términos legales.
 - Separa decisiones del OS y decisiones del proyecto. Nunca mezclar.
+- No uses "por simplicidad" como justificación. Si una decisión se
+  aparta de la convención del sector, se documenta en el plan. La
+  simplicidad no es una excusa; el criterio sí.
 
 ## Reglas detalladas
 
@@ -88,5 +96,7 @@ si alguna puerta falla.
 - `rules/quality-gates.md` — puertas de calidad y niveles S/M/L.
 - `rules/security.md` — secretos, RLS, validación, dependencias.
 - `rules/scripts.md` — cross-platform, Windows.
+- `rules/ui-decisions.md` — convención del sector y cómo justificar
+  apartarse de ella.
 
 Léelas cuando la tarea las toque. No las repitas en la respuesta; cítalas.

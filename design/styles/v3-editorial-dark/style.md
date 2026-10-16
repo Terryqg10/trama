@@ -64,6 +64,16 @@ grande, cifras y contadores. Nada compite con el titular.
 | CTA | Rectangular, `accent` / `accent-fg`, hover `accent-hover`. Sin forma de píldora. |
 | Footer | Fondo `bg`, texto `fg-muted`, tamaño mínimo `--text-min`. |
 
+## Filtros y búsqueda
+
+v3 no es un estilo de catálogo. Si el proyecto tiene uno (por ejemplo,
+una tienda editorial de una marca de moda con carácter), los filtros
+siguen la convención de v1: columna lateral en escritorio, drawer en
+móvil. Pero **con la estética de v3**: esquinas rectas, tipografía
+caps pequeña con tracking, sin chips de píldora.
+
+Si no hay catálogo, esta sección no aplica.
+
 ## Layout
 
 - `--layout-container: 100%` — el contenedor general no tiene márgenes.
@@ -112,6 +122,33 @@ grande, cifras y contadores. Nada compite con el titular.
 - Scroll-jacking.
 - `100vw` como ancho de contenedor.
 - Modo claro (sería v3-claro, versión nueva, con ADR).
+
+## Responsive
+
+Mobile-first aunque el estilo sea "a sangre": a sangre en móvil también
+significa ocupar el ancho, no desbordar.
+
+- **Hero split:** en móvil, columna única: foto arriba (con un `--bp-md`
+  de altura máxima, no `100dvh`), texto debajo. En escritorio, split
+  50/50 con altura `100dvh`.
+- **Nav:** en móvil, solo logo + icono de menú. Los enlaces y las
+  etiquetas giradas del margen derecho se ocultan por debajo de
+  `--bp-lg`. En móvil no hay etiquetas giradas: no caben.
+- **Titular en tres niveles:** la línea 1 y la línea 3 (mayúsculas con
+  tracking) se mantienen en móvil, pero el tracking se reduce a la
+  mitad. La palabra enorme (`--text-display`) usa `clamp()` con mínimo
+  2.5rem.
+- **Slider:** en móvil, cuadrado de flechas más grande (≥ 44×44 px).
+  Contador y barra de progreso debajo del slider, no en el margen.
+- **Franja inferior:** en móvil, la tarjeta se apila sobre el cuadrado de
+  flechas. En escritorio, van en la misma línea.
+- **Bloques de cifras:** en móvil, una cifra por fila con su etiqueta
+  debajo. En escritorio, dos o tres por fila.
+- **A sangre con `--layout-container: 100%`:** el padding lateral de
+  las secciones de contenido es `--layout-gutter`. Sin él, el texto se
+  pega a los bordes en móvil.
+- **Reflujo a 320 px:** obligatorio. Ningún texto girado, ningún titular
+  gigante que desborde.
 
 ## Criterios de aceptación del estilo
 

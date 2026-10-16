@@ -38,3 +38,26 @@ Prohibido en componentes:
 ## Estilos aprobados son inmutables
 
 Un estilo aprobado no se edita. Un cambio crea versión nueva con ADR.
+
+## Responsive (móvil primero)
+
+El CSS base es para móvil. Los breakpoints se aplican con `min-width`
+para ampliar, nunca al revés.
+
+Breakpoints (contrato del OS, definidos en cada tokens.css):
+- `--bp-sm: 640px`
+- `--bp-md: 768px`
+- `--bp-lg: 1024px`
+- `--bp-xl: 1280px`
+
+Reglas:
+- Escribir primero el layout móvil. Añadir el desktop después.
+- La navegación tiene comportamiento móvil declarado antes de cerrar la
+  tarea: menú plegable, drawer, tab bar inferior, o equivalente.
+- Las áreas táctiles cumplen 44×44 px en móvil.
+- Ningún texto baja de `--text-min`.
+- Los titulares display escalan: los tokens usan `clamp()`.
+- Se prueban 320, 375, 768 y 1280 px antes de cerrar cualquier tarea
+  de UI.
+- El test `pnpm test:e2e` incluye `tests/responsive.spec.ts`, que
+  comprueba desbordamientos estructurales.
