@@ -25,6 +25,7 @@
     "check-secrets": "node scripts/check-secrets.mjs",
     "install-hooks": "node scripts/install-hooks.mjs",
     "db:types": "node scripts/db-types.mjs",
+    "seed:size-guides": "node scripts/seed-size-guides.mjs",
     "backup": "node scripts/backup.mjs",
     "verify": "node scripts/verify.mjs"
   },

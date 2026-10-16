@@ -4,22 +4,29 @@ import { ChevronLeft } from 'lucide-react';
 import type { ProductDetail } from '@/lib/catalog/product';
 import { resolveSelection } from '@/lib/catalog/variant-selection';
 import type { RawSearchParams } from '@/lib/catalog/filters';
+import { capitalize } from '@/lib/catalog/facets';
+import type { SizeGuide } from '@/lib/catalog/size-guide';
 import { formatEuros } from '@/lib/domain/shop';
 import { PageContainer } from '../PageContainer';
 import { ShippingInfo } from '../ShippingInfo';
+import { SizeGuideModal } from './SizeGuideModal';
+import { SizeGuideTable } from './SizeGuideTable';
 import { VariantSelector } from './VariantSelector';
 
 /**
  * Ficha de producto (RF-02): en móvil, imagen arriba y datos debajo; en escritorio, dos columnas
  * (estilo v1-soft-commerce). Componente de servidor: la selección de color y talla viene de la URL.
- * El botón «Añadir al carrito» llega con T-018; los datos de ajuste con T-028 y la guía de tallas
- * con T-027.
+ * La guía de tallas (T-027) se abre en un panel si la categoría tiene guía. El botón «Añadir al
+ * carrito» llega con T-018 y los datos de ajuste con T-028.
  */
 export function ProductDetailView({
   product,
+  sizeGuide,
   searchParams,
 }: {
   readonly product: ProductDetail;
+  /** Guía de la categoría del producto, o `null` si no tiene (entonces no se muestra el enlace). */
+  readonly sizeGuide: SizeGuide | null;
   readonly searchParams: RawSearchParams;
 }) {
   const selection = resolveSelection(product, searchParams);
@@ -78,6 +85,12 @@ export function ProductDetailView({
           ) : null}
 
           <VariantSelector slug={product.slug} selection={selection} />
+
+          {sizeGuide ? (
+            <SizeGuideModal title={`Guía de tallas: ${capitalize(product.category)}`}>
+              <SizeGuideTable category={product.category} guide={sizeGuide} />
+            </SizeGuideModal>
+          ) : null}
         </div>
       </div>
 

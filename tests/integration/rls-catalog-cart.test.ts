@@ -19,9 +19,12 @@ const priceRowsSchema = z.array(z.object({ id: z.string(), price_cents: z.number
 const qtyRowsSchema = z.array(z.object({ id: z.string(), qty: z.number() }));
 const guideRowsSchema = z.array(z.object({ category: z.string(), content: z.unknown() }));
 
-// Esta categoría se usa para la prueba de size_guides. Si ya tiene datos reales,
-// los tests se niegan a ejecutarse para no pisarlos.
+// Esta categoría se usa para la prueba de size_guides. Si ya tiene una guía real (seed de T-027),
+// se guarda antes de empezar y se restaura al terminar (T-027). Mientras corren estos tests la
+// categoría no tiene guía: no se deben ejecutar a la vez que los e2e de la ficha.
 const GUIDE_CATEGORY = 'pantalones';
+
+let savedGuide: z.infer<typeof guideRowsSchema>[number] | null = null;
 
 let admin: SupabaseClient;
 let customerA: TestUser;
@@ -73,12 +76,17 @@ async function insertVariantAsService(
 beforeAll(async () => {
   admin = serviceClient();
 
-  const existingGuide = await admin.from('size_guides').select('category').eq('category', GUIDE_CATEGORY);
+  const existingGuide = await admin
+    .from('size_guides')
+    .select('category, content')
+    .eq('category', GUIDE_CATEGORY);
   if (existingGuide.error) throw new Error(`size_guides: ${existingGuide.error.message}`);
-  if ((existingGuide.data ?? []).length > 0) {
-    throw new Error(
-      `Ya existe una guía de tallas real para "${GUIDE_CATEGORY}": los tests no la sobrescriben.`,
-    );
+  const existing = guideRowsSchema.parse(existingGuide.data)[0];
+  if (existing) {
+    // Se guarda ANTES de borrar: si algo falla después, `afterAll` la restaura.
+    savedGuide = existing;
+    const removed = await admin.from('size_guides').delete().eq('category', GUIDE_CATEGORY);
+    if (removed.error) throw new Error(`size_guides: ${removed.error.message}`);
   }
 
   customerA = await createTestUser(admin, 'cat-a');
@@ -103,6 +111,12 @@ afterAll(async () => {
     await admin.from('products').delete().in('id', createdProductIds);
   }
   await admin.from('size_guides').delete().eq('category', GUIDE_CATEGORY);
+  if (savedGuide) {
+    const restored = await admin
+      .from('size_guides')
+      .insert({ category: savedGuide.category, content: savedGuide.content });
+    if (restored.error) throw new Error(`No se pudo restaurar la guía de tallas: ${restored.error.message}`);
+  }
   for (const user of [customerA, customerB, adminUser]) {
     if (user) await deleteTestUser(admin, user.id);
   }

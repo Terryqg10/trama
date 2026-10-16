@@ -69,6 +69,17 @@ test.describe('accesibilidad', () => {
     expect(serious, 'violaciones graves con el panel abierto').toEqual([]);
   });
 
+  test('la guía de tallas abierta no tiene violaciones graves', async ({ page }) => {
+    await page.goto('/producto/camisa-oxford-algodon');
+    await page.locator('[data-testid="size-guide-open"]').click();
+    await expect(page.locator('[data-testid="size-guide-modal"]')).toBeVisible();
+    const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+    const serious = results.violations.filter(
+      (v) => v.impact === 'serious' || v.impact === 'critical',
+    );
+    expect(serious, 'violaciones graves con la guía abierta').toEqual([]);
+  });
+
   test('el menú móvil abierto no tiene violaciones graves', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
     await page.goto('/');

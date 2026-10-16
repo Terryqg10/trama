@@ -26,7 +26,8 @@ const noSubscription = (): (() => void) => () => undefined;
  * Mejora progresiva: el botón es un enlace a `#<id>` y, sin JavaScript, el CSS `:target`
  * abre el panel. Con JavaScript se gestiona por estado: abre al entrar con el hash, Esc
  * cierra, el foco entra al abrir y vuelve al botón al cerrar, no hay scroll de fondo y el
- * panel se cierra si la pantalla alcanza el escritorio (`breakpointToken`, p. ej. `--bp-lg`).
+ * panel se cierra si la pantalla alcanza el escritorio (`breakpointToken`, p. ej. `--bp-lg`;
+ * `null` para un panel que sirve en todos los tamaños, como la guía de tallas).
  *
  * Una vez montado, el CSS `:target` deja de usarse (`mounted`): `history.replaceState` no lo
  * actualiza y el panel no se cerraría. Quien use el hook debe aplicar las clases de `:target`
@@ -34,7 +35,7 @@ const noSubscription = (): (() => void) => () => undefined;
  */
 export function useHashOverlay(
   id: string,
-  breakpointToken: string,
+  breakpointToken: string | null,
   refs: {
     readonly trigger: RefObject<HTMLAnchorElement | null>;
     readonly overlay: RefObject<HTMLDivElement | null>;
@@ -88,7 +89,7 @@ export function useHashOverlay(
 
   // Si la pantalla crece hasta el punto de corte, el panel deja de existir: se cierra.
   useEffect(() => {
-    if (!open) return;
+    if (!open || breakpointToken === null) return;
     const width = getComputedStyle(document.documentElement)
       .getPropertyValue(breakpointToken)
       .trim();

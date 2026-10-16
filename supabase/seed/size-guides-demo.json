@@ -1,0 +1,47 @@
+{
+  "_comment": "T-027: guías de tallas de ejemplo (FICTICIAS: valores inventados, no son medidas de ninguna marca). Las aplica `pnpm run seed:size-guides` sin pisar guías existentes. La forma de cada guía la valida `src/lib/catalog/size-guide.ts`.",
+  "guides": {
+    "polos": {
+      "columns": ["Pecho (cm)", "Largo (cm)"],
+      "rows": [
+        { "size": "S", "values": ["88–92", "68"] },
+        { "size": "M", "values": ["96–100", "70"] },
+        { "size": "L", "values": ["104–108", "72"] },
+        { "size": "XL", "values": ["112–116", "74"] }
+      ],
+      "note": "Medidas de ejemplo, orientativas. Trama es un proyecto de portfolio."
+    },
+    "camisas": {
+      "columns": ["Cuello (cm)", "Pecho (cm)", "Manga (cm)"],
+      "rows": [
+        { "size": "S", "values": ["38", "92–96", "62"] },
+        { "size": "M", "values": ["40", "100–104", "63"] },
+        { "size": "L", "values": ["42", "108–112", "64"] },
+        { "size": "XL", "values": ["44", "116–120", "65"] }
+      ],
+      "note": "Medidas de ejemplo, orientativas. Trama es un proyecto de portfolio."
+    },
+    "blusas": {
+      "columns": ["Pecho (cm)", "Cintura (cm)", "Cadera (cm)"],
+      "rows": [
+        { "size": "XS", "values": ["80–84", "62–66", "86–90"] },
+        { "size": "S", "values": ["84–88", "66–70", "90–94"] },
+        { "size": "M", "values": ["88–92", "70–74", "94–98"] },
+        { "size": "L", "values": ["92–96", "74–78", "98–102"] }
+      ],
+      "note": "Medidas de ejemplo, orientativas. Trama es un proyecto de portfolio."
+    },
+    "pantalones": {
+      "columns": ["Cintura (cm)", "Cadera (cm)", "Largo (cm)"],
+      "rows": [
+        { "size": "34", "values": ["64–68", "90–94", "100"] },
+        { "size": "36", "values": ["68–72", "94–98", "101"] },
+        { "size": "38", "values": ["72–76", "98–102", "102"] },
+        { "size": "40", "values": ["76–80", "102–106", "103"] },
+        { "size": "42", "values": ["80–84", "106–110", "104"] },
+        { "size": "44", "values": ["84–88", "110–114", "105"] }
+      ],
+      "note": "Medidas de ejemplo, orientativas. Trama es un proyecto de portfolio."
+    }
+  }
+}
