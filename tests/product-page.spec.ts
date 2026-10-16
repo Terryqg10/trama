@@ -138,6 +138,48 @@ test.describe('selección de color y talla (CA-03)', () => {
   });
 });
 
+test.describe('datos de ajuste (CA-33, T-028)', () => {
+  test('muestra la altura y la talla del modelo junto a composición y cuidados', async ({ page }) => {
+    await open(page, URL);
+    const block = page.getByRole('region', { name: 'Ajuste y cuidados' });
+    await expect(block).toBeVisible();
+    await expect(block.getByText('Mide 1,85 m y lleva la talla M')).toBeVisible();
+    await expect(block.getByText('100% algodón')).toBeVisible();
+    await expect(block.getByText('Lavar a 30 °C. No usar lejía. Secar tendido.')).toBeVisible();
+    expect(await block.getByRole('term').allInnerTexts()).toEqual(['Modelo', 'Composición', 'Cuidados']);
+  });
+
+  test('cada producto muestra sus propios datos', async ({ page }) => {
+    await open(page, '/producto/blusa-lino-casual');
+    const block = page.getByRole('region', { name: 'Ajuste y cuidados' });
+    await expect(block.getByText('Mide 1,75 m y lleva la talla S')).toBeVisible();
+    await expect(block.getByText('100% lino')).toBeVisible();
+  });
+
+  test('no escribe «null» ni «undefined» en la ficha', async ({ page }) => {
+    await open(page, URL);
+    const text = await page.locator('main').innerText();
+    expect(text).not.toMatch(/\bnull\b|\bundefined\b/);
+  });
+
+  test('el bloque no desborda a 320 px y sus textos se leen enteros', async ({ page }) => {
+    await open(page, URL, 320);
+    const block = page.getByRole('region', { name: 'Ajuste y cuidados' });
+    const box = await block.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) expect(box.x + box.width).toBeLessThanOrEqual(320.5);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflow).toBe(false);
+  });
+
+  test('los datos de ajuste siguen ahí al elegir color y talla', async ({ page }) => {
+    await open(page, `${URL}?color=negro&talla=M`);
+    await expect(page.getByRole('region', { name: 'Ajuste y cuidados' })).toBeVisible();
+  });
+});
+
 test.describe('404 de la ficha', () => {
   for (const slug of ['no-existe-este-producto', 'Slug_Invalido!', '..%2F..%2Fetc']) {
     test(`/producto/${slug} da 404 con enlace al catálogo`, async ({ page }) => {

@@ -9,6 +9,7 @@ import type { SizeGuide } from '@/lib/catalog/size-guide';
 import { formatEuros } from '@/lib/domain/shop';
 import { PageContainer } from '../PageContainer';
 import { ShippingInfo } from '../ShippingInfo';
+import { FitInfo } from './FitInfo';
 import { SizeGuideModal } from './SizeGuideModal';
 import { SizeGuideTable } from './SizeGuideTable';
 import { VariantSelector } from './VariantSelector';
@@ -16,8 +17,8 @@ import { VariantSelector } from './VariantSelector';
 /**
  * Ficha de producto (RF-02): en móvil, imagen arriba y datos debajo; en escritorio, dos columnas
  * (estilo v1-soft-commerce). Componente de servidor: la selección de color y talla viene de la URL.
- * La guía de tallas (T-027) se abre en un panel si la categoría tiene guía. El botón «Añadir al
- * carrito» llega con T-018 y los datos de ajuste con T-028.
+ * La guía de tallas (T-027) se abre en un panel si la categoría tiene guía, y los datos de ajuste
+ * (T-028) se muestran si el producto los tiene. El botón «Añadir al carrito» llega con T-018.
  */
 export function ProductDetailView({
   product,
@@ -91,6 +92,8 @@ export function ProductDetailView({
               <SizeGuideTable category={product.category} guide={sizeGuide} />
             </SizeGuideModal>
           ) : null}
+
+          <FitInfo product={product} />
         </div>
       </div>
 
