@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseEnv, parsePublicSupabaseEnv, parseServiceSupabaseEnv } from './env';
+import { parseEnv, parsePublicSupabaseEnv, parseServiceSupabaseEnv, parseStripeServerEnv } from './env';
 
 const validEnv = {
   NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
@@ -86,5 +86,16 @@ describe('parseServiceSupabaseEnv (T-019)', () => {
     expect(() => parseServiceSupabaseEnv({ NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co' })).toThrow(
       /SUPABASE_SERVICE_ROLE_KEY/,
     );
+  });
+});
+
+describe('parseStripeServerEnv (T-032)', () => {
+  it('acepta una clave secreta de test', () => {
+    expect(parseStripeServerEnv({ STRIPE_SECRET_KEY: 'sk_test_abc' }).STRIPE_SECRET_KEY).toBe('sk_test_abc');
+  });
+
+  it('rechaza una clave live y una ausente (CA-24)', () => {
+    expect(() => parseStripeServerEnv({ STRIPE_SECRET_KEY: 'sk_live_abc' })).toThrow(/modo test/);
+    expect(() => parseStripeServerEnv({})).toThrow(/STRIPE_SECRET_KEY/);
   });
 });

@@ -19,7 +19,7 @@ function fakeClient(result: RpcResult): { client: RpcClient; rpc: ReturnType<typ
 }
 
 describe('reserveStock', () => {
-  it('envía las líneas con los nombres de la función SQL y el plazo de 30 minutos', async () => {
+  it('envía las líneas con los nombres de la función SQL y el plazo de 35 minutos', async () => {
     const { client, rpc } = fakeClient({ data: { ok: true, expires_at: '2026-10-17T12:30:00Z' }, error: null });
     const result = await reserveStock(client, ORDER, [{ variantId: V1, qty: 2 }]);
 
@@ -27,7 +27,7 @@ describe('reserveStock', () => {
     expect(rpc).toHaveBeenCalledWith('reserve_stock', {
       p_order_id: ORDER,
       p_lines: [{ variant_id: V1, qty: 2 }],
-      p_ttl: '30 minutes',
+      p_ttl: '35 minutes',
     });
   });
 

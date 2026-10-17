@@ -69,3 +69,20 @@ export function parseServiceSupabaseEnv(source: Record<string, string | undefine
   }
   return result.data;
 }
+
+// Subconjunto de Stripe para crear sesiones de pago. Solo claves de modo test (CA-24): una `sk_live_`
+// se rechaza aquí igual que en `parseEnv`.
+const stripeServerEnvSchema = envSchema.pick({ STRIPE_SECRET_KEY: true });
+
+export type StripeServerEnv = z.infer<typeof stripeServerEnvSchema>;
+
+export function parseStripeServerEnv(source: Record<string, string | undefined>): StripeServerEnv {
+  const result = stripeServerEnvSchema.safeParse(source);
+  if (!result.success) {
+    const detail = result.error.issues
+      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+      .join('; ');
+    throw new Error(`Entorno de Stripe inválido: ${detail}`);
+  }
+  return result.data;
+}

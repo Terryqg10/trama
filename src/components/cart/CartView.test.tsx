@@ -147,3 +147,34 @@ describe('CartView', () => {
     expect(getCartLinesAction).not.toHaveBeenCalled();
   });
 });
+
+describe('CartView: enlace para finalizar la compra (T-032)', () => {
+  it('un invitado ve «Inicia sesión para finalizar» con el destino /checkout', async () => {
+    save([{ variantId: A, qty: 1 }]);
+    serve([info(A)]);
+    render(<CartView />);
+
+    const link = await screen.findByTestId('cart-checkout');
+    expect(link).toHaveTextContent('Inicia sesión para finalizar');
+    expect(link.getAttribute('href')).toContain('/acceso');
+    expect(decodeURIComponent(link.getAttribute('href') ?? '')).toContain('siguiente=/checkout');
+  });
+
+  it('un cliente con sesión ve «Finalizar compra» que lleva a /checkout', async () => {
+    serve([info(A)]);
+    render(<CartView initialAccountCart={[{ variantId: A, qty: 1 }]} />);
+
+    const link = await screen.findByTestId('cart-checkout');
+    expect(link).toHaveTextContent('Finalizar compra');
+    expect(link).toHaveAttribute('href', '/checkout');
+  });
+
+  it('sin líneas disponibles no hay enlace para finalizar', async () => {
+    save([{ variantId: A, qty: 1 }]);
+    serve([info(A, { stock: 0 })]);
+    render(<CartView />);
+
+    await screen.findByTestId('cart-line');
+    expect(screen.queryByTestId('cart-checkout')).toBeNull();
+  });
+});

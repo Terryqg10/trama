@@ -323,6 +323,15 @@ export function CartView({ initialAccountCart }: { readonly initialAccountCart?:
               ? `Te faltan ${formatEuros(totals.missingForFreeCents)} para el envío gratis.`
               : 'Tu pedido tiene envío gratis.'}
         </p>
+        {totals.subtotalCents > 0 ? (
+          <Link
+            href={isAccount ? '/checkout' : { pathname: '/acceso', query: { siguiente: '/checkout' } }}
+            data-testid="cart-checkout"
+            className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-control bg-accent px-6 text-base font-semibold text-accent-fg hover:bg-accent-hover"
+          >
+            {isAccount ? 'Finalizar compra' : 'Inicia sesión para finalizar'}
+          </Link>
+        ) : null}
         <p className="mt-4 text-sm text-fg-muted">IVA incluido.</p>
       </section>
     </div>

@@ -15,8 +15,12 @@ export interface RpcClient {
   ): PromiseLike<{ data: unknown; error: { message: string } | null }>;
 }
 
-/** Plazo de la reserva. Stripe exige que la sesión de pago dure al menos 30 minutos (VERIFICAR). */
-export const RESERVATION_TTL_MINUTES = 30;
+/**
+ * Plazos (T-032). Stripe exige que una sesión de pago dure al menos 30 minutos (VERIFICAR). La sesión
+ * caduca antes que la reserva: así nadie paga con la reserva ya vencida.
+ */
+export const CHECKOUT_SESSION_MINUTES = 31;
+export const RESERVATION_TTL_MINUTES = 35;
 
 export const reservationLineSchema = z.object({
   variantId: z.string().uuid(),

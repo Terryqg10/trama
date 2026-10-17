@@ -20,12 +20,13 @@ function GuestCartField() {
 
 const linkClass = 'font-medium text-accent-text underline underline-offset-4 hover:text-accent-hover';
 
-export function LoginForm() {
+export function LoginForm({ next }: { readonly next?: string }) {
   const [state, action] = useActionState(loginAction, initialFormState);
   const formRef = useFormFocus(state);
   return (
     <form ref={formRef} action={action} noValidate className="space-y-5">
       <GuestCartField />
+      {next ? <input type="hidden" name="siguiente" value={next} /> : null}
       <FormMessage state={state} />
       <TextField
         name="email"

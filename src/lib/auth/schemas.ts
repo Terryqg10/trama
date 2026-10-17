@@ -82,6 +82,9 @@ export type AddressInput = z.infer<typeof addressSchema>;
 
 export const addressIdSchema = z.string().uuid();
 
+/** A dónde puede volver el inicio de sesión (lista blanca: nunca una URL arbitraria). */
+export const nextPathSchema = z.enum(['/checkout']);
+
 /** Errores por campo: el primer mensaje de cada ruta. */
 export type FieldErrors = Readonly<Record<string, string>>;
 

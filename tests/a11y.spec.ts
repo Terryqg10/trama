@@ -152,6 +152,68 @@ test.describe('accesibilidad', () => {
     ).toEqual([]);
   });
 
+  test('el checkout (con dirección, con avisos y sin dirección) y la página de gracias no tienen violaciones graves', async ({ page }) => {
+    const admin = adminClient();
+    const credentials = newCredentials('a11y-checkout');
+    const userId = await createConfirmedUser(admin, credentials);
+    try {
+      await admin.from('addresses').insert({
+        user_id: userId,
+        recipient_name: 'Ana Pérez',
+        line1: 'Calle Mayor 1',
+        postal_code: '28001',
+        city: 'Madrid',
+        province: 'Madrid',
+      });
+      await page.goto('/acceso');
+      await page.getByLabel('Email').fill(credentials.email);
+      await page.getByLabel('Contraseña').fill(credentials.password);
+      await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+      await expect(page).toHaveURL(/\/cuenta$/);
+
+      await page.goto('/producto/polo-pique-basico?color=negro&talla=M');
+      await expect(page.getByTestId('add-to-cart')).toBeEnabled();
+      await page.getByTestId('add-to-cart').click();
+      await expect(page.getByText('Polo piqué básico añadido al carrito.')).toBeVisible();
+
+      const scan = async (label: string) => {
+        const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+        expect(
+          results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical'),
+          `violaciones graves en: ${label}`,
+        ).toEqual([]);
+      };
+
+      await page.goto('/checkout');
+      await expect(page.getByRole('button', { name: 'Pagar con tarjeta' })).toBeVisible();
+      await scan('checkout con dirección');
+
+      // Con un aviso de stock (cantidad por encima de lo disponible).
+      const cart = await admin.from('carts').select('id').eq('user_id', userId).single();
+      await admin.from('cart_items').update({ qty: 50 }).eq('cart_id', String((cart.data as { id: string }).id));
+      await page.goto('/checkout');
+      await expect(page.locator('main').getByRole('alert')).toBeVisible();
+      await scan('checkout con avisos');
+
+      await admin.from('addresses').delete().eq('user_id', userId);
+      await page.goto('/checkout');
+      await expect(page.getByText('Necesitas una dirección de envío')).toBeVisible();
+      await scan('checkout sin dirección');
+
+      const order = await admin
+        .from('orders')
+        .insert({ user_id: userId, total_cents: 3485, shipping_cents: 495, shipping_address: { country: 'ES' } })
+        .select('id')
+        .single();
+      await page.goto(`/pedido/${String((order.data as { id: string }).id)}/gracias`);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await scan('página de gracias');
+    } finally {
+      await admin.from('orders').delete().eq('user_id', userId);
+      await deleteUserByEmail(admin, credentials.email);
+    }
+  });
+
   test('respeta prefers-reduced-motion', async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: 'reduce' });
     const page = await context.newPage();

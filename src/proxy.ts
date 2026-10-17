@@ -36,6 +36,8 @@ export const config = {
     '/recuperar/:path*',
     '/auth/:path*',
     '/carrito',
+    '/checkout',
+    '/pedido/:path*',
     '/producto/:path*',
   ],
 };

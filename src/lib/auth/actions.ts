@@ -1,8 +1,8 @@
 'use server';
 
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { mergeGuestIntoAccount } from '@/lib/cart/account';
+import { requestOrigin } from '@/lib/http/origin';
 import { parseSavedCart } from '@/lib/cart/cart';
 import { createAuthClient } from '@/lib/supabase/auth-server';
 import type { PublicSupabaseClient } from '@/lib/supabase/server';
@@ -13,6 +13,7 @@ import {
   fieldErrors,
   formDataToObject,
   loginSchema,
+  nextPathSchema,
   profileSchema,
   recoverySchema,
   registerSchema,
@@ -24,13 +25,6 @@ const RATE_LIMIT_ERROR = 'Demasiados intentos. Espera unos minutos e inténtalo 
 const GENERIC_SERVER_ERROR = 'No se ha podido completar la operación. Inténtalo de nuevo.';
 
 const ADDRESS_FIELDS = ['recipientName', 'line1', 'line2', 'postalCode', 'city', 'province'] as const;
-
-async function requestOrigin(): Promise<string> {
-  const requestHeaders = await headers();
-  const host = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const proto = requestHeaders.get('x-forwarded-proto') ?? (host?.startsWith('localhost') ? 'http' : 'https');
-  return `${proto}://${host ?? 'localhost:3000'}`;
-}
 
 function isRateLimited(status: number | undefined, code: string | undefined): boolean {
   return status === 429 || code === 'over_request_rate_limit' || code === 'over_email_send_rate_limit';
@@ -136,7 +130,9 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
   }
 
   const merged = await mergeGuestCartOnEntry(supabase, signedIn.user.id, raw['guestCart']);
-  redirect(merged ? '/cuenta?carrito=fusionado' : '/cuenta');
+  const next = nextPathSchema.safeParse(raw['siguiente']);
+  const destination = next.success ? next.data : '/cuenta';
+  redirect(merged ? `${destination}?carrito=fusionado` : destination);
 }
 
 export async function logoutAction(): Promise<void> {
