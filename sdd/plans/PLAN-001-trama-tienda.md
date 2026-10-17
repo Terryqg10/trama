@@ -276,3 +276,19 @@ lugar de `v1-soft-commerce`. v1 y v4 declaran las mismas variables CSS, así que
 `v4-dense-workspace@0.1.0` con los tokens estructurales de v4 acotados a `[data-style="v4"]` y la misma
 `palette.css`. Se anota en §5b y en ADR-008. Afecta a T-021 a T-024 (todo el panel). Los CA no cambian.
 
+### Enmienda 7 — 2026-10-17 — sin ADR — T-021 dividida: productos y stock, e imágenes
+
+**Origen:** T-021 agrupaba productos, variantes, stock (CA-15, CA-16) e imágenes de producto. Las imágenes
+exigen un bucket de Supabase Storage (una migración que aplica el usuario), subida validada en el servidor y
+cambios en cómo se sirven los archivos; no caben en la misma tarea atómica que el CRUD.
+
+**Qué cambia:**
+
+| Tarea | Resumen | CA |
+|---|---|---|
+| T-021 | Panel admin (v4): alta, edición y baja (desactivar) de productos, variantes y stock | CA-15, CA-16 |
+| **T-034** | Imágenes de producto: subida validada a Supabase Storage, texto alternativo y orden | CA-64, CA-65, CA-66 |
+
+La baja de un producto es **desactivarlo** (`active = false`): desaparece del catálogo pero conserva su historia
+(pedidos, imágenes). Las tareas nuevas siguen desde T-035.
+

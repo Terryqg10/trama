@@ -510,5 +510,21 @@ sección 10 solo decía «sin coste en test». Se completa sin cambiar el alcanc
 
 **Nuevas tareas derivadas:** ninguna.
 
+### Enmienda 17 — 2026-10-17 — sin ADR — CA-64 a CA-66 de las imágenes de producto
+
+**Origen:** al crear T-021 se comprobó que RF-09 incluye las imágenes de producto, pero ningún CA cubre
+subirlas ni rechazar archivos no válidos; la sección 8 dice «validar tipo y tamaño, bucket con políticas». Las
+imágenes se separan en su propia tarea (T-034) porque necesitan Supabase Storage y una migración.
+
+**Qué cambia:** se añaden tres criterios de aceptación. RF-09, CA-15 y CA-16 no cambian.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-64 | RF-09 | Un admin y un producto | Sube una imagen JPG, PNG, WebP o AVIF de hasta 2 MB con texto alternativo | La imagen se guarda en Storage y aparece en la ficha y en el listado de ese producto | test e2e `admin-upload-image` |
+| CA-65 | RF-09 | Un admin | Sube un archivo de otro tipo (p. ej. SVG o ejecutable), de más de 2 MB o sin texto alternativo | Se rechaza con un mensaje y no se guarda ningún archivo ni fila | test de integración `image-upload-validation` |
+| CA-66 | RF-09 | Un usuario no admin | Intenta subir o borrar una imagen de producto | Se rechaza y no cambia nada en Storage ni en la BD | test de integración `image-upload-nonadmin` |
+
+**Nuevas tareas derivadas:** T-034 (imágenes de producto con Storage). T-021 queda para productos, variantes y stock.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
