@@ -126,3 +126,16 @@ export function summarize(lines: ReadonlyArray<{ readonly priceCents: number; re
         : 0,
   };
 }
+
+/**
+ * Fusiona el carrito del invitado con el de la cuenta (CA-04): las líneas de la cuenta conservan su
+ * orden, las nuevas del invitado van detrás, y las cantidades de una misma variante se suman con el
+ * tope de la línea. Los topes de stock los aplica quien guarda (el servidor).
+ */
+export function mergeCarts(account: SavedCart, guest: SavedCart): SavedCart {
+  const merged = new Map<string, number>();
+  for (const line of [...account, ...guest]) {
+    merged.set(line.variantId, Math.min(MAX_LINE_QTY, (merged.get(line.variantId) ?? 0) + line.qty));
+  }
+  return [...merged].slice(0, MAX_CART_LINES).map(([variantId, qty]) => ({ variantId, qty }));
+}

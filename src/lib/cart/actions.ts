@@ -1,6 +1,10 @@
 'use server';
 
+import { getCurrentUser } from '@/lib/auth/session';
+import { loadAccountCart, mergeGuestIntoAccount, saveAccountCart } from './account';
+import { addToCart, savedCartSchema, type SavedCart } from './cart';
 import { fetchCartLines, variantIdsSchema, type CartLineInfo } from './lines';
+import { z } from 'zod';
 
 export type CartLinesResult =
   | { readonly status: 'ok'; readonly lines: readonly CartLineInfo[] }
@@ -14,6 +18,68 @@ export async function getCartLinesAction(variantIds: readonly string[]): Promise
     return { status: 'ok', lines: await fetchCartLines(parsed.data) };
   } catch (error) {
     console.error('getCartLinesAction falló', error instanceof Error ? error.message : 'error desconocido');
+    return { status: 'error' };
+  }
+}
+
+export type AccountCartResult =
+  | { readonly status: 'ok'; readonly cart: SavedCart }
+  | { readonly status: 'unauthenticated' }
+  | { readonly status: 'error' };
+
+function logFailure(name: string, error: unknown): void {
+  console.error(`${name} falló`, error instanceof Error ? error.message : 'error desconocido');
+}
+
+/** Guarda en la cuenta el carrito tal y como lo deja el cliente (cantidades recortadas al stock). */
+export async function saveAccountCartAction(lines: SavedCart): Promise<AccountCartResult> {
+  const parsed = savedCartSchema.safeParse(lines);
+  if (!parsed.success) return { status: 'error' };
+  const { client, user } = await getCurrentUser();
+  if (!user) return { status: 'unauthenticated' };
+  try {
+    return { status: 'ok', cart: await saveAccountCart(client, user.id, parsed.data) };
+  } catch (error) {
+    logFailure('saveAccountCartAction', error);
+    return { status: 'error' };
+  }
+}
+
+/** Fusiona el carrito del invitado con el de la cuenta al iniciar sesión (CA-04). */
+export async function mergeGuestCartAction(lines: SavedCart): Promise<AccountCartResult> {
+  const parsed = savedCartSchema.safeParse(lines);
+  if (!parsed.success) return { status: 'error' };
+  const { client, user } = await getCurrentUser();
+  if (!user) return { status: 'unauthenticated' };
+  try {
+    return { status: 'ok', cart: await mergeGuestIntoAccount(client, user.id, parsed.data) };
+  } catch (error) {
+    logFailure('mergeGuestCartAction', error);
+    return { status: 'error' };
+  }
+}
+
+export type AddToAccountResult =
+  | { readonly status: 'ok'; readonly cart: SavedCart; readonly capped: boolean; readonly stock: number }
+  | { readonly status: 'unavailable' }
+  | { readonly status: 'unauthenticated' }
+  | { readonly status: 'error' };
+
+/** Añade una unidad de una variante al carrito de la cuenta (CA-60, CA-63). El stock lo lee el servidor. */
+export async function addToAccountCartAction(variantId: string): Promise<AddToAccountResult> {
+  const parsed = z.string().uuid().safeParse(variantId);
+  if (!parsed.success) return { status: 'error' };
+  const { client, user } = await getCurrentUser();
+  if (!user) return { status: 'unauthenticated' };
+  try {
+    const [info] = await fetchCartLines([parsed.data], client);
+    if (!info) return { status: 'unavailable' };
+    const current = await loadAccountCart(client);
+    const change = addToCart(current, parsed.data, info.stock);
+    const saved = await saveAccountCart(client, user.id, change.cart);
+    return { status: 'ok', cart: saved, capped: change.capped, stock: info.stock };
+  } catch (error) {
+    logFailure('addToAccountCartAction', error);
     return { status: 'error' };
   }
 }

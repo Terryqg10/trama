@@ -10,6 +10,13 @@ import {
 } from '@/lib/auth/actions';
 import { initialFormState } from '@/lib/auth/form-state';
 import { FormMessage, SubmitButton, TextField, useFormFocus } from '@/components/forms/fields';
+import { useSavedCart } from '@/lib/cart/store';
+
+/** Campo oculto con el carrito del navegador: el servidor lo fusiona con el de la cuenta al entrar (CA-04). */
+function GuestCartField() {
+  const guestCart = useSavedCart();
+  return <input type="hidden" name="guestCart" value={JSON.stringify(guestCart)} />;
+}
 
 const linkClass = 'font-medium text-accent-text underline underline-offset-4 hover:text-accent-hover';
 
@@ -18,6 +25,7 @@ export function LoginForm() {
   const formRef = useFormFocus(state);
   return (
     <form ref={formRef} action={action} noValidate className="space-y-5">
+      <GuestCartField />
       <FormMessage state={state} />
       <TextField
         name="email"
@@ -55,6 +63,7 @@ export function RegisterForm() {
   const formRef = useFormFocus(state);
   return (
     <form ref={formRef} action={action} noValidate className="space-y-5">
+      <GuestCartField />
       <FormMessage state={state} />
       <TextField
         name="fullName"

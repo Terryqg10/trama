@@ -2,7 +2,10 @@
 
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { mergeGuestIntoAccount } from '@/lib/cart/account';
+import { parseSavedCart } from '@/lib/cart/cart';
 import { createAuthClient } from '@/lib/supabase/auth-server';
+import type { PublicSupabaseClient } from '@/lib/supabase/server';
 import { pickValues, type FormState } from './form-state';
 import {
   addressIdSchema,
@@ -31,6 +34,27 @@ async function requestOrigin(): Promise<string> {
 
 function isRateLimited(status: number | undefined, code: string | undefined): boolean {
   return status === 429 || code === 'over_request_rate_limit' || code === 'over_email_send_rate_limit';
+}
+
+/**
+ * Fusiona con la cuenta el carrito que el navegador envía en el formulario (CA-04). Un fallo no
+ * impide entrar: las líneas siguen en el navegador y la página de cuenta lo reintenta.
+ * Devuelve `true` si había líneas y quedaron fusionadas.
+ */
+async function mergeGuestCartOnEntry(
+  supabase: PublicSupabaseClient,
+  userId: string,
+  rawGuestCart: string | undefined,
+): Promise<boolean> {
+  const guest = parseSavedCart(rawGuestCart ?? null);
+  if (guest.length === 0) return false;
+  try {
+    await mergeGuestIntoAccount(supabase, userId, guest);
+    return true;
+  } catch (error) {
+    console.error('mergeGuestCartOnEntry falló', error instanceof Error ? error.message : 'error desconocido');
+    return false;
+  }
 }
 
 export async function registerAction(_previous: FormState, formData: FormData): Promise<FormState> {
@@ -78,7 +102,10 @@ export async function registerAction(_previous: FormState, formData: FormData): 
     };
   }
 
-  if (data.session) redirect('/cuenta');
+  if (data.session && data.user) {
+    const merged = await mergeGuestCartOnEntry(supabase, data.user.id, raw['guestCart']);
+    redirect(merged ? '/cuenta?carrito=fusionado' : '/cuenta');
+  }
 
   return {
     status: 'success',
@@ -98,7 +125,7 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
   }
 
   const supabase = await createAuthClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data: signedIn, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
     const values = pickValues(raw, ['email']);
     if (isRateLimited(error.status, error.code)) {
@@ -108,7 +135,8 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
     return { status: 'error', message: GENERIC_LOGIN_ERROR, values };
   }
 
-  redirect('/cuenta');
+  const merged = await mergeGuestCartOnEntry(supabase, signedIn.user.id, raw['guestCart']);
+  redirect(merged ? '/cuenta?carrito=fusionado' : '/cuenta');
 }
 
 export async function logoutAction(): Promise<void> {

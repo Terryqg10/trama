@@ -5,6 +5,7 @@ import {
   addToCart,
   capQty,
   maxQty,
+  mergeCarts,
   parseSavedCart,
   removeLine,
   setLineQty,
@@ -186,5 +187,28 @@ describe('parseSavedCart (el almacenamiento del navegador es un input externo)',
       { variantId: A, qty: MAX_LINE_QTY },
       { variantId: B, qty: 1 },
     ]);
+  });
+});
+
+describe('mergeCarts (CA-04)', () => {
+  it('conserva las líneas de las dos partes sin perder ninguna', () => {
+    expect(
+      mergeCarts([{ variantId: A, qty: 1 }], [{ variantId: B, qty: 2 }]),
+    ).toEqual([
+      { variantId: A, qty: 1 },
+      { variantId: B, qty: 2 },
+    ]);
+  });
+
+  it('suma las cantidades de una variante presente en las dos, con el tope de la línea', () => {
+    expect(mergeCarts([{ variantId: A, qty: 2 }], [{ variantId: A, qty: 3 }])).toEqual([{ variantId: A, qty: 5 }]);
+    expect(mergeCarts([{ variantId: A, qty: 90 }], [{ variantId: A, qty: 30 }])).toEqual([
+      { variantId: A, qty: MAX_LINE_QTY },
+    ]);
+  });
+
+  it('con un lado vacío devuelve el otro', () => {
+    expect(mergeCarts([], [{ variantId: B, qty: 1 }])).toEqual([{ variantId: B, qty: 1 }]);
+    expect(mergeCarts([{ variantId: A, qty: 1 }], [])).toEqual([{ variantId: A, qty: 1 }]);
   });
 });

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ProductDetailView } from '@/components/catalog/ProductDetailView';
 import type { RawSearchParams } from '@/lib/catalog/filters';
 import { getProductBySlug } from '@/lib/catalog/queries';
+import { getCurrentUser } from '@/lib/auth/session';
 import { getSizeGuide } from '@/lib/catalog/size-guide';
 
 interface PageProps {
@@ -22,7 +23,13 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
   const sizeGuide = await getSizeGuide(product.category);
+  const { user } = await getCurrentUser();
   return (
-    <ProductDetailView product={product} sizeGuide={sizeGuide} searchParams={await searchParams} />
+    <ProductDetailView
+      product={product}
+      sizeGuide={sizeGuide}
+      searchParams={await searchParams}
+      signedIn={user !== null}
+    />
   );
 }

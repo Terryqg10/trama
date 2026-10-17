@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { parsePublicSupabaseEnv } from '@/lib/env';
 
 /**
- * Renueva la sesión de Supabase en las rutas de cuenta (RF-04). Los Server Components no pueden
+ * Renueva la sesión de Supabase en las rutas de cuenta, carrito y ficha (RF-04, T-031). Los Server Components no pueden
  * escribir cookies, así que el refresco del token vive aquí. No decide accesos: cada página
  * protegida comprueba al usuario con `getUser()`.
  */
@@ -29,5 +29,13 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/cuenta/:path*', '/acceso', '/registro', '/recuperar/:path*', '/auth/:path*'],
+  matcher: [
+    '/cuenta/:path*',
+    '/acceso',
+    '/registro',
+    '/recuperar/:path*',
+    '/auth/:path*',
+    '/carrito',
+    '/producto/:path*',
+  ],
 };

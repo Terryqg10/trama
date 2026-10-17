@@ -26,8 +26,11 @@ export function ProductDetailView({
   product,
   sizeGuide,
   searchParams,
+  signedIn,
 }: {
   readonly product: ProductDetail;
+  /** Hay sesión: el carrito se guarda en la cuenta (T-031). */
+  readonly signedIn: boolean;
   /** Guía de la categoría del producto, o `null` si no tiene (entonces no se muestra el enlace). */
   readonly sizeGuide: SizeGuide | null;
   readonly searchParams: RawSearchParams;
@@ -93,6 +96,7 @@ export function ProductDetailView({
             variantId={selection.variant?.id ?? null}
             stock={selection.variant?.stock ?? 0}
             productName={product.name}
+            signedIn={signedIn}
           />
 
           {sizeGuide ? (

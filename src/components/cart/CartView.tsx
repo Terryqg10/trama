@@ -2,12 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { getCartLinesAction } from '@/lib/cart/actions';
-import { maxQty, removeLine, setLineQty, summarize } from '@/lib/cart/cart';
+import { getCartLinesAction, saveAccountCartAction } from '@/lib/cart/actions';
+import { maxQty, removeLine, setLineQty, summarize, type SavedCart } from '@/lib/cart/cart';
 import type { CartLineInfo } from '@/lib/cart/lines';
-import { readCart, useHydrated, useSavedCart, writeCart } from '@/lib/cart/store';
+import { useHydrated, useSavedCart, writeCart } from '@/lib/cart/store';
+import { useGuestCartMerge } from '@/lib/cart/use-guest-merge';
 import { capitalize } from '@/lib/catalog/facets';
 import { formatEuros } from '@/lib/domain/shop';
 import { EmptyState } from '../EmptyState';
@@ -35,12 +36,38 @@ const textButton =
  * cantidad; el precio, el stock y los datos de la prenda se piden al servidor. Una variante que el
  * servidor no devuelve se muestra como «no disponible» y no cuenta en los totales (CA-62). Una
  * cantidad por encima del stock se limita y se avisa (CA-05).
+ *
+ * Con sesión (`initialAccountCart` definido), el carrito vive en la cuenta (CA-63): los cambios se
+ * aplican al momento y se guardan en el servidor en orden; al llegar, las líneas del navegador se
+ * fusionan con las de la cuenta (CA-04).
  */
-export function CartView() {
+export function CartView({ initialAccountCart }: { readonly initialAccountCart?: SavedCart }) {
   const hydrated = useHydrated();
-  const saved = useSavedCart();
+  const guestCart = useSavedCart();
+  const isAccount = initialAccountCart !== undefined;
+  const [accountCart, setAccountCart] = useState<SavedCart>(initialAccountCart ?? []);
+  const saved = isAccount ? accountCart : guestCart;
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
+
+  // Guardado en la cuenta: en serie y solo se aplica la respuesta de la última petición.
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const latest = useRef(0);
+  const persist = useCallback((next: SavedCart, previous: SavedCart) => {
+    setAccountCart(next);
+    const ticket = ++latest.current;
+    queue.current = queue.current.then(async () => {
+      const result = await saveAccountCartAction(next).catch(() => ({ status: 'error' as const }));
+      if (ticket !== latest.current) return;
+      if (result.status === 'ok') setAccountCart(result.cart);
+      else {
+        setAccountCart(previous);
+        setNotice({ variantId: null, text: 'No hemos podido guardar el cambio. Inténtalo de nuevo.' });
+      }
+    });
+  }, []);
+
+  useGuestCartMerge(isAccount, setAccountCart);
 
   const ids = saved.map((line) => line.variantId);
   // Solo se vuelve a preguntar al servidor si hay variantes que aún no se han pedido.
@@ -115,9 +142,14 @@ export function CartView() {
     lines.flatMap((line) => (line.state === 'ok' && line.info ? [{ priceCents: line.info.priceCents, qty: line.qty }] : [])),
   );
 
+  function apply(next: SavedCart) {
+    if (isAccount) persist(next, saved);
+    else writeCart(next);
+  }
+
   function change(variantId: string, requested: number, info: CartLineInfo) {
-    const result = setLineQty(readCart(), variantId, requested, info.stock);
-    writeCart(result.cart);
+    const result = setLineQty(saved, variantId, requested, info.stock);
+    apply(result.cart);
     setNotice(
       result.capped
         ? {
@@ -129,7 +161,7 @@ export function CartView() {
   }
 
   function remove(variantId: string, name: string) {
-    writeCart(removeLine(readCart(), variantId));
+    apply(removeLine(saved, variantId));
     setNotice({ variantId: null, text: `${name} se ha quitado del carrito.` });
   }
 

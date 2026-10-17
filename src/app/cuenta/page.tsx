@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ProfileForm } from '@/components/account/AccountForms';
+import { GuestCartMerger } from '@/components/cart/GuestCartMerger';
 import { PageContainer } from '@/components/PageContainer';
 import { deleteAddressAction, logoutAction } from '@/lib/auth/actions';
 import { requireUser } from '@/lib/auth/session';
@@ -15,7 +16,7 @@ export default async function CuentaPage({
 }: {
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { aviso } = await searchParams;
+  const { aviso, carrito } = await searchParams;
   const { client, user } = await requireUser();
 
   const [profile, addresses] = await Promise.all([
@@ -30,6 +31,7 @@ export default async function CuentaPage({
 
   return (
     <PageContainer>
+      <GuestCartMerger merged={carrito === 'fusionado'} />
       <div className="mx-auto max-w-2xl space-y-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-display font-bold">Mi cuenta</h1>
