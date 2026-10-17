@@ -468,5 +468,25 @@ ahora no lo mostraba.
 **Nuevas tareas derivadas:** ninguna por esta enmienda; CA-60 a CA-62 entran en T-018. La fusión con el
 carrito de la cuenta (CA-04) pasa a T-031 por la Enmienda 4 del plan.
 
+### Enmienda 15 — 2026-10-17 — sin ADR — CA-63 carrito de la cuenta
+
+**Origen:** al crear T-031 se comprobó que RF-03 dice que el carrito «se fusiona con el de la cuenta»,
+pero ningún CA cubre que el carrito de un cliente con sesión se guarde en su cuenta y se vea desde otro
+navegador. CA-04 solo cubre la fusión al iniciar sesión.
+
+**Qué cambia:** se añade un criterio de aceptación. RF-03, CA-04, CA-05 y CA-61 no cambian.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-63 | RF-03 | Un cliente con sesión y una línea en su carrito | Abre su cuenta en otro navegador | Ve la misma línea; los cambios de cantidad y quitar se guardan en la cuenta y respetan el stock | test e2e `cart-account-persist` y test de integración `cart-account` |
+
+**Datos y privacidad (sección 9):** se añade una fila. El carrito (variante y cantidad) se guarda, para
+invitados, en el almacenamiento local del navegador y, para clientes con sesión, en Supabase
+(Postgres), vinculado a su cuenta. Se conserva mientras exista la cuenta o hasta que el cliente vacíe
+el carrito, y se borra con la baja de cuenta (los datos del carrito se eliminan en cascada). No contiene
+datos personales además del vínculo con la cuenta.
+
+**Nuevas tareas derivadas:** ninguna; CA-63 entra en T-031.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
