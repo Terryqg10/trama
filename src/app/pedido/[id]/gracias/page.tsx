@@ -33,12 +33,20 @@ export default async function GraciasPage({ params }: { readonly params: Promise
         <p className="mt-4 text-sm text-fg-muted">
           Pedido {data.id.slice(0, 8)} · {formatEuros(data.total_cents)} · Pagos de prueba: no se cobra nada.
         </p>
-        <Link
-          href="/novedades"
-          className="mt-6 inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
-        >
-          Seguir comprando
-        </Link>
+        <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link
+            href={`/cuenta/pedidos/${data.id}`}
+            className="inline-flex min-h-11 items-center justify-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
+          >
+            Ver mi pedido
+          </Link>
+          <Link
+            href="/novedades"
+            className="inline-flex min-h-11 items-center justify-center rounded-control border border-border-strong px-6 text-sm font-semibold text-fg hover:bg-accent-soft"
+          >
+            Seguir comprando
+          </Link>
+        </div>
       </div>
     </PageContainer>
   );

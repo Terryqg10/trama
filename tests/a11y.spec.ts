@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { z } from 'zod';
 import { ACTION_NAV, LEGAL_NAV, MAIN_NAV } from '../src/lib/domain/navigation';
 import { adminClient, createConfirmedUser, deleteUserByEmail, newCredentials } from './helpers/auth-users';
 
@@ -208,6 +209,64 @@ test.describe('accesibilidad', () => {
       await page.goto(`/pedido/${String((order.data as { id: string }).id)}/gracias`);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       await scan('página de gracias');
+    } finally {
+      await admin.from('orders').delete().eq('user_id', userId);
+      await deleteUserByEmail(admin, credentials.email);
+    }
+  });
+
+  test('el historial de pedidos (vacío, con pedidos y detalle) no tiene violaciones graves', async ({ page }) => {
+    const admin = adminClient();
+    const credentials = newCredentials('a11y-pedidos');
+    const userId = await createConfirmedUser(admin, credentials);
+    try {
+      await page.goto('/acceso');
+      await page.getByLabel('Email').fill(credentials.email);
+      await page.getByLabel('Contraseña').fill(credentials.password);
+      await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+      await expect(page).toHaveURL(/\/cuenta$/);
+
+      const scan = async (label: string) => {
+        const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+        expect(
+          results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical'),
+          `violaciones graves en: ${label}`,
+        ).toEqual([]);
+      };
+
+      await page.goto('/cuenta/pedidos');
+      await expect(page.getByText('Aún no has hecho pedidos')).toBeVisible();
+      await scan('historial vacío');
+
+      const created = await admin
+        .from('orders')
+        .insert({
+          user_id: userId,
+          status: 'pagado',
+          total_cents: 3485,
+          shipping_cents: 495,
+          shipping_address: { recipient_name: 'Ana Pérez', line1: 'Calle Mayor 1', postal_code: '28001', city: 'Madrid', province: 'Madrid', country: 'ES' },
+        })
+        .select('id')
+        .single();
+      const orderId = z.object({ id: z.string() }).parse(created.data).id;
+      await admin.from('order_items').insert({
+        order_id: orderId,
+        variant_id: crypto.randomUUID(),
+        product_name: 'Polo piqué básico',
+        size: 'M',
+        color: 'negro',
+        qty: 1,
+        unit_price_cents: 2990,
+      });
+
+      await page.goto('/cuenta/pedidos');
+      await expect(page.getByTestId('order-row')).toHaveCount(1);
+      await scan('historial con pedidos');
+
+      await page.goto(`/cuenta/pedidos/${orderId}`);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await scan('detalle del pedido');
     } finally {
       await admin.from('orders').delete().eq('user_id', userId);
       await deleteUserByEmail(admin, credentials.email);
