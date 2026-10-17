@@ -246,3 +246,22 @@ invitado en `localStorage` (RF-03: «persiste en el navegador»).
 
 T-031 depende de T-017 y de T-018. Los números de la Enmienda 1 no cambian; las tareas nuevas siguen
 desde T-032.
+
+### Enmienda 5 — 2026-10-17 — sin ADR — T-019 dividida en reserva, checkout y webhook
+
+**Origen:** T-019 agrupaba la reserva de stock (CA-18, CA-19), el checkout con Stripe (CA-09, CA-10) y el
+webhook (CA-11 a CA-13). Son tres capas con dependencias distintas: la reserva exige una migración en la
+base de datos (una función atómica), el checkout depende de las claves de Stripe en modo test y el
+webhook de que exista el checkout. No caben en una sola tarea atómica.
+
+**Qué cambia:**
+
+| Tarea | Resumen | CA |
+|---|---|---|
+| T-019 | Reserva de stock atómica en BD (función `reserve_stock`), caducidad y liberación | CA-18, CA-19 |
+| **T-032** | Checkout: dirección, resumen con importes calculados por el servidor y sesión de pago de Stripe | CA-09, CA-10 |
+| **T-033** | Webhook de Stripe con firma verificada, idempotente: pedido a `pagado` y reserva consumida | CA-11, CA-12, CA-13 |
+
+Orden: T-019, T-032, T-033. T-020 (historial) sigue después de T-033. Las tareas nuevas siguen desde T-034.
+Los CA no cambian.
+
