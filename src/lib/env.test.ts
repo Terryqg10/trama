@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseEnv, parsePublicSupabaseEnv, parseServiceSupabaseEnv, parseStripeServerEnv } from './env';
+import { parseEnv, parsePublicSupabaseEnv, parseServiceSupabaseEnv, parseStripeServerEnv, parseStripeWebhookEnv } from './env';
 
 const validEnv = {
   NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
@@ -97,5 +97,16 @@ describe('parseStripeServerEnv (T-032)', () => {
   it('rechaza una clave live y una ausente (CA-24)', () => {
     expect(() => parseStripeServerEnv({ STRIPE_SECRET_KEY: 'sk_live_abc' })).toThrow(/modo test/);
     expect(() => parseStripeServerEnv({})).toThrow(/STRIPE_SECRET_KEY/);
+  });
+});
+
+describe('parseStripeWebhookEnv (T-033)', () => {
+  it('acepta un secreto con prefijo whsec_', () => {
+    expect(parseStripeWebhookEnv({ STRIPE_WEBHOOK_SECRET: 'whsec_abc' }).STRIPE_WEBHOOK_SECRET).toBe('whsec_abc');
+  });
+
+  it('rechaza un secreto sin el prefijo o ausente', () => {
+    expect(() => parseStripeWebhookEnv({ STRIPE_WEBHOOK_SECRET: 'abc' })).toThrow(/STRIPE_WEBHOOK_SECRET/);
+    expect(() => parseStripeWebhookEnv({})).toThrow(/STRIPE_WEBHOOK_SECRET/);
   });
 });

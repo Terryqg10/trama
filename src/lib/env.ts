@@ -86,3 +86,19 @@ export function parseStripeServerEnv(source: Record<string, string | undefined>)
   }
   return result.data;
 }
+
+// Secreto de firma del webhook de Stripe (T-033).
+const stripeWebhookEnvSchema = envSchema.pick({ STRIPE_WEBHOOK_SECRET: true });
+
+export type StripeWebhookEnv = z.infer<typeof stripeWebhookEnvSchema>;
+
+export function parseStripeWebhookEnv(source: Record<string, string | undefined>): StripeWebhookEnv {
+  const result = stripeWebhookEnvSchema.safeParse(source);
+  if (!result.success) {
+    const detail = result.error.issues
+      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+      .join('; ');
+    throw new Error(`Entorno del webhook de Stripe inválido: ${detail}`);
+  }
+  return result.data;
+}
