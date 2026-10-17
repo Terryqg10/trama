@@ -488,5 +488,27 @@ datos personales además del vínculo con la cuenta.
 
 **Nuevas tareas derivadas:** ninguna; CA-63 entra en T-031.
 
+### Enmienda 16 — 2026-10-17 — sin ADR — declaración de costes de Stripe y plazos del pago
+
+**Origen:** T-032 es el primer consumidor de Stripe. `docs/costs.md` exige declarar en la sección 10 el
+tope, la alerta, la cuota y el comportamiento al tope antes de escribir el primer consumidor. La
+sección 10 solo decía «sin coste en test». Se completa sin cambiar el alcance: Stripe sigue en modo test.
+
+| Campo | Contenido |
+|---|---|
+| Proveedor | Stripe (Checkout alojado) |
+| Uso previsto | Crear una sesión de pago por intento de compra de un cliente con sesión; confirmar el pago por webhook (T-033) |
+| Plan y coste unitario | Modo test: sin coste. VERIFICAR las tarifas reales antes de cualquier uso con dinero |
+| Tope mensual | 0 €: solo claves `sk_test_` y `pk_test_`. Una clave live se rechaza al arrancar (CA-24) y en el módulo `src/lib/stripe/` |
+| Alerta de presupuesto | No aplica en modo test. Si algún día se activa el cobro real, se declara aquí antes |
+| Cuota máxima | No aplica en modo test. Mientras tanto, un intento nuevo cancela el pedido pendiente anterior del cliente, así que no se acumulan sesiones ni reservas |
+| Comportamiento al tope o ante un fallo | Falla cerrado: si Stripe falla, el pedido se cancela, la reserva se libera y se muestra un error; sin reintentos automáticos (`maxNetworkRetries: 0`) |
+| ToS revisados | No. VERIFICAR los términos del modo test |
+
+**Plazos:** la reserva de stock dura 35 minutos y la sesión de pago de Stripe 31 (Stripe exige un mínimo de
+30; VERIFICAR). La sesión caduca antes que la reserva para que nadie pague con la reserva vencida.
+
+**Nuevas tareas derivadas:** ninguna.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
