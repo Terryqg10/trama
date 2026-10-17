@@ -45,7 +45,10 @@ function pick(raw: RawSearchParams, key: 'color' | 'talla'): string | undefined 
 }
 
 /** Imagen del color: el seed nombra la imagen «<nombre>, color <color>». Si no hay, la primera. */
-export function imageForColor(product: ProductDetail, color: string): ProductImage | null {
+export function imageForColor(
+  product: { readonly images: readonly ProductImage[] },
+  color: string,
+): ProductImage | null {
   const match = product.images.find((image) => image.alt.toLowerCase().endsWith(`color ${color}`));
   return match ?? product.images[0] ?? null;
 }

@@ -7,6 +7,7 @@ import type { RawSearchParams } from '@/lib/catalog/filters';
 import { capitalize } from '@/lib/catalog/facets';
 import type { SizeGuide } from '@/lib/catalog/size-guide';
 import { formatEuros } from '@/lib/domain/shop';
+import { AddToCartButton } from '../cart/AddToCartButton';
 import { PageContainer } from '../PageContainer';
 import { ShippingInfo } from '../ShippingInfo';
 import { FitInfo } from './FitInfo';
@@ -18,7 +19,8 @@ import { VariantSelector } from './VariantSelector';
  * Ficha de producto (RF-02): en móvil, imagen arriba y datos debajo; en escritorio, dos columnas
  * (estilo v1-soft-commerce). Componente de servidor: la selección de color y talla viene de la URL.
  * La guía de tallas (T-027) se abre en un panel si la categoría tiene guía, y los datos de ajuste
- * (T-028) se muestran si el producto los tiene. El botón «Añadir al carrito» llega con T-018.
+ * (T-028) se muestran si el producto los tiene. El botón «Añadir al carrito» (T-018) está
+ * deshabilitado hasta elegir una talla con stock.
  */
 export function ProductDetailView({
   product,
@@ -86,6 +88,12 @@ export function ProductDetailView({
           ) : null}
 
           <VariantSelector slug={product.slug} selection={selection} />
+
+          <AddToCartButton
+            variantId={selection.variant?.id ?? null}
+            stock={selection.variant?.stock ?? 0}
+            productName={product.name}
+          />
 
           {sizeGuide ? (
             <SizeGuideModal title={`Guía de tallas: ${capitalize(product.category)}`}>

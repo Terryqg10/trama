@@ -59,9 +59,13 @@ test.describe('contenido de la ficha (RF-02)', () => {
     await expect(block).toContainText('30 días');
   });
 
-  test('no hay botón «Añadir al carrito» hasta T-018 ni botones muertos', async ({ page }) => {
+  test('el botón «Añadir al carrito» está deshabilitado hasta elegir una talla (T-018)', async ({ page }) => {
     await open(page, URL);
-    await expect(page.getByRole('button', { name: /añadir/i })).toHaveCount(0);
+    const add = page.getByRole('button', { name: 'Añadir al carrito' });
+    await expect(add).toBeDisabled();
+    await expect(page.getByText('Elige una talla para añadirla al carrito.')).toBeVisible();
+    await open(page, `${URL}?color=negro&talla=M`);
+    await expect(add).toBeEnabled();
   });
 
   test('la imagen principal se carga con prioridad (LCP)', async ({ page }) => {

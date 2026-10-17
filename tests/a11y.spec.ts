@@ -131,6 +131,27 @@ test.describe('accesibilidad', () => {
     }
   });
 
+  test('el carrito con una línea y la ficha con talla elegida no tienen violaciones graves', async ({ page }) => {
+    await page.goto('/producto/polo-pique-basico?color=negro&talla=M');
+    await expect(page.getByTestId('add-to-cart')).toBeEnabled();
+    await page.getByTestId('add-to-cart').click();
+    await expect(page.getByText('Polo piqué básico añadido al carrito.')).toBeVisible();
+
+    const ficha = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+    expect(
+      ficha.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical'),
+      'violaciones graves en la ficha',
+    ).toEqual([]);
+
+    await page.goto('/carrito');
+    await expect(page.getByTestId('cart-line')).toHaveCount(1);
+    const cart = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+    expect(
+      cart.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical'),
+      'violaciones graves en el carrito',
+    ).toEqual([]);
+  });
+
   test('respeta prefers-reduced-motion', async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: 'reduce' });
     const page = await context.newPage();

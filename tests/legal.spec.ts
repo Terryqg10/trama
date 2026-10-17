@@ -72,6 +72,7 @@ test.describe('coherencia del contenido con la spec', () => {
     const text = await page.locator('article').innerText();
     expect(text).toContain('Solo cookies técnicas');
     expect(text).toContain('No usamos cookies de analítica');
+    expect(text).toContain('almacenamiento local de tu navegador');
   });
 
   test('condiciones: importes y plazo salen de las constantes de tienda', async ({ page }) => {

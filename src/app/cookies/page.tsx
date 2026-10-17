@@ -12,6 +12,11 @@ export default function CookiesPage() {
         de tu cuenta. No usamos cookies de analítica, de publicidad ni de
         seguimiento.
       </p>
+      <p>
+        El carrito se guarda en el almacenamiento local de tu navegador (solo las prendas elegidas y
+        sus cantidades, sin datos personales) para que no se pierda al recargar. Es un
+        almacenamiento técnico y no se envía a ningún tercero.
+      </p>
 
       <LegalHeading>Cookies de terceros</LegalHeading>
       <p>
