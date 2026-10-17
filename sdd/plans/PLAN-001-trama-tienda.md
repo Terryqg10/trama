@@ -87,6 +87,7 @@ Tipos TypeScript generados con `pnpm db:types`. No se escriben a mano.
 | Drawer móvil abierto por hash `#filtros-movil` | No aplica (convención de la web, no del sector) | Fallback sin JavaScript, requerido por RF-07 | Sin JS: filtros usables. Con JS: mismo comportamiento, sincronizado con React |
 | Menú móvil abierto por hash `#menu-movil` | No aplica (convención de la web, no del sector) | Fallback sin JavaScript, igual que el drawer de filtros | Sin JS: navegación usable en móvil. Con JS: mismo comportamiento, sincronizado con React |
 | Rejilla del listado con la columna lateral de filtros: 3 columnas desde `--bp-lg` (≥ 1024 px) | v1-soft-commerce pide 4 columnas desde `--bp-lg`; las tiendas de referencia con columna lateral (Zalando, ASOS) muestran 3 | La columna lateral (256 px y 32 px de separación) deja a 1280 px unos 864 px útiles: 4 columnas darían tarjetas de ≈ 200 px, con títulos y precios apretados. Decisión del usuario, 2026-10-16 | Tarjetas de ≈ 280 px legibles y con imagen suficiente. Reversible: cambiar una clase de la rejilla (`CatalogView`) |
+| Panel admin (`/admin`) con el estilo v4-dense-workspace en vez de v1 | v1 es para tiendas; v4 («herramientas internas, admin, paneles») pide sidebar, topbar, filas `grid-cols-12` y densidad. Las herramientas de gestión (Shopify admin, Stripe, Linear) usan esa disposición | Decisión del usuario, 2026-10-17 (ADR-008): el admin es una herramienta de uso prolongado, no una tienda | Tablas legibles, menos scroll, búsqueda con `Ctrl+K`. Reversible: quitar `admin-theme.css` |
 
 Referencia completa en `SPEC-002-filtros-catalogo.md` y
 `ADR-005-filtros-progressive-enhancement.md`.
@@ -264,4 +265,14 @@ webhook de que exista el checkout. No caben en una sola tarea atómica.
 
 Orden: T-019, T-032, T-033. T-020 (historial) sigue después de T-033. Las tareas nuevas siguen desde T-034.
 Los CA no cambian.
+
+### Enmienda 6 — 2026-10-17 — ADR-008 — el panel admin usa v4-dense-workspace
+
+**Origen:** al empezar T-022 el usuario pidió que el panel de administración use `v4-dense-workspace` en
+lugar de `v1-soft-commerce`. v1 y v4 declaran las mismas variables CSS, así que no pueden coexistir en
+`globals.css` sin acotar una de ellas.
+
+**Qué cambia:** la tienda sigue en `style: v1-soft-commerce@0.3.0`; las rutas de `/admin` usan
+`v4-dense-workspace@0.1.0` con los tokens estructurales de v4 acotados a `[data-style="v4"]` y la misma
+`palette.css`. Se anota en §5b y en ADR-008. Afecta a T-021 a T-024 (todo el panel). Los CA no cambian.
 
