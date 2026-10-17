@@ -38,6 +38,7 @@ export const config = {
     '/carrito',
     '/checkout',
     '/pedido/:path*',
+    '/admin/:path*',
     '/producto/:path*',
   ],
 };

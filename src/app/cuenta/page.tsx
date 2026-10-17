@@ -20,7 +20,7 @@ export default async function CuentaPage({
   const { client, user } = await requireUser();
 
   const [profile, addresses] = await Promise.all([
-    client.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+    client.from('profiles').select('full_name, role').eq('id', user.id).maybeSingle(),
     client
       .from('addresses')
       .select('id, recipient_name, line1, line2, postal_code, city, province')
@@ -52,6 +52,18 @@ export default async function CuentaPage({
           <p role="alert" className="rounded-control border border-danger px-4 py-3 text-sm font-medium text-danger">
             No hemos podido cargar tus datos. Recarga la página para reintentar.
           </p>
+        ) : null}
+
+        {profile.data?.role === 'admin' ? (
+          <Link
+            href="/admin"
+            className="flex min-h-11 items-center justify-between rounded-container border border-border bg-surface px-5 py-3 font-semibold hover:bg-accent-soft"
+          >
+            Panel de administración
+            <span aria-hidden="true" className="text-fg-muted">
+              →
+            </span>
+          </Link>
         ) : null}
 
         <Link

@@ -121,21 +121,24 @@ export async function listOrders(client: PublicSupabaseClient, userId: string): 
   return z.array(orderRowSchema).parse(data).map(toSummary);
 }
 
-/** Devuelve el pedido del cliente o `null` si no existe o no es suyo (la RLS lo oculta). */
+/**
+ * Devuelve el pedido o `null` si no existe o no es visible para la sesión (la RLS lo oculta). Con `userId`
+ * se filtra además por dueño (historial del cliente); con `null` solo decide la RLS (panel admin).
+ */
 export async function getOrder(
   client: PublicSupabaseClient,
-  userId: string,
+  userId: string | null,
   orderId: string,
 ): Promise<OrderDetail | null> {
   const parsedId = z.string().uuid().safeParse(orderId);
   if (!parsedId.success) return null;
 
-  const { data, error } = await client
+  let query = client
     .from('orders')
     .select('id, status, total_cents, shipping_cents, created_at, shipping_address')
-    .eq('id', parsedId.data)
-    .eq('user_id', userId)
-    .maybeSingle();
+    .eq('id', parsedId.data);
+  if (userId !== null) query = query.eq('user_id', userId);
+  const { data, error } = await query.maybeSingle();
   if (error) throw new Error(`No se pudo cargar el pedido: ${error.message}`);
   if (!data) return null;
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import { ShopFrame } from '@/components/ShopFrame';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import './globals.css';
@@ -23,11 +24,9 @@ export default function RootLayout({
         >
           Saltar al contenido
         </a>
-        <SiteHeader />
-        <main id="contenido" className="flex-1">
+        <ShopFrame header={<SiteHeader />} footer={<SiteFooter />}>
           {children}
-        </main>
-        <SiteFooter />
+        </ShopFrame>
       </body>
     </html>
   );

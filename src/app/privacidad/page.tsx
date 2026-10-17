@@ -36,6 +36,12 @@ export default function PrivacidadPage() {
         </li>
       </ul>
 
+      <LegalHeading>Quién puede ver tus datos</LegalHeading>
+      <p>
+        Las personas con rol de administración de la tienda pueden ver los pedidos y el nombre y la dirección del
+        destinatario, solo para prepararlos y enviarlos. No ven contraseñas ni datos de tarjeta.
+      </p>
+
       <LegalHeading>Proveedores</LegalHeading>
       <p>
         Supabase aloja la base de datos y la autenticación. Stripe procesa los pagos de prueba.

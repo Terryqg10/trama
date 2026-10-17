@@ -7,6 +7,9 @@ const isCI = !!process.env.CI;
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.ts',
+  // Las pruebas con sesión van a la BD en la nube y a un servidor de desarrollo compartido por todos los
+  // trabajadores: con la suite entera en paralelo, 5 s se queda corto en alguna navegación.
+  expect: { timeout: 10_000 },
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
