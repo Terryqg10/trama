@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseEnv, parsePublicSupabaseEnv } from './env';
+import { parseEnv, parsePublicSupabaseEnv, parseServiceSupabaseEnv } from './env';
 
 const validEnv = {
   NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
@@ -70,5 +70,21 @@ describe('parsePublicSupabaseEnv (T-005a)', () => {
     expect(() =>
       parsePublicSupabaseEnv({ NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co' }),
     ).toThrow(/NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+  });
+});
+
+describe('parseServiceSupabaseEnv (T-019)', () => {
+  it('acepta la URL y la clave de servicio sin exigir las de Stripe', () => {
+    const env = parseServiceSupabaseEnv({
+      NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-test-value',
+    });
+    expect(env.SUPABASE_SERVICE_ROLE_KEY).toBe('service-test-value');
+  });
+
+  it('rechaza si falta la clave de servicio', () => {
+    expect(() => parseServiceSupabaseEnv({ NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co' })).toThrow(
+      /SUPABASE_SERVICE_ROLE_KEY/,
+    );
   });
 });

@@ -49,3 +49,23 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   }
   return result.data;
 }
+
+// Subconjunto de servidor: lo único que necesita el cliente de servicio (reservas, pedidos, webhook).
+// La clave de servicio salta RLS: nunca va a un componente de cliente ni a una variable NEXT_PUBLIC_*.
+const serviceSupabaseEnvSchema = envSchema.pick({
+  NEXT_PUBLIC_SUPABASE_URL: true,
+  SUPABASE_SERVICE_ROLE_KEY: true,
+});
+
+export type ServiceSupabaseEnv = z.infer<typeof serviceSupabaseEnvSchema>;
+
+export function parseServiceSupabaseEnv(source: Record<string, string | undefined>): ServiceSupabaseEnv {
+  const result = serviceSupabaseEnvSchema.safeParse(source);
+  if (!result.success) {
+    const detail = result.error.issues
+      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+      .join('; ');
+    throw new Error(`Entorno de servicio de Supabase inválido: ${detail}`);
+  }
+  return result.data;
+}
