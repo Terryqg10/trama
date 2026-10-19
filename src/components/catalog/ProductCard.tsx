@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { isPhotoPath } from '@/lib/catalog/image-path';
 import Link from 'next/link';
 import { formatEuros } from '@/lib/domain/shop';
 import type { CatalogProduct } from '@/lib/catalog/product';
@@ -24,8 +25,8 @@ export function ProductCard({
   const colorCount = product.colors.length;
 
   return (
-    <article className="relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface shadow-card has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-accent">
-      <div className="relative aspect-4/5 bg-surface-muted">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface shadow-card has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-accent">
+      <div className="relative aspect-3/4 overflow-hidden bg-surface-muted">
         {image ? (
           <Image
             src={image.path}
@@ -38,7 +39,11 @@ export function ProductCard({
             preload={priority}
             fetchPriority={priority ? 'high' : undefined}
             loading={priority ? 'eager' : undefined}
-            className="h-full w-full object-contain p-6"
+            className={
+              isPhotoPath(image.path)
+                ? 'h-full w-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-105'
+                : 'h-full w-full object-contain p-6 transition-transform duration-500 motion-safe:group-hover:scale-105'
+            }
           />
         ) : (
           <p className="flex h-full items-center justify-center text-sm text-fg-muted">Sin imagen</p>

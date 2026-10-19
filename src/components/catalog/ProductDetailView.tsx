@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { isPhotoPath } from '@/lib/catalog/image-path';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import type { ProductDetail } from '@/lib/catalog/product';
@@ -67,7 +68,9 @@ export function ProductDetailView({
               preload
               fetchPriority="high"
               loading="eager"
-              className="h-full w-full object-contain p-8"
+              className={
+                isPhotoPath(selection.image.path) ? 'h-full w-full object-cover' : 'h-full w-full object-contain p-8'
+              }
             />
           ) : (
             <p className="flex h-full items-center justify-center text-sm text-fg-muted">Sin imagen</p>

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { isPhotoPath } from '@/lib/catalog/image-path';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { getCartLinesAction, saveAccountCartAction } from '@/lib/cart/actions';
@@ -191,7 +192,9 @@ export function CartView({ initialAccountCart }: { readonly initialAccountCart?:
                           width={224}
                           height={224}
                           unoptimized
-                          className="h-full w-full object-contain p-2"
+                          className={
+                            isPhotoPath(info.image.path) ? 'h-full w-full object-cover object-top' : 'h-full w-full object-contain p-2'
+                          }
                         />
                       ) : null}
                     </div>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { productImagePathSchema } from '@/lib/catalog/image-path';
 import { imageForColor } from '@/lib/catalog/variant-selection';
 import { createPublicClient, type PublicSupabaseClient } from '@/lib/supabase/server';
 import { MAX_CART_LINES } from './cart';
@@ -26,7 +27,7 @@ const rowSchema = z.object({
     name: z.string(),
     product_images: z.array(
       z.object({
-        path: z.string().startsWith('/products/'),
+        path: productImagePathSchema,
         alt: z.string().min(1),
         position: z.number().int(),
       }),

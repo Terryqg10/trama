@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { productImagePathSchema } from './image-path';
 import { CATEGORIES, GENDERS, OCCASIONS, type Sort } from './filters';
 
 const imageRowSchema = z.object({
-  path: z.string().startsWith('/products/'),
+  path: productImagePathSchema,
   alt: z.string().min(1),
   position: z.number().int(),
 });
