@@ -306,3 +306,10 @@ La baja de un producto es **desactivarlo** (`active = false`): desaparece del ca
 | **T-037** | Hero de la Home: foto vertical en móvil y horizontal en escritorio | CA-69 | T-035 |
 
 Las tareas nuevas siguen desde T-038. T-036 incluye una migración que aplica el usuario en Supabase.
+
+### Enmienda 9 — 2026-10-20 — ADR-009 — fotos reales de los seis productos de mujer
+
+**Origen:** Enmienda 19 de SPEC-001. Mismo flujo que T-035 a T-037 para el catálogo de mujer.
+
+**Qué cambia:** se crea **T-038** (CA-71), que depende de T-035 y T-036 (script y rutas `/images/products/`). No
+cambia ninguna otra tarea ni ningún CA. Las tareas nuevas siguen desde T-039.

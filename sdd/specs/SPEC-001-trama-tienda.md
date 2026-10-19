@@ -548,5 +548,19 @@ panel, no esto. Decisión y alternativas en ADR-009.
 **Nuevas tareas derivadas:** T-035 (script `optimize-images`), T-036 (migración de la ruta y fotos de los seis
 productos), T-037 (Hero de la Home). T-034 no cambia.
 
+### Enmienda 19 — 2026-10-20 — ADR-009 — fotos reales de los seis productos de mujer (CA-71)
+
+**Origen:** la Enmienda 18 cubrió las fotos de los seis productos de hombre (CA-68). Hay fotos reales de los seis
+productos de mujer del seed (tres blusas, el polo de punto, la camisa oversize y el pantalón fluido). Misma
+decisión y mismo flujo que ADR-009 (estáticos optimizados con `pnpm optimize-images`); no hace falta ADR nuevo.
+
+**Qué cambia:** se añade un criterio de aceptación. RF-02, CA-67, CA-68 y CA-70 no cambian.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-71 | RF-02 | Los seis productos de mujer con foto nueva (`blusa-lino-casual`, `blusa-satinada-vestir`, `blusa-popelin-lazada`, `polo-punto-mujer`, `camisa-oversize-mujer` y `pantalon-fluido-vestir`) | Se abre el catálogo de mujer y la ficha de cada uno | Cada uno muestra su foto, servida desde `/images/products/`, con texto alternativo no vacío, en lugar del SVG; los productos sin foto nueva conservan su imagen | test e2e `catalog-real-photos` (casos de mujer) |
+
+**Nuevas tareas derivadas:** T-038 (fotos de mujer). T-034 no cambia.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
