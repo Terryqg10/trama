@@ -38,3 +38,6 @@ backups/
 # Generado por Next.js
 /next-env.d.ts
 /AGENTS.md
+
+# Originales de imagen sin optimizar (no se versionan)
+public/images/raw/

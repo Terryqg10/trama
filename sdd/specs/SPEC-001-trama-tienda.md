@@ -526,5 +526,27 @@ imágenes se separan en su propia tarea (T-034) porque necesitan Supabase Storag
 
 **Nuevas tareas derivadas:** T-034 (imágenes de producto con Storage). T-021 queda para productos, variantes y stock.
 
+### Enmienda 18 — 2026-10-19 — ADR-009 — fotos reales del catálogo inicial y Hero de la Home (CA-67 a CA-70)
+
+**Origen:** hay fotos reales de seis productos del seed y dos fotos de marca. La spec no tiene ningún criterio
+sobre cómo se sirven las fotos del catálogo inicial ni sobre la portada. T-034 (Storage) cubre las altas desde el
+panel, no esto. Decisión y alternativas en ADR-009.
+
+**Qué cambia:** se añade RF-23 y cuatro criterios. RF-02 y RF-09 no cambian.
+
+| ID | Requisito |
+|---|---|
+| RF-23 | La portada abre con una imagen de marca (Hero): la foto vertical en móvil y la horizontal en escritorio, con el texto superpuesto o al lado. |
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-70 | RF-02 | Fotos originales en `public/images/raw/` (fuera de Git) | Se ejecuta `pnpm optimize-images` | Genera versiones AVIF/WebP redimensionadas en `public/images/products/` y `public/images/hero/`, sin tocar los originales, de forma repetible; con la carpeta vacía o un archivo no válido falla con un mensaje claro | test unitario `optimize-images` |
+| CA-67 | RF-02 | Un producto con imagen en `/images/products/` | Se abre el catálogo o su ficha | La imagen se sirve desde `/images/products/`; la BD y el esquema Zod aceptan esa ruta y siguen aceptando `/products/` (SVG heredados) y rechazan cualquier otra | test de integración `product-images-path` y test unitario del esquema |
+| CA-68 | RF-02 | Los seis productos con foto nueva (polo piqué, polo de punto, camisa oxford, camisa de popelín, chino slim y pantalón de traje) | Se abre el catálogo y la ficha de cada uno | Cada uno muestra su foto, con texto alternativo no vacío, en lugar del SVG; el resto de productos conserva su imagen | test e2e `catalog-real-photos` |
+| CA-69 | RF-23 | Un visitante en la Home | Abre `/` a 375 px y a 1280 px | A 375 px ve la foto vertical y a 1280 px la horizontal, con el texto legible (contraste AA) y sin scroll horizontal | test e2e `home-hero` y test de contraste/axe |
+
+**Nuevas tareas derivadas:** T-035 (script `optimize-images`), T-036 (migración de la ruta y fotos de los seis
+productos), T-037 (Hero de la Home). T-034 no cambia.
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.

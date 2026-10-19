@@ -292,3 +292,17 @@ cambios en cómo se sirven los archivos; no caben en la misma tarea atómica que
 La baja de un producto es **desactivarlo** (`active = false`): desaparece del catálogo pero conserva su historia
 (pedidos, imágenes). Las tareas nuevas siguen desde T-035.
 
+
+### Enmienda 8 — 2026-10-19 — ADR-009 — fotos reales del catálogo inicial y Hero de la Home
+
+**Origen:** Enmienda 18 de SPEC-001. Fotos reales de seis productos del seed y dos fotos de marca.
+
+**Qué cambia:** se crean tres tareas, en este orden. T-034 no cambia (altas desde el panel con Storage).
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-035** | Script `pnpm optimize-images` (`sharp`): de `public/images/raw/` a `public/images/products/` y `public/images/hero/` | CA-70 | — |
+| **T-036** | Migración que amplía el CHECK de `product_images.path` a `/images/products/`, esquema Zod, y las fotos de los seis productos del seed | CA-67, CA-68 | T-035 |
+| **T-037** | Hero de la Home: foto vertical en móvil y horizontal en escritorio | CA-69 | T-035 |
+
+Las tareas nuevas siguen desde T-038. T-036 incluye una migración que aplica el usuario en Supabase.
