@@ -12,6 +12,7 @@ import { AddToCartButton } from '../cart/AddToCartButton';
 import { PageContainer } from '../PageContainer';
 import { ShippingInfo } from '../ShippingInfo';
 import { FitInfo } from './FitInfo';
+import { StickyAddToCart } from './StickyAddToCart';
 import { SizeGuideModal } from './SizeGuideModal';
 import { SizeGuideTable } from './SizeGuideTable';
 import { VariantSelector } from './VariantSelector';
@@ -95,12 +96,15 @@ export function ProductDetailView({
 
           <VariantSelector slug={product.slug} selection={selection} />
 
-          <AddToCartButton
-            variantId={selection.variant?.id ?? null}
-            stock={selection.variant?.stock ?? 0}
-            productName={product.name}
-            signedIn={signedIn}
-          />
+          {/* Ancla que observa la barra fija de móvil (T-039): cuando este botón sale de pantalla, aparece. */}
+          <div id="add-to-cart-anchor">
+            <AddToCartButton
+              variantId={selection.variant?.id ?? null}
+              stock={selection.variant?.stock ?? 0}
+              productName={product.name}
+              signedIn={signedIn}
+            />
+          </div>
 
           {sizeGuide ? (
             <SizeGuideModal title={`Guía de tallas: ${capitalize(product.category)}`}>
@@ -115,6 +119,17 @@ export function ProductDetailView({
       <div className="mt-12">
         <ShippingInfo />
       </div>
+
+      <StickyAddToCart
+        targetId="add-to-cart-anchor"
+        name={product.name}
+        priceLabel={priceLabel}
+        variantId={selection.variant?.id ?? null}
+        stock={selection.variant?.stock ?? 0}
+        signedIn={signedIn}
+      />
+      {/* Espaciador: la barra fija no debe tapar el final de la página en móvil. */}
+      <div aria-hidden="true" className="h-24 md:hidden" />
     </PageContainer>
   );
 }

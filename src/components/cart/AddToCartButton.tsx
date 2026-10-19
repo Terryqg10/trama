@@ -18,11 +18,17 @@ export function AddToCartButton({
   stock,
   productName,
   signedIn,
+  testId = 'add-to-cart',
+  hideHint = false,
 }: {
   readonly variantId: string | null;
   readonly stock: number;
   readonly productName: string;
   readonly signedIn: boolean;
+  /** `data-testid` del botón. La barra fija de la ficha (T-039) usa otro para no duplicar el del original. */
+  readonly testId?: string;
+  /** No repite «Elige una talla…»: la barra fija de la ficha (T-039) convive con el botón original, que ya lo dice. */
+  readonly hideHint?: boolean;
 }) {
   const hydrated = useHydrated();
   const [busy, setBusy] = useState(false);
@@ -72,12 +78,12 @@ export function AddToCartButton({
         type="button"
         onClick={() => void add()}
         disabled={disabled}
-        data-testid="add-to-cart"
+        data-testid={testId}
         className="inline-flex min-h-12 w-full items-center justify-center rounded-control bg-accent px-6 text-base font-semibold text-accent-fg hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-fg-muted sm:w-auto"
       >
         Añadir al carrito
       </button>
-      {variantId === null ? <p className="text-sm text-fg-muted">Elige una talla para añadirla al carrito.</p> : null}
+      {variantId === null && !hideHint ? <p className="text-sm text-fg-muted">Elige una talla para añadirla al carrito.</p> : null}
       <div aria-live="polite" className="text-sm font-medium text-fg">
         {notice ? (
           <p>

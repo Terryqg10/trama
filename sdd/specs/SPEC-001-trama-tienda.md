@@ -562,5 +562,20 @@ decisión y mismo flujo que ADR-009 (estáticos optimizados con `pnpm optimize-i
 
 **Nuevas tareas derivadas:** T-038 (fotos de mujer). T-034 no cambia.
 
+### Enmienda 20 — 2026-10-20 — sin ADR — barra fija «Añadir al carrito» en la ficha (CA-72)
+
+**Origen:** el patrón «Ficha de producto: en móvil, imagen arriba y barra inferior fija con el CTA» está en el
+estilo v1 (`design/styles/v1-soft-commerce/style.md`, sección Responsive), pero ningún criterio de la spec lo
+cubre. En una ficha larga, el botón «Añadir al carrito» queda fuera de pantalla al bajar por la información de ajuste.
+
+**Qué cambia:** se añade un criterio de aceptación, solo para móvil (menos de `--bp-md`, 768 px). RF-02, RF-03 y CA-03,
+CA-60 no cambian. La barra reutiliza el `AddToCartButton` existente (mismo carrito, mismo aviso `aria-live`).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-72 | RF-02 | Un visitante en la ficha de un producto en móvil (menos de 768 px) | Baja hasta que el botón «Añadir al carrito» sale de pantalla | Aparece una barra fija inferior con el nombre, el precio y un botón «Añadir al carrito» que añade la variante elegida igual que el original; la barra se oculta cuando el botón original vuelve a verse, no aparece desde 768 px y, con `prefers-reduced-motion`, aparece sin animación | test e2e `sticky-add-to-cart` y test unitario `StickyAddToCart` |
+
+**Nuevas tareas derivadas:** T-039 (barra fija en la ficha).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.

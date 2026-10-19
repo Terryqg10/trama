@@ -313,3 +313,12 @@ Las tareas nuevas siguen desde T-038. T-036 incluye una migración que aplica el
 
 **Qué cambia:** se crea **T-038** (CA-71), que depende de T-035 y T-036 (script y rutas `/images/products/`). No
 cambia ninguna otra tarea ni ningún CA. Las tareas nuevas siguen desde T-039.
+
+### Enmienda 10 — 2026-10-20 — sin ADR — barra fija «Añadir al carrito» en la ficha
+
+**Origen:** Enmienda 20 de SPEC-001 (CA-72). Patrón de v1: barra inferior fija con el CTA en móvil.
+
+**Qué cambia:** se crea **T-039** (CA-72). Toca `ProductDetailView` y `AddToCartButton` (una prop opcional) y añade
+`StickyAddToCart` en `components/catalog/`. Es una decisión de UI que coincide con la convención del sector
+(Zalando, ASOS y Mango la usan en la ficha móvil) y con v1, así que no hay desvío que justificar en
+«Decisiones de UI». Las tareas nuevas siguen desde T-040.
