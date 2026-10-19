@@ -275,7 +275,7 @@ test.describe('accesibilidad', () => {
     }
   });
 
-  test('el panel admin (resumen, pedidos y detalle, estilo v4) no tiene violaciones graves', async ({ page }) => {
+  test('el panel admin (resumen, pedidos, detalle y productos, estilo v4) no tiene violaciones graves', async ({ page }) => {
     const admin = adminClient();
     const credentials = newCredentials('a11y-admin');
     const userId = await createConfirmedUser(admin, credentials);
@@ -309,7 +309,7 @@ test.describe('accesibilidad', () => {
       await page.getByRole('button', { name: 'Iniciar sesión' }).click();
       await expect(page).toHaveURL(/\/cuenta$/);
 
-      for (const url of ['/admin', '/admin/pedidos', `/admin/pedidos/${orderId}`]) {
+      for (const url of ['/admin', '/admin/pedidos', `/admin/pedidos/${orderId}`, '/admin/productos', '/admin/productos/nuevo']) {
         await page.goto(url);
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
         const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();

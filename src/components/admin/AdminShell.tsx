@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { ClipboardList, LayoutDashboard, Menu, Search, Store, X } from 'lucide-react';
+import { ClipboardList, LayoutDashboard, Menu, Package, Search, Store, X } from 'lucide-react';
 import { Logo } from '../Logo';
 import { useHashOverlay } from '../useHashOverlay';
 
@@ -12,6 +12,7 @@ const MENU_ID = 'menu-admin';
 const NAV = [
   { href: '/admin', label: 'Resumen', Icon: LayoutDashboard, exact: true },
   { href: '/admin/pedidos', label: 'Pedidos', Icon: ClipboardList, exact: false },
+  { href: '/admin/productos', label: 'Productos', Icon: Package, exact: false },
 ] as const;
 
 const control =

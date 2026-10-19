@@ -5,6 +5,9 @@ const BASE_URL = `http://localhost:${PORT}`;
 const isCI = !!process.env.CI;
 const usaProd = !process.env.E2E_DEV;
 
+/** Specs que crean productos visibles en el catálogo de la tienda. */
+const CATALOG_WRITERS = /admin-products\.spec\.ts$/;
+
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.ts',
@@ -24,9 +27,26 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
+  // Los tests que dan de alta productos activos en el catálogo (el panel admin) se ejecutan al final, en su propio
+  // proyecto: mientras existen, los demás tests de la tienda verían productos que no esperan (orden por precio,
+  // filtros de ocasión…).
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['iPhone 13'] } },
+    {
+      name: 'chromium',
+      testIgnore: CATALOG_WRITERS,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'mobile',
+      testIgnore: CATALOG_WRITERS,
+      use: { ...devices['iPhone 13'] },
+    },
+    {
+      name: 'catalog-writers',
+      testMatch: CATALOG_WRITERS,
+      dependencies: ['chromium', 'mobile'],
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
   webServer: {
     command: usaProd ? `pnpm run build && pnpm run start -p ${PORT}` : `pnpm run dev -p ${PORT}`,
