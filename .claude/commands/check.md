@@ -21,6 +21,7 @@ apliquen según el nivel del proyecto y la tarea en curso.
    Si se tocó UI:
    pnpm check-palette
    pnpm test:a11y
+   pnpm exec playwright test tests/responsive.spec.ts   (aplica a TODOS los niveles, S incluido)
 
    Según el nivel:
    - S: Lighthouse (rendimiento y accesibilidad ≥ 90).

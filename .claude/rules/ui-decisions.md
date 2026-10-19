@@ -55,3 +55,58 @@ Antes de cerrar cualquier tarea de UI:
 - Antes de cerrar la tarea, si hubo decisión de UI no convencional, se
   verifica que exista la entrada en `sdd/plans/` bajo `## Decisiones de
   UI`.
+
+## Invertir visualmente = invertir el DOM
+
+Cuando el orden visual de una fila o grupo debe ser distinto al del
+código, NUNCA se invierte con CSS (`flex-row-reverse`, `order`,
+`direction`). Se invierte el orden del propio DOM.
+
+Motivo: la tabulación (Tab) sigue el orden del DOM, no el visual. Si
+el visual dice "Limpiar | Aplicar" pero el DOM dice "Aplicar | Limpiar",
+quien navega con teclado pulsará Aplicar cuando cree que pulsa Limpiar.
+Rompe WCAG 2.4.3 (Focus Order) y 1.3.2 (Meaningful Sequence).
+
+Si el diseño pide otra cosa, se cambia el DOM y se adapta la lógica
+que lo recorre.
+
+## Iconos de acción que deben funcionar sin JavaScript
+
+Cuando un icono (menú, abrir panel, cerrar overlay) tenga que
+funcionar también sin JavaScript, se implementa como enlace:
+
+    <a href="#nombre-del-estado">...</a>
+
+NO como botón:
+
+    <button onClick={...}>...</button>
+
+El enlace funciona sin JS mediante CSS `:target`. Con JS, un pequeño
+componente cliente sincroniza el estado de React con el hash.
+
+El hash debe ser específico (`#menu-movil`, `#cerrar-filtros`), no `#`
+vacío. Un `#` sin destino rompe tests de accesibilidad y navegación.
+
+Patrón completo documentado en `plans/_template.md`, sección "Notas
+técnicas".
+
+## Orden y Layout Macro
+
+- Prohibido dejar columnas vacías o desequilibradas. Si una página tiene
+  poco contenido, usa un grid de 2 columnas: una para el contenido y otra
+  para un elemento visual de apoyo (imagen, tarjeta, mapa). No dejes
+  media pantalla en negro.
+- Los headers deben ser "sticky" (fijos al hacer scroll) por defecto en
+  todos los estilos, a menos que una exploración visual diga lo contrario.
+- Los enlaces no llevan subrayados genéricos del navegador. Usan el color
+  de acento (accent-text) y/o transiciones en hover.
+
+## Menús y Navegación
+
+- Prohibido usar numeraciones (01, 02, 03) en los menús de navegación
+  (cabecera, menú móvil, footer) a menos que sea una exploración visual
+  explícita.
+- Los menús móviles no usan el tamaño `text-display` (es demasiado grande
+  y agresivo). Usa `text-2xl` o `text-3xl` con buen espaciado.
+- Los botones flotantes de acción (FAB) para llamar o reservar solo se
+  muestran en móvil (`lg:hidden`). En escritorio ocupan demasiado espacio.

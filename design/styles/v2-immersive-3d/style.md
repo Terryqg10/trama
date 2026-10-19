@@ -1,7 +1,7 @@
 ---
 id: v2-immersive-3d
 name: Immersive 3D
-version: 0.1.0
+version: 0.2.0
 status: borrador
 surface: marketing
 layout: hero-a-pantalla
@@ -140,6 +140,59 @@ Vitals.
 - **Presupuesto del hero:** en móvil ≤ 250 KB (LCP crítico). En
   escritorio ≤ 400 KB.
 
+## Menú móvil
+
+Convención del sector para landings inmersivas: overlay a pantalla
+completa sobre el hero.
+
+### Comportamiento
+
+- **Escritorio (≥ --bp-md):** nav horizontal en la cabecera,
+  transparente sobre el hero. Al hacer scroll, fondo sólido `--color-bg` con
+  sombra `--shadow-card`.
+- **Móvil (< --bp-md):** icono de menú a la derecha. Al pulsarlo,
+  overlay a pantalla completa con `100dvh`.
+- El overlay se superpone al hero con fondo `--color-bg` opaco. La animación
+  de apertura es un fade o slide desde arriba con `--duration-micro` (300 ms),
+  `--ease-out`.
+- **Cabecera del overlay:** logo + X.
+- **Cuerpo:** items en vertical, alineados a la izquierda, con
+  tipografía grande (≥ `--text-lead`) y espaciado generoso.
+- **CTA del overlay:** botón principal en la parte baja del overlay,
+  ancho completo, en `--color-accent`.
+- **Pie:** accesos a cuenta y carrito (si aplica).
+- **Scroll lock, focus trap, cierres (X, Esc, elegir enlace):** igual
+  que en v1.
+- **Fallback sin JS:** mismo patrón (`<a href="#menu-movil">` + CSS
+  `:target` + `useHashOverlay`).
+
+### Particularidades de v2
+
+- Con `prefers-reduced-motion: reduce`, la animación de apertura del
+  overlay es instantánea, sin fade ni slide.
+- El icono de menú sobre el hero transparente debe tener contraste
+  suficiente contra la imagen de fondo. Si el hero tiene imagen con
+  zonas claras, el icono lleva un `backdrop-blur` o un fondo sutil.
+
+## Controles de formulario
+
+Los mismos criterios que en v1-soft-commerce: chevron custom en
+`<select>`, inputs estilizados, checkbox/radio personalizados. Las
+reglas comunes están en `design/styles/v1-soft-commerce/style.md`,
+sección "Controles de formulario".
+
+### Particularidades de v2
+
+- **Radios más generosos:** los inputs y botones usan `--radius-control`
+  (píldora). En v2, el padding horizontal es mayor (12 px en lugar de 8)
+  para reforzar la sensación "amable".
+- **Sombra suave en `<select>`:** `--shadow-card` aplicada al select y
+  a los inputs para reforzar el efecto "flotante" coherente con el
+  resto del estilo.
+- **`<input>` de búsqueda:** con icono `Search` de lucide dentro del
+  propio input (no como hermano). Padding izquierdo amplio para dejar
+  sitio al icono.
+
 ## Criterios de aceptación del estilo
 
 | ID | Criterio | Verificación |
@@ -175,6 +228,11 @@ Vitals.
 5. Una versión aprobada no se edita.
 
 ## Cambios
+
+### 0.2.0 — 2026-10-16
+- Nueva sección "Menú móvil": overlay a pantalla completa con fade/slide.
+- Nueva sección "Controles de formulario": particularidades de v2
+  (radios más generosos, sombras suaves, iconos dentro del input).
 
 ### 0.1.0 — 2026-10-10
 - Versión inicial del estilo (borrador).

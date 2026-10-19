@@ -24,11 +24,15 @@ tarea con una afirmación: la cierra con evidencia.
    - Cada botón tiene onClick o href válido.
    - Cero enlaces muertos.
    - La navegación está definida, no pospuesta.
-   - Responsive: a 320, 375, 768 y 1280 px no hay scroll horizontal
-     (salvo carruseles, bloques de código y tablas con overflow
-     explícito), ningún elemento estructural (header, nav, main, footer)
-     se sale del viewport, y la navegación tiene comportamiento móvil
+   - Responsive: en todo el rango de 320 a 1280 px (no solo en los
+     breakpoints) no hay scroll horizontal (salvo carruseles, bloques
+     de código y tablas con overflow explícito), ningún elemento de
+     header, nav, main o footer se sale del viewport ni queda recortado
+     por un overflow oculto, y la navegación tiene comportamiento móvil
      declarado (menú plegable, drawer, tabs inferiores, o equivalente).
+     Evidencia: salida de `pnpm test:e2e` con `tests/responsive.spec.ts`
+     (barrido de 18 anchos) pegada en la review, más una captura a
+     375 px de cada pantalla nueva o modificada.
    - Tipografía y espaciado escalan: no hay titulares gigantes ni
      contenedores que se coman el contenido en móvil.
    - Convenciones del sector: si la UI se aparta de la convención

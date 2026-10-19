@@ -40,9 +40,11 @@ Antes de crear o modificar cualquier UI:
 4. Usa solo nombres de token. Prohibido hex, rgb() o valores arbitrarios
    en componentes.
 5. Responsive: antes de cerrar cualquier tarea de UI, comprueba que
-   funciona a 320, 375, 768 y 1280 px. Sin scroll horizontal, sin
-   elementos cortados, con navegación móvil definida. El test
-   `tests/responsive.spec.ts` lo verifica automáticamente.
+   funciona en todo el rango de 320 a 1280 px, incluidos anchos
+   intermedios (480-700 px). Sin scroll horizontal, sin elementos
+   cortados, con navegación móvil definida. El test
+   `tests/responsive.spec.ts` (barrido de 18 anchos) lo verifica
+   automáticamente; si falla, se arregla la causa, no el test.
 
 Detalle en `.claude/rules/styles.md`.
 

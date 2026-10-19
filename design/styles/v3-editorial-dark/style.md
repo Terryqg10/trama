@@ -1,7 +1,7 @@
 ---
 id: v3-editorial-dark
 name: Editorial Dark
-version: 0.1.0
+version: 0.2.0
 status: borrador
 surface: marca
 layout: a-sangre
@@ -150,6 +150,65 @@ significa ocupar el ancho, no desbordar.
 - **Reflujo a 320 px:** obligatorio. Ningún texto girado, ningún titular
   gigante que desborde.
 
+## Menú móvil
+
+Convención para sitios editoriales oscuros: overlay a pantalla completa
+con tipografía caps.
+
+### Comportamiento
+
+- **Escritorio (≥ --bp-md):** nav horizontal en mayúsculas con
+  tracking, a todo el ancho. Sin contenedor.
+- **Móvil (< --bp-md):** icono de menú discreto a la derecha. Al
+  pulsarlo, overlay a pantalla completa `100dvh`.
+- Overlay con fondo `--color-bg` (carbón) opaco.
+- **Cabecera del overlay:** logo a la izquierda (mismo tratamiento que
+  en la nav), X a la derecha.
+- **Cuerpo:** items en vertical, tipografía en `--text-display` con
+  `clamp(1.5rem, 5vw, 2.5rem)` para que escale bien en móvil, **en mayúsculas con
+  `--tracking-caps`** como el resto del estilo. Alineados a la
+  izquierda. Espaciado vertical entre items ≥ 24 px.
+- **Item activo:** en `--color-accent` (o `--color-accent-text`), sin subrayado, sin
+  fondo tintado. El estilo v3 no tinta.
+- **Pie:** accesos a cuenta y carrito. También en mayúsculas pequeñas
+  con tracking.
+- **Sin animación de apertura.** v3 usa movimiento contenido: el
+  overlay aparece instantáneo o con un fade muy breve
+  (`--duration-micro`).
+- **Scroll lock, focus trap, cierres (X, Esc, elegir enlace):** igual
+  que v1.
+- **Fallback sin JS:** `<a href="#menu-movil">` + CSS `:target` +
+  `useHashOverlay`.
+
+### Particularidades de v3
+
+- Esquinas rectas. El overlay no tiene radios.
+- Nada de bordes redondeados en el icono del menú.
+- El icono del menú tiene un trazo fino de 1.5 px (no 2 px), coherente
+  con el estilo editorial.
+
+## Controles de formulario
+
+Mismos criterios base que v1 (chevron custom, inputs estilizados,
+checkbox/radio personalizados). Ver `design/styles/v1-soft-commerce/
+style.md`, sección "Controles de formulario".
+
+### Particularidades de v3
+
+- **Esquinas rectas.** `--radius-control: 0` en v3. Los inputs, selects
+  y botones no tienen redondeo. Ni siquiera los chips de filtro.
+- **Chevron custom pero con trazo fino** (1.5 px), coherente con el
+  resto.
+- **Inputs con subrayado** en lugar de borde completo cuando el estilo
+  lo requiera (ej. formularios editoriales de suscripción). En ese
+  caso: solo `border-bottom` en `--color-border-strong`, sin `border` completo.
+- **`<textarea>`:** mismo tratamiento. Sin `--radius-control` aplicado
+  (recto).
+- **Botones:** rectangulares, no píldora. `--color-accent` / `--color-accent-fg` para
+  el primario.
+- **Placeholder:** `--color-fg-muted`, no un gris más claro. La referencia
+  tenía placeholders que no cumplían AA.
+
 ## Criterios de aceptación del estilo
 
 | ID | Criterio | Verificación |
@@ -189,6 +248,13 @@ significa ocupar el ancho, no desbordar.
 6. Una versión aprobada no se edita.
 
 ## Cambios
+
+### 0.2.0 — 2026-10-16
+- Nueva sección "Menú móvil": overlay a pantalla completa con
+  tipografía caps, esquinas rectas, sin animación.
+- Nueva sección "Controles de formulario": particularidades de v3
+  (esquinas rectas, chevron fino, inputs con subrayado opcional,
+  placeholders con contraste AA).
 
 ### 0.1.0 — 2026-10-10
 - Versión inicial del estilo (borrador).

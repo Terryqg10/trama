@@ -62,6 +62,32 @@ vuelve a intentar (sin forzar valores).
 
 Espera a que el usuario apruebe la paleta antes de continuar.
 
+## Paso 4b — Dirección visual
+
+Pregunta en un solo mensaje:
+
+- ¿Vas a aportar imágenes propias (fotos, logos, ilustraciones)? ¿Las
+  tienes ya o llegarán después?
+- Si no tienes imágenes propias, ¿qué dirección prefieres?
+  - Banco de imágenes de pago (calidad, licencia, coste).
+  - Banco gratuito con atribución (Unsplash, Pexels; cuidado con la
+    atribución).
+  - Imágenes generadas con IA (nosotros hacemos los prompts).
+  - Ilustraciones vectoriales / iconos.
+- ¿Qué estilo visual quieres? (natural, minimalista, editorial,
+  colorido…)
+- ¿Hay alguna sección que quieras destacar visualmente? (hero, ficha
+  de producto, historia de marca…)
+
+Espera respuesta.
+
+Si el usuario no lo tiene claro, propón un punto de partida razonable
+según el tipo de proyecto. No inventes imágenes, solo propón
+direcciones.
+
+Esta información va al `## 5a. Dirección visual` del plan (ver
+`plans/_template.md`).
+
 ## Paso 5 — Datos, APIs, estados
 
 Tres preguntas cortas en un solo mensaje:
@@ -97,6 +123,8 @@ Con la confirmación, en un solo commit:
 
 2. sdd/plans/PLAN-001-<slug>.md con:
    - Nivel, estilo activo, paleta (source, seed, approved_by).
+   - La sección `5a. Dirección visual` con los datos recogidos en el
+     Paso 4b.
    - Arquitectura, contratos, modelo de datos si aplica.
    - Estrategia de tests según nivel.
    - Riesgos y mitigaciones.

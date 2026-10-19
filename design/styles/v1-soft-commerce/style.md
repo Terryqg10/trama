@@ -1,7 +1,7 @@
 ---
 id: v1-soft-commerce
 name: Soft Commerce
-version: 0.4.0
+version: 0.5.0
 status: borrador
 surface: consumo
 layout: contenido-centrado
@@ -98,6 +98,86 @@ salvo justificación explícita en `sdd/plans/` bajo `## Decisiones de UI`.
   filtros ha aplicado.
 - Botones "Aplicar" fuera del área de filtros.
 
+## Menú móvil
+
+Convención del sector para tiendas de consumo: menú a pantalla
+completa, no dropdown.
+
+### Comportamiento
+
+- **Escritorio (≥ --bp-md):** menú horizontal en la cabecera. Sin
+  overlay.
+- **Móvil (< --bp-md):** icono de menú a la derecha de la cabecera.
+  Al pulsarlo, se abre un **overlay a pantalla completa** que ocupa
+  `100dvh`.
+- El overlay ocupa todo el viewport. Fondo `--color-bg` o `--color-surface` opaco.
+  No se ve el catálogo detrás.
+- **Cabecera del overlay:** logo + icono X para cerrar.
+- **Cuerpo del overlay:** items del menú en vertical, alineados a la
+  izquierda. Tipografía en `--text-lg` (18 px) o superior, con
+  espaciado generoso entre items (mínimo 16 px vertical).
+- **Item activo:** en `--color-accent-text`, con peso 600.
+- **Pie del overlay:** accesos a cuenta, carrito, y buscador si
+  existe. Alineados a la izquierda, tamaño reducido.
+- **Scroll lock:** mientras está abierto, el fondo no scrollea.
+- **Focus trap:** el foco entra en el overlay al abrir y no sale hasta
+  cerrarlo.
+- **Cierres:** X, Esc, elegir un enlace. Con JS. Sin JS, el mismo
+  patrón que el drawer de filtros (hash + `:target`).
+
+### Prohibido
+
+- Desplegar el menú como dropdown bajo la cabecera. Rompe la
+  convención, desperdicia el alto del viewport, y deja ver el
+  contenido detrás.
+- Menú horizontal en móvil (los items no caben).
+- Cerrar el menú con click fuera. En overlay a pantalla completa no
+  aplica: no hay "fuera".
+
+### Icono del menú
+
+Es un `<a href="#menu-movil">`, no un `<button>`. Funciona sin JS por
+CSS `:target`. Con JS, un hook cliente (`useHashOverlay`) sincroniza
+el estado.
+
+Icono: `Menu` de lucide. Si el estado es abierto, se sustituye por `X`
+(o el overlay tiene su propia X en la cabecera).
+
+## Controles de formulario
+
+### `<select>`
+
+Siempre con chevron custom. El nativo del navegador no se usa: tiene
+posición distinta entre Chrome, Safari y Firefox, no respeta el
+padding, y no usa los tokens del estilo.
+
+Implementación:
+
+    <div class="relative inline-block">
+      <select class="appearance-none pr-10 ...">...</select>
+      <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+    </div>
+
+- `appearance: none` en el select.
+- Padding derecho suficiente para que el texto no choque con el icono.
+- Icono `ChevronDown` de lucide, `pointer-events: none` para no
+  bloquear clics.
+- Alineación vertical centrada.
+
+### `<input>`
+
+- `--radius-control` (píldora) para campos de texto y números.
+- Altura consistente con `--control-height`.
+- Foco visible (outline del estilo).
+- Ningún input nativo sin estilizar.
+
+### `<checkbox>` y `<radio>`
+
+- Personalizados con el color `--color-accent` cuando están marcados.
+- Nunca el nativo del navegador.
+- Los `radio` con apariencia de chip (píldora) cuando representan
+  filtros de talla, color, categoría.
+
 ## Layout
 
 - Mobile-first. Contenedor `--layout-container`, margen `--layout-gutter`.
@@ -186,6 +266,15 @@ Mobile-first. El layout base es de una columna; el escritorio amplía.
 4. Una versión `aprobada` no se edita: un cambio crea 0.x nueva con ADR.
 
 ## Cambios
+
+### 0.5.0 — 2026-10-16
+- Nueva sección "Menú móvil": overlay a pantalla completa en móvil,
+  no dropdown. Icono como `<a href="#menu-movil">` con fallback sin JS.
+- Nueva sección "Controles de formulario": chevron custom en
+  `<select>`, inputs y checkbox/radio estilizados.
+- Motivación: Trama construyó un menú dropdown que rompía la
+  convención, y un `<select>` con chevron nativo desalineado. A partir
+  de ahora está documentado.
 
 ### 0.4.0 — 2026-10-16
 - Añadida sección "Filtros y búsqueda" con la convención del sector

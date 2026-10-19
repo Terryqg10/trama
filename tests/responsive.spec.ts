@@ -1,13 +1,21 @@
 import { test, expect } from '@playwright/test';
 
-const WIDTHS = [320, 375, 768, 1280];
+// Barrido de anchos: los saltos de layout fallan entre breakpoints, no en
+// ellos. Incluye los cuatro anchos contractuales (320, 375, 768, 1280) y
+// valores intermedios y a ambos lados de cada breakpoint (--bp-*).
+const WIDTHS = [
+  320, 360, 375, 414, 480, 512, 576, 639, 640, 700, 767, 768, 900, 1023, 1024, 1100, 1279, 1280,
+];
 
 const STRUCTURAL = ['header', 'nav', 'main', 'footer'];
 
+type Offender = { path: string; left: number; right: number; reason: string };
+
+const ACCOUNT_WIDTHS = [320, 375, 768, 1280];
 const ACCOUNT_ROUTES = ['/acceso', '/registro', '/recuperar'];
 
 test.describe('responsive: pantallas de acceso (T-017)', () => {
-  for (const width of WIDTHS) {
+  for (const width of ACCOUNT_WIDTHS) {
     for (const route of ACCOUNT_ROUTES) {
       test(`${route} no desborda a ${width}px y sus campos miden al menos 44 px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 800 });
@@ -37,7 +45,7 @@ test.describe('responsive: pantallas de acceso (T-017)', () => {
 
 test.describe('responsive', () => {
   for (const width of WIDTHS) {
-    test(`no hay desbordamiento estructural a ${width}px`, async ({ page }) => {
+    test(`sin desbordamiento ni contenido recortado a ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await page.goto('/');
 
@@ -59,13 +67,93 @@ test.describe('responsive', () => {
         }
       }
 
-      // 2. El documento no genera scroll horizontal (con margen de 1px
-      //    por redondeos de subpíxel).
+      // 2. El documento no genera scroll horizontal (margen de 1px por subpíxel).
       const overflow = await page.evaluate(() => {
         const doc = document.documentElement;
         return doc.scrollWidth - doc.clientWidth;
       });
       expect(overflow, `scroll horizontal de ${overflow}px a ${width}px`).toBeLessThanOrEqual(1);
+
+      // 3. Ningún descendiente visible se sale del viewport ni queda recortado
+      //    por un ancestro con overflow oculto. Esto atrapa el caso en que
+      //    `overflow-x: hidden` en body/html esconde el desbordamiento del
+      //    punto 2 y los enlaces del nav o un banner se cortan sin avisar.
+      //    Excepciones: ancestros con scroll horizontal deliberado
+      //    (overflow-x: auto|scroll) o marcados con `data-allow-overflow`.
+      const offenders = await page.evaluate((vw): Offender[] => {
+        const found: Offender[] = [];
+        const roots = document.querySelectorAll('header, nav, main, footer');
+        const seen = new Set<Element>();
+
+        const describe = (el: Element): string => {
+          const parts: string[] = [];
+          let node: Element | null = el;
+          while (node && parts.length < 4 && node.tagName !== 'BODY') {
+            const id = node.id ? `#${node.id}` : '';
+            const cls =
+              typeof node.className === 'string' && node.className.trim()
+                ? `.${node.className.trim().split(/\s+/)[0]}`
+                : '';
+            parts.unshift(`${node.tagName.toLowerCase()}${id}${cls}`);
+            node = node.parentElement;
+          }
+          return parts.join(' > ');
+        };
+
+        const isExempt = (el: Element): boolean => {
+          let node: Element | null = el;
+          while (node && node !== document.documentElement) {
+            if (node.hasAttribute('data-allow-overflow')) return true;
+            const ox = getComputedStyle(node).overflowX;
+            if (ox === 'auto' || ox === 'scroll') return true;
+            node = node.parentElement;
+          }
+          return false;
+        };
+
+        const visit = (el: Element) => {
+          if (seen.has(el)) return;
+          seen.add(el);
+          const style = getComputedStyle(el);
+          if (style.display === 'none' || style.visibility === 'hidden') return;
+          const rect = el.getBoundingClientRect();
+          if (rect.width === 0 && rect.height === 0) return;
+          // Texto solo para lectores de pantalla (sr-only): 1x1 px recortado a propósito.
+          if (rect.width <= 1 && rect.height <= 1) return;
+          if (isExempt(el)) return;
+
+          if (rect.right > vw + 1 || rect.left < -1) {
+            found.push({
+              path: describe(el),
+              left: Math.round(rect.left),
+              right: Math.round(rect.right),
+              reason: 'fuera del viewport',
+            });
+            return;
+          }
+
+          const clips = style.overflowX === 'hidden' || style.overflowX === 'clip';
+          if (clips && el.scrollWidth - el.clientWidth > 1) {
+            found.push({
+              path: describe(el),
+              left: Math.round(rect.left),
+              right: Math.round(rect.right),
+              reason: `contenido recortado (scrollWidth ${el.scrollWidth} > clientWidth ${el.clientWidth})`,
+            });
+          }
+        };
+
+        roots.forEach((root) => {
+          visit(root);
+          root.querySelectorAll('*').forEach(visit);
+        });
+        return found;
+      }, width);
+
+      expect(
+        offenders.slice(0, 10),
+        `elementos desbordados o recortados a ${width}px`,
+      ).toEqual([]);
     });
   }
 });

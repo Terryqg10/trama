@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 3000;
+const PORT = process.env.E2E_PORT ? parseInt(process.env.E2E_PORT, 10) : 3000;
 const BASE_URL = `http://localhost:${PORT}`;
 const isCI = !!process.env.CI;
+const usaProd = !process.env.E2E_DEV;
 
 export default defineConfig({
   testDir: './tests',
@@ -24,20 +25,14 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'mobile',
-      use: { ...devices['iPhone 13'] },
-    },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'mobile', use: { ...devices['iPhone 13'] } },
   ],
   webServer: {
-    command: isCI ? 'pnpm run start' : 'pnpm run dev',
+    command: usaProd ? `pnpm run build && pnpm run start -p ${PORT}` : `pnpm run dev -p ${PORT}`,
     url: BASE_URL,
-    reuseExistingServer: !isCI,
-    timeout: 120_000,
+    reuseExistingServer: !usaProd && !isCI,
+    timeout: usaProd ? 180_000 : 120_000,
     stdout: 'ignore',
     stderr: 'pipe',
   },

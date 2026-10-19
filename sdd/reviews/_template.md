@@ -36,6 +36,13 @@ Salida real de cada comando (tsc, lint, build, etc.).
 - [ ] Texto >= 12 px
 - [ ] Reflujo a 320 px sin scroll horizontal
 
+## Responsive (si aplica)
+
+- [ ] `tests/responsive.spec.ts` pasa (barrido 320-1280 px), salida pegada
+- [ ] Captura a 375 px de cada pantalla nueva o modificada
+- [ ] Revisado a mano un ancho intermedio (480-700 px)
+- [ ] Navegación con comportamiento móvil declarado
+
 ## Estilo (si aplica)
 
 - [ ] check-palette OK

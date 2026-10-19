@@ -1,7 +1,7 @@
 ---
 id: v4-dense-workspace
 name: Dense Workspace
-version: 0.1.0
+version: 0.2.0
 status: borrador-sin-referencias
 surface: herramienta
 layout: workspace-12col
@@ -167,6 +167,30 @@ Mobile-first, pero la densidad se adapta: en móvil no cabe una tabla de
   escritorio. En móvil, ancho 100% con `--layout-gutter` de padding.
 - **Reflujo a 320 px:** obligatorio. Ninguna tabla comprimida ilegible.
 
+## Controles de formulario
+
+Mismos criterios base que v1 (chevron custom, inputs estilizados,
+checkbox/radio personalizados). Ver `design/styles/v1-soft-commerce/
+style.md`, sección "Controles de formulario".
+
+### Particularidades de v4
+
+- **Radios pequeños.** `--radius-control: 0.5rem` (no píldora). La
+  densidad manda.
+- **Chevron custom con trazo fino** (1.5 px), coherente con la
+  tipografía densa.
+- **Altura de controles:** `--control-height` (36 px). Ningún input
+  pasa de 40 px.
+- **Foco visible y explícito.** En v4 los formularios pueden estar
+  dentro de tablas densas, donde el fondo es `--color-surface-muted`. El
+  outline de foco debe verse sobre `--color-surface` y sobre `--color-surface-muted`.
+- **`<select>` en cabecera de tabla:** si se usa como filtro dentro de
+  una fila tabular, el chevron queda alineado con el padding derecho
+  de la celda. Igual que el resto.
+- **`<checkbox>` en filas tabulares:** a la izquierda de la fila, con
+  zona táctil extendida por `padding` a 44×44 px en móvil. En
+  escritorio puede ser 24×24 con padding.
+
 ## Criterios de aceptación del estilo
 
 | ID | Criterio | Verificación |
@@ -210,6 +234,11 @@ Mobile-first, pero la densidad se adapta: en móvil no cabe una tabla de
 7. Una versión aprobada no se edita.
 
 ## Cambios
+
+### 0.2.0 — 2026-10-16
+- Nueva sección "Controles de formulario": particularidades de v4
+  (radios pequeños, altura de control reducida, foco explícito,
+  checkbox en filas tabulares).
 
 ### 0.1.0 — 2026-10-10
 - Versión inicial del estilo (borrador sin referencias).

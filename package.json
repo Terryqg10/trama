@@ -19,6 +19,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e:install": "playwright install --with-deps chromium webkit",
     "test:e2e": "playwright test",
+    "test:e2e:dev": "node scripts/test-e2e-dev.mjs",
     "test:a11y": "node scripts/check-a11y.mjs",
     "audit:gate": "node scripts/audit-gate.mjs",
     "check-palette": "node scripts/check-palette.mjs",
