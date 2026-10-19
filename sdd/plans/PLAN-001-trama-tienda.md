@@ -322,3 +322,19 @@ cambia ninguna otra tarea ni ningún CA. Las tareas nuevas siguen desde T-039.
 `StickyAddToCart` en `components/catalog/`. Es una decisión de UI que coincide con la convención del sector
 (Zalando, ASOS y Mango la usan en la ficha móvil) y con v1, así que no hay desvío que justificar en
 «Decisiones de UI». Las tareas nuevas siguen desde T-040.
+
+### Enmienda 11 — 2026-10-20 — ADR-010 — barra de la ficha más sutil y favoritos con cuenta
+
+**Origen:** Enmienda 21 de SPEC-001 (CA-73 a CA-78) y ADR-010.
+
+**Qué cambia:** se crean cuatro tareas, en este orden. Ninguna cambia otras tareas ni CA.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-040** | Barra fija de la ficha: desvanecimiento y botón «Volver arriba» | CA-73, CA-74 | T-039 |
+| **T-041** | Tabla `favorites` con RLS, prueba de aislamiento y acciones de servidor | CA-75 | — |
+| **T-042** | Corazón en la ficha y en la barra fija, con login si no hay sesión | CA-76, CA-77 | T-040, T-041 |
+| **T-043** | Apartado «Favoritos» en la cuenta | CA-78 | T-041 |
+
+T-041 incluye una migración que aplica el usuario con la CLI de Supabase. El corazón en las tarjetas del listado
+queda fuera. Las tareas nuevas siguen desde T-044.

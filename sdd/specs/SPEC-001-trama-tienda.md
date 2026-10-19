@@ -577,5 +577,32 @@ CA-60 no cambian. La barra reutiliza el `AddToCartButton` existente (mismo carri
 
 **Nuevas tareas derivadas:** T-039 (barra fija en la ficha).
 
+### Enmienda 21 — 2026-10-20 — ADR-010 — barra de la ficha más sutil y favoritos con cuenta (CA-73 a CA-78)
+
+**Origen:** tras ver T-039 en móvil, el usuario pide (1) que la barra aparezca y desaparezca con un desvanecimiento
+sutil, (2) un botón para volver al inicio de la ficha tras mucho scroll y (3) un corazón de favoritos con un
+apartado «Favoritos» que exige cuenta. Lo tercero es una wishlist, que la sección 2 dejaba fuera de alcance.
+
+**Qué cambia:**
+- Sección 2 (Fuera de alcance), punto 6: la wishlist deja de estar fuera de alcance. Reseñas, cupones y
+  recomendaciones siguen fuera.
+- Sección 9 (Datos y privacidad): se guarda qué productos marca cada cliente como favoritos (`favorites`: usuario,
+  producto y fecha), solo para mostrárselos a él. Se borran con la cuenta (borrado en cascada). No se comparten ni
+  se usan para nada más.
+- RF-24: «Favoritos: un cliente con sesión marca y desmarca productos con un corazón en la ficha y los ve en
+  Favoritos, dentro de su cuenta. Sin sesión, el corazón lleva a iniciar sesión y vuelve a la ficha.»
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-73 | RF-02 | La barra fija de la ficha en móvil (CA-72) | Aparece o se oculta | Lo hace con un desvanecimiento (cambio de opacidad, sin desplazamiento) y, con `prefers-reduced-motion`, sin animación | test e2e `sticky-add-to-cart` |
+| CA-74 | RF-02 | Un visitante en la ficha en móvil | Baja más de pantalla y media | Aparece un botón «Volver arriba» que lleva al inicio de la ficha (desplazamiento suave; instantáneo con `prefers-reduced-motion`) y se oculta al estar arriba | test e2e `sticky-back-to-top` |
+| CA-75 | RF-24 | Dos clientes con favoritos, y un visitante sin sesión | Uno intenta leer, crear o borrar los favoritos del otro, o el visitante lee o escribe | Se rechaza por RLS: cada cliente solo ve y cambia los suyos, y el visitante nada | test de integración `favorites-isolation` |
+| CA-76 | RF-24 | Un visitante sin sesión en la ficha de un producto | Pulsa el corazón | Va a iniciar sesión con retorno a esa ficha y, tras entrar, el producto queda en sus favoritos | test e2e `favorites-login-redirect` |
+| CA-77 | RF-24 | Un cliente con sesión en la ficha (o en la barra fija) | Pulsa el corazón y lo vuelve a pulsar, y recarga la página | El producto se añade y se quita; el estado se conserva al recargar y el corazón informa si está marcado (no solo por color) | test e2e `favorites-toggle` |
+| CA-78 | RF-24 | Un cliente con sesión con favoritos | Abre «Favoritos» en su cuenta | Ve sus productos activos con enlace a la ficha y opción de quitarlos; sin favoritos, un aviso y un enlace al catálogo | test e2e `favorites-list` |
+
+**Nuevas tareas derivadas:** T-040 (barra: desvanecimiento y «Volver arriba»), T-041 (tabla `favorites`, RLS y
+acciones), T-042 (corazón en la ficha y en la barra, con login) y T-043 (apartado «Favoritos» en la cuenta).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.

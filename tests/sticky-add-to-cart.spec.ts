@@ -32,7 +32,7 @@ test.describe('barra fija de la ficha en móvil (CA-72)', () => {
     const bar = page.getByTestId('sticky-add-to-cart');
     await showOriginalButton(page);
     await expect(bar).toHaveAttribute('aria-hidden', 'true');
-    await expect(bar).not.toBeInViewport();
+    await expect(bar).toHaveCSS('opacity', '0');
 
     await scrollToBottom(page);
     await expect(bar).toHaveAttribute('aria-hidden', 'false');
@@ -48,7 +48,7 @@ test.describe('barra fija de la ficha en móvil (CA-72)', () => {
 
     await showOriginalButton(page);
     await expect(bar).toHaveAttribute('aria-hidden', 'true');
-    await expect(bar).not.toBeInViewport();
+    await expect(bar).toHaveCSS('opacity', '0');
   });
 
   test('oculta, la barra no recibe foco con el teclado', async ({ page }) => {
@@ -88,6 +88,32 @@ test.describe('barra fija de la ficha en móvil (CA-72)', () => {
     expect(duration).toBe('0s');
     await scrollToBottom(page);
     await expect(page.getByTestId('sticky-add-to-cart')).toHaveAttribute('aria-hidden', 'false');
+  });
+
+  test('la barra se desvanece: solo cambia la opacidad, sin desplazamiento (CA-73)', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await open(page, 375);
+    const bar = page.getByTestId('sticky-add-to-cart');
+    const style = () =>
+      bar.evaluate((el) => {
+        const s = getComputedStyle(el);
+        return { property: s.transitionProperty, transform: s.transform, translate: s.translate };
+      });
+
+    await showOriginalButton(page);
+    await expect(bar).toHaveAttribute('aria-hidden', 'true');
+    const hidden = await style();
+    expect(hidden.property).toBe('opacity');
+    expect(hidden.transform).toBe('none');
+    expect(hidden.translate).toBe('none');
+    await expect(bar).toHaveCSS('opacity', '0');
+
+    await scrollToBottom(page);
+    await expect(bar).toHaveAttribute('aria-hidden', 'false');
+    await expect(bar).toHaveCSS('opacity', '1');
+    const visible = await style();
+    expect(visible.transform).toBe('none');
+    expect(visible.translate).toBe('none');
   });
 
   test('sin movimiento reducido la transición dura 300 ms', async ({ page }) => {
