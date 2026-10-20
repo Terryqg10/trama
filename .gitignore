@@ -41,3 +41,7 @@ backups/
 
 # Originales de imagen sin optimizar (no se versionan)
 public/images/raw/
+
+# Artefactos locales de la CLI de Supabase (ramas y secretos de arranque): no se versionan
+supabase/.branches/
+supabase/.temp/
