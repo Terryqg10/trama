@@ -531,3 +531,25 @@ Las tareas nuevas siguen desde T-069.
 - Convención del sector: bandas a sangre alternadas con rejillas en contenedor (Zara, ASOS, H&M); sin desvío.
 
 Las tareas nuevas siguen desde T-071.
+
+### Enmienda 21 — 2026-10-21 — sin ADR — portada con ritmo
+
+**Origen:** Enmienda 31 de SPEC-001 (CA-116 y CA-117). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-071** | Sección «Prepárate para el frío» en contenedor con carrusel de cuatro tarjetas de categoría (sustituye a `AutumnBanner`) | CA-116 | T-070 |
+| **T-072** | Franja de envío sin foto y nuevo orden de la portada | CA-117 | T-071 |
+
+**Decisiones de UI:**
+- Bandas con foto a sangre alternadas con secciones en contenedor con título y carrusel de tarjetas: convención del sector
+  (Zara, ASOS, H&M, Zalando); sin desvío.
+- **Tarjetas de categoría y no de producto:** ya hay fotos de campaña y no dependen del stock. Se reutiliza el patrón de
+  `ExploreSection` (carrusel nativo con imán en móvil, rejilla desde 768 px).
+- **Sin calzado:** Trama no vende calzado; la foto de botas del banner dividido sigue enlazando a Novedades (VERIFICAR, ya
+  anotado en la Enmienda 29).
+- **Franja de envío sin foto:** el mensaje ya está en la barra de anuncios (CA-110) y en la sección de confianza (CA-111).
+  Reversible.
+- **Carrusel sin autoavance:** no necesita pausa (WCAG 2.2.2); el movimiento es solo el scroll del usuario.
+
+Las tareas nuevas siguen desde T-073.

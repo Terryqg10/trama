@@ -848,3 +848,30 @@ otros a sangre).
 | CA-115 | RF-23 | La portada | Se abre de 320 a 1920 px | El hero, el banner dividido, el banner de otoño y el banner de envío miden el ancho de la ventana; «Explora», «Novedades» y «Compra con tranquilidad» no pasan de 72 rem y están centradas; el texto de los banners dividido y de otoño empieza en el borde del contenedor (o a un margen lateral en pantallas estrechas); sin scroll horizontal | test e2e `home-layout` |
 
 **Nuevas tareas derivadas:** T-069 (controles del hero) y T-070 (bandas a sangre y secciones en contenedor).
+
+### Enmienda 31 — 2026-10-21 — sin ADR — portada con ritmo: bandas separadas por secciones con título (CA-116 y CA-117)
+
+**Origen:** el usuario ve mal tres bandas de foto a sangre seguidas (dividido, otoño y envío) y pide separarlas con
+subtítulos u otro orden. Referencia de patrón: banner a sangre, bloque blanco con título de sección en negrita y carrusel
+de tarjetas verticales con la última cortada (convención del sector: Zara, ASOS, H&M, Zalando).
+
+**Qué cambia:**
+- **El banner de otoño a sangre desaparece** y pasa a ser la sección «Prepárate para el frío», en contenedor, con título y
+  un carrusel de cuatro tarjetas de categoría con foto: abrigos, jerséis, chaquetas y sudaderas (enlaces a filtros que
+  existen; no hay calzado en el catálogo). Por debajo de 768 px es un carrusel deslizable con imán, nativo (CSS), con la
+  siguiente tarjeta asomando; desde 768 px, rejilla de 4. Sin autoavance, así que no necesita pausa (WCAG 2.2.2).
+- **El banner de envío pierde la foto** y pasa a ser una franja fina de texto a todo el ancho con el importe de `shop.ts`.
+  Motivo: el mensaje ya está en la barra de anuncios y en la sección de confianza; una foto grande lo repetía una tercera vez.
+  Es reversible (la foto sigue en `public/`).
+- **Orden de la portada:** hero → Explora → banner dividido → «Prepárate para el frío» → franja de envío → Novedades →
+  confianza → newsletter. Dos bandas con foto a sangre nunca quedan seguidas.
+- **CA-95 y CA-98 se sustituyen** por CA-116 y CA-117 en lo que decían del banner de otoño y del banner de envío con foto;
+  CA-112 y CA-115 se mantienen para el banner dividido y el hero. CA-115 deja de nombrar los banners de otoño y envío como
+  bandas con foto (ahora son una sección en contenedor y una franja).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-116 | RF-23 | La portada | Se llega a «Prepárate para el frío» (bajo el banner dividido) | Hay un título de sección y cuatro tarjetas con foto y etiqueta (abrigos, jerséis, chaquetas y sudaderas), cada una un enlace válido a su filtro; está en el contenedor (≤ 72 rem); en móvil se desliza con imán y la siguiente tarjeta asoma; desde 768 px son 4 columnas; el texto cumple AA sobre la foto; foco visible y áreas ≥ 44 px; sin movimiento automático ni scroll horizontal de página de 320 a 1920 px | test e2e `home-sections` y unitario |
+| CA-117 | RF-23 | La portada | Se llega a la franja de envío (bajo «Prepárate para el frío») | Es una franja de texto a todo el ancho, sin foto, con «Envío gratis a partir de 50,00 €» (importe de `shop.ts`) y contraste AA con tokens; en toda la portada no hay dos bandas con foto a sangre seguidas (hay una sección entre el hero y el banner dividido, y otra entre el banner dividido y la siguiente banda); sin scroll horizontal de 320 a 1920 px | test e2e `home-layout` y `home-sections` |
+
+**Nuevas tareas derivadas:** T-071 (sección «Prepárate para el frío») y T-072 (franja de envío y nuevo orden de la portada).
