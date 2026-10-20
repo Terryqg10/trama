@@ -371,3 +371,27 @@ categoría son la convención del sector (Zalando, Mango, Massimo Dutti); no hay
 `fg` y no un negro del navegador (`rules/styles.md`).
 
 Las tareas nuevas siguen desde T-049.
+
+### Enmienda 14 — 2026-10-20 — sin ADR — portada con movimiento
+
+**Origen:** Enmienda 24 de SPEC-001 (CA-86 a CA-90).
+
+**Qué cambia:** se crean tres tareas de interfaz. Se mantiene `v1-soft-commerce@0.3.0`. T-049 sustituye el hero de
+T-047 (el CA-82 pasa a CA-86).
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-049** | `HeroSlider` con Embla: 3 slides, flechas, puntos, autoplay de 5 s con pausa y sin autoplay con reduced-motion | CA-86, CA-87, CA-88 | T-047 |
+| **T-050** | Explora como carrusel deslizable con imán en móvil (< 768 px) y rejilla de 4 en escritorio | CA-89 | T-048 |
+| **T-051** | `AnimatedSection` (`motion/react`): fundido + subida de 20 px al entrar en el viewport | CA-90 | T-048 |
+
+**Decisiones de UI:**
+- Slider de hero con flechas, puntos y autoplay: convención del sector (Zalando, Mango, ASOS). Se añade botón de
+  pausa y se detiene con hover/foco porque WCAG 2.2.2 lo exige; no es un desvío.
+- **Autoplay sin `embla-carousel-autoplay`:** se implementa con un temporizador propio. Motivo: hace falta parar
+  con hover, foco, botón de pausa y reduced-motion, y evita una dependencia más (`rules/security.md`).
+- **Explora en móvil con `overflow-x: auto` y `scroll-snap`, sin Embla:** es un carrusel sin autoplay ni
+  paginación, que el navegador resuelve de forma nativa (teclado, táctil y lectores) y se ve igual sin JavaScript.
+- **Entrada animada** solo con opacidad y `transform` (no provoca reflujo); con reduced-motion no hay movimiento.
+
+Las tareas nuevas siguen desde T-052.

@@ -57,16 +57,49 @@ test.describe('Explora (CA-83)', () => {
     }
   });
 
-  test('rejilla de 2 columnas en móvil y de 4 en escritorio, sin scroll horizontal', async ({ page }) => {
-    for (const [width, columns] of [
-      [375, 2],
-      [1280, 4],
-    ] as const) {
+  test('a menos de 768 px es un carrusel deslizable con imán, sin scroll horizontal de la página (CA-89)', async ({ page }) => {
+    for (const width of [320, 375, 767]) {
+      await open(page, width);
+      const list = page.getByTestId('explore-list');
+      const info = await list.evaluate((el) => {
+        const style = getComputedStyle(el);
+        const tops = [...el.querySelectorAll('[data-testid="explore-tile"]')].map((t) => Math.round(t.getBoundingClientRect().top));
+        return {
+          overflowX: style.overflowX,
+          snap: style.scrollSnapType,
+          scrolls: el.scrollWidth > el.clientWidth + 1,
+          rows: new Set(tops).size,
+        };
+      });
+      expect(info.overflowX, `overflow-x a ${width}px`).toBe('auto');
+      expect(info.snap, `scroll-snap a ${width}px`).toContain('x');
+      expect(info.scrolls, `el carrusel se desliza a ${width}px`).toBe(true);
+      expect(info.rows, `una sola fila a ${width}px`).toBe(1);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `scroll de la página a ${width}px`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test('en móvil se llega al último acceso deslizando y sigue siendo un enlace válido (CA-89)', async ({ page }) => {
+    await open(page, 375);
+    const last = page.getByTestId('explore-tile').last();
+    await expect(last).not.toBeInViewport();
+    await page.getByTestId('explore-list').evaluate((el) => {
+      el.scrollTo({ left: el.scrollWidth, behavior: 'instant' });
+    });
+    await expect(last).toBeInViewport();
+    await expect(last).toHaveAttribute('href', '/ofertas');
+  });
+
+  test('desde 768 px es una rejilla de 4 columnas, sin scroll horizontal (CA-89)', async ({ page }) => {
+    for (const width of [768, 1024, 1280]) {
       await open(page, width);
       const lefts = await page
         .getByTestId('explore-tile')
         .evaluateAll((tiles) => [...new Set(tiles.map((tile) => Math.round(tile.getBoundingClientRect().left)))]);
-      expect(lefts, `columnas a ${width}px`).toHaveLength(columns);
+      expect(lefts, `columnas a ${width}px`).toHaveLength(4);
+      const scrolls = await page.getByTestId('explore-list').evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+      expect(scrolls, `sin carrusel a ${width}px`).toBe(false);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
     }
@@ -132,5 +165,66 @@ test.describe('portada completa', () => {
   test('sigue mostrando el bloque de envío y devolución', async ({ page }) => {
     await open(page);
     await expect(page.getByRole('heading', { name: 'Envío y devolución' })).toBeVisible();
+  });
+});
+
+// CA-90 (T-051): Explora, banner y Novedades entran con un fundido y una subida de 20 px.
+test.describe('entrada animada de las secciones (CA-90)', () => {
+  const transformIsNone = (value: string): boolean => value === 'none' || value === 'matrix(1, 0, 0, 1, 0, 0)';
+
+  test('parten ocultas y 20 px más abajo, y aparecen al entrar en el viewport', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    const sections = page.locator('[data-reveal]');
+    await expect(sections).toHaveCount(3);
+    const banner = sections.nth(1);
+    // Está por debajo del primer pantallazo: aún no ha entrado.
+    await expect(banner).toHaveCSS('opacity', '0');
+    expect(await banner.evaluate((el) => getComputedStyle(el).transform)).toBe('matrix(1, 0, 0, 1, 0, 20)');
+    await banner.scrollIntoViewIfNeeded();
+    await expect(banner).toHaveCSS('opacity', '1');
+    await expect.poll(async () => transformIsNone(await banner.evaluate((el) => getComputedStyle(el).transform))).toBe(true);
+    await expect(page.getByTestId('shipping-banner')).toBeInViewport();
+  });
+
+  test('una vez mostrada, no se vuelve a ocultar al salir del viewport', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    const banner = page.locator('[data-reveal]').nth(1);
+    await banner.scrollIntoViewIfNeeded();
+    await expect(banner).toHaveCSS('opacity', '1');
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(banner).toHaveCSS('opacity', '1');
+  });
+
+  test('con prefers-reduced-motion no hay nada animado y todo se ve desde el principio', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    await expect(page.getByTestId('shipping-banner')).toBeVisible();
+    await expect(page.locator('[data-reveal]')).toHaveCount(0);
+    for (const testId of ['shipping-banner', 'new-arrivals']) {
+      const style = await page.getByTestId(testId).evaluate((el) => {
+        const wrapper = el.parentElement;
+        return wrapper ? { opacity: getComputedStyle(wrapper).opacity, transform: getComputedStyle(wrapper).transform } : null;
+      });
+      expect(style?.opacity, `opacidad de ${testId}`).toBe('1');
+      expect(transformIsNone(style?.transform ?? ''), `transform de ${testId}`).toBe(true);
+    }
+  });
+
+  test.describe('sin JavaScript', () => {
+    test.use({ javaScriptEnabled: false });
+
+    test('las secciones se ven igualmente', async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await page.goto('/');
+      const wrapper = page.locator('[data-reveal]').nth(1);
+      await expect(wrapper).toHaveCSS('opacity', '1');
+      expect(transformIsNone(await wrapper.evaluate((el) => getComputedStyle(el).transform))).toBe(true);
+      await expect(page.getByTestId('shipping-banner')).toBeVisible();
+    });
   });
 });

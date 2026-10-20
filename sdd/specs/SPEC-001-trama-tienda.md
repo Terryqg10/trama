@@ -650,3 +650,32 @@ tenía el Hero de RF-23 (CA-69).
 
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
+
+### Enmienda 24 — 2026-10-20 — sin ADR — portada con movimiento: slider del hero, Explora deslizable en móvil y entrada animada (CA-86 a CA-90)
+
+**Origen:** el usuario pide dar dinamismo a la portada (Bloque C): el hero pasa a ser un slider de tres fotos con
+autoplay, las categorías de Explora se deslizan en móvil y las secciones aparecen con una animación de entrada
+sutil.
+
+**Qué cambia:**
+- RF-23 (portada) se amplía: el hero es un **slider** de tres slides («Nueva colección» → `/novedades`, «Estilo
+  urbano» → `/hombre`, «Kawaii style» → `/mujer`) con flechas, puntos y autoplay cada 5 s.
+- **CA-82 se sustituye por CA-86:** se mantiene todo lo que verificaba (hero a sangre, foto vertical en móvil y
+  horizontal en escritorio, titular y CTA, texto AA sobre degradado oscuro), pero ya no con la foto de la pareja
+  ni con el titular fijo «Estilo urbano». CA-69 sigue vigente (la slide 1 usa la foto vertical en móvil y la
+  horizontal en escritorio).
+- **CA-83 se amplía:** los cuatro accesos de Explora siguen siendo los mismos; solo cambia su disposición en móvil
+  (CA-89).
+- Como el autoplay es movimiento que se inicia solo y dura más de 5 s, hay un **botón de pausa** (WCAG 2.2.2) y el
+  autoplay se detiene al pasar el ratón o al enfocar el slider.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-86 | RF-23 | Un visitante en la portada | La abre a 375 px y a 1280 px | El hero a sangre muestra tres slides (Nueva colección, Estilo urbano y Kawaii style), cada una con foto, titular, subtítulo y un botón con enlace válido (`/novedades`, `/hombre`, `/mujer`); la slide 1 usa la foto vertical en móvil y la horizontal en escritorio; el texto sobre la foto cumple AA con un degradado oscuro; hay un único `h1`; sin scroll horizontal | test e2e `home-hero` y test unitario `HeroSlider` |
+| CA-87 | RF-23 | El slider del hero | Se pulsan las flechas o los puntos | Cambia de slide; las flechas y los puntos tienen nombre accesible y 44 × 44 px, el punto activo se indica sin depender solo del color (`aria-current`) y las slides no visibles no reciben foco | test e2e `home-hero` y test unitario |
+| CA-88 | RF-23 | El slider con el movimiento permitido | Pasan 5 s sin interacción | Avanza a la slide siguiente (y vuelve a la primera tras la última); se detiene con el ratón encima, con el foco dentro o con el botón de pausa. Con `prefers-reduced-motion: reduce` no hay autoplay ni transición animada | test e2e `home-hero` (con reloj simulado) y test unitario |
+| CA-89 | RF-23 | La sección Explora | Se abre a menos de 768 px y a 768 px o más | En móvil los cuatro accesos forman un carrusel deslizable con imán (sin scroll horizontal de la página); desde 768 px, la rejilla de 4 columnas | test e2e `home-sections` y `responsive` |
+| CA-90 | RF-23 | Las secciones Explora, banner y Novedades | Entran en el viewport | Aparecen con un fundido y un desplazamiento de 20 px hacia arriba; con `prefers-reduced-motion: reduce` aparecen sin movimiento, y nunca quedan ocultas (sin JavaScript o con la animación fallida el contenido se ve) | test e2e `home-sections` y test unitario `AnimatedSection` |
+
+**Nuevas tareas derivadas:** T-049 (slider del hero), T-050 (Explora deslizable en móvil) y T-051 (entrada
+animada de las secciones).

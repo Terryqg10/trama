@@ -1,9 +1,11 @@
 import { PageContainer } from '@/components/PageContainer';
 import { ShippingInfo } from '@/components/ShippingInfo';
+import { AnimatedSection } from '@/components/home/AnimatedSection';
 import { ExploreSection } from '@/components/home/ExploreSection';
-import { Hero } from '@/components/home/Hero';
+import { HERO_SLIDES } from '@/components/home/hero-slides';
 import { NewArrivals } from '@/components/home/NewArrivals';
 import { ShippingBanner } from '@/components/home/ShippingBanner';
+import { HeroSlider } from '@/components/layout/HeroSlider';
 
 /** La portada lee las novedades de la BD: se regenera como mucho cada minuto. */
 export const revalidate = 60;
@@ -11,13 +13,19 @@ export const revalidate = 60;
 export default function Home() {
   return (
     <>
-      <Hero />
+      <HeroSlider slides={HERO_SLIDES} />
       <PageContainer>
-        <ExploreSection />
+        <AnimatedSection>
+          <ExploreSection />
+        </AnimatedSection>
       </PageContainer>
-      <ShippingBanner />
+      <AnimatedSection>
+        <ShippingBanner />
+      </AnimatedSection>
       <PageContainer>
-        <NewArrivals />
+        <AnimatedSection>
+          <NewArrivals />
+        </AnimatedSection>
         <div className="mt-12">
           <ShippingInfo />
         </div>

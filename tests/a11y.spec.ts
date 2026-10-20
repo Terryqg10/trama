@@ -17,6 +17,10 @@ const ROUTES = [
   '/recuperar?error=enlace',
 ];
 
+// axe calcula el contraste con el color pintado en ese instante: a medio fundido (T-051, CA-90) el texto de una sección
+// que entra sale con un contraste falso. Con menos movimiento las secciones se ven enteras desde el principio.
+test.use({ reducedMotion: 'reduce' });
+
 test.describe('accesibilidad', () => {
   for (const route of ROUTES) {
     test(`${route} no tiene violaciones graves ni críticas`, async ({ page }) => {

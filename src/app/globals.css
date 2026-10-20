@@ -13,3 +13,11 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* Entrada animada de las secciones (CA-90): sin JavaScript no hay quien las muestre, así que nunca quedan ocultas. */
+@media (scripting: none) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
