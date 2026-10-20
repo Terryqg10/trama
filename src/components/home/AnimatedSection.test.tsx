@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AnimatedSection, REVEAL_OFFSET_PX } from './AnimatedSection';
 
@@ -49,7 +49,7 @@ describe('AnimatedSection (CA-90)', () => {
     expect(wrapper?.getAttribute('style')).toContain('translateY(20px)');
   });
 
-  it('con prefers-reduced-motion no se oculta ni se desplaza', () => {
+  it('con prefers-reduced-motion no se marca para animar y acaba visible sin desplazamiento', async () => {
     setReducedMotion(true);
     const { container } = render(
       <AnimatedSection className="x">
@@ -58,7 +58,8 @@ describe('AnimatedSection (CA-90)', () => {
     );
     const wrapper = container.firstElementChild;
     expect(wrapper?.hasAttribute('data-reveal')).toBe(false);
-    expect(wrapper?.getAttribute('style')).toBeNull();
     expect(wrapper?.className).toBe('x');
+    await waitFor(() => expect(wrapper?.getAttribute('style') ?? '').not.toContain('opacity: 0'));
+    expect(wrapper?.getAttribute('style') ?? '').not.toContain('translateY(20px)');
   });
 });

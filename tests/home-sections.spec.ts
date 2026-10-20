@@ -1,4 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
+import sharp from 'sharp';
+
+// Contraste WCAG (luminancia relativa) para comprobar con píxeles el texto sobre fotos.
+const lin = (c: number): number => {
+  const v = c / 255;
+  return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+};
+const luminance = (r: number, g: number, b: number): number => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+const contrast = (a: number, b: number): number => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 
 // CA-83, CA-84 y CA-85 (T-048): secciones de la portada. Dependen del seed del catálogo de ejemplo: hay cuatro
 // productos marcados como novedad (`catalog-demo.sql`).
@@ -106,17 +115,86 @@ test.describe('Explora (CA-83)', () => {
   });
 });
 
-test.describe('banner de envío gratis (CA-84)', () => {
-  test('dice que el envío es gratis por encima del umbral real, centrado', async ({ page }) => {
+test.describe('banner de envío gratis (CA-84, CA-98)', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('dice que el envío es gratis desde el umbral real, centrado y con foto de fondo', async ({ page }) => {
     await open(page);
     const banner = page.getByTestId('shipping-banner');
     await expect(banner).toBeVisible();
-    await expect(banner).toContainText('Envío gratis en pedidos superiores a 50,00 €');
+    await expect(banner).toContainText('Envío gratis a partir de 50,00 €');
     await expect(banner).not.toContainText('49,99');
-    expect(await banner.evaluate((el) => getComputedStyle(el).textAlign)).toBe('center');
-    const bg = await banner.evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(bg).not.toBe('rgba(0, 0, 0, 0)');
+    const text = page.getByTestId('shipping-banner-text');
+    const bannerBox = await banner.boundingBox();
+    const textBox = await text.boundingBox();
+    const centre = (textBox?.x ?? 0) + (textBox?.width ?? 0) / 2;
+    expect(Math.abs(centre - ((bannerBox?.x ?? 0) + (bannerBox?.width ?? 0) / 2))).toBeLessThan(2);
+    const img = banner.locator('img');
+    await img.scrollIntoViewIfNeeded();
+    const loaded = await img.evaluate(async (el) => {
+      if (!(el instanceof HTMLImageElement)) return false;
+      await el.decode().catch(() => undefined);
+      return el.naturalWidth > 0 && el.currentSrc.includes('banner-envio-gratis');
+    });
+    expect(loaded).toBe(true);
   });
+
+  for (const [width, height] of [
+    [320, 224],
+    [375, 224],
+    [767, 224],
+    [768, 320],
+    [1280, 320],
+  ] as const) {
+    test(`mide ${height} px de alto y cabe sin scroll horizontal a ${width} px`, async ({ page }) => {
+      await open(page, width);
+      const banner = page.getByTestId('shipping-banner');
+      await banner.scrollIntoViewIfNeeded();
+      expect((await banner.boundingBox())?.height ?? 0).toBeCloseTo(height, 0);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+    });
+  }
+
+  for (const width of [320, 375, 768, 1280]) {
+    test(`el texto sobre la foto cumple AA (4,5:1) a ${width} px`, async ({ page }) => {
+      await open(page, width);
+      const target = page.getByTestId('shipping-banner-text');
+      await target.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+      await page.getByTestId('shipping-banner').locator('img').evaluate((el) => (el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : undefined));
+      const textColor = await target.evaluate((el) => getComputedStyle(el).color);
+      const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(textColor);
+      expect(match).not.toBeNull();
+      const textL = luminance(Number(match?.[1]), Number(match?.[2]), Number(match?.[3]));
+      await target.evaluate((el) => el.setAttribute('style', 'color: transparent !important'));
+      // Captura del propio banner (no de la página): en el WebKit móvil, con DPR 3, un recorte de página sale en blanco.
+      const rect = await target.evaluate((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const r = range.getBoundingClientRect();
+        const banner = el.closest('[data-testid="shipping-banner"]')?.getBoundingClientRect();
+        return { x: r.x - (banner?.x ?? 0), y: r.y - (banner?.y ?? 0), width: r.width, height: r.height, bannerWidth: banner?.width ?? 1 };
+      });
+      const shot = await page.getByTestId('shipping-banner').screenshot();
+      const scale = (await sharp(shot).metadata()).width! / rect.bannerWidth;
+      const png = await sharp(shot)
+        .extract({
+          left: Math.round(rect.x * scale),
+          top: Math.round(rect.y * scale),
+          width: Math.max(1, Math.round(rect.width * scale)),
+          height: Math.max(1, Math.round(rect.height * scale)),
+        })
+        .png()
+        .toBuffer();
+      const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      let worst = Infinity;
+      for (let i = 0; i < data.length; i += info.channels) {
+        worst = Math.min(worst, contrast(textL, luminance(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0)));
+      }
+      await target.evaluate((el) => el.removeAttribute('style'));
+      expect(worst, `contraste mínimo a ${width}px`).toBeGreaterThanOrEqual(4.5);
+    });
+  }
 });
 
 test.describe('novedades (CA-85)', () => {
@@ -177,8 +255,8 @@ test.describe('entrada animada de las secciones (CA-90)', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
     const sections = page.locator('[data-reveal]');
-    await expect(sections).toHaveCount(3);
-    const banner = sections.nth(1);
+    await expect(sections).toHaveCount(4);
+    const banner = sections.nth(2);
     // Está por debajo del primer pantallazo: aún no ha entrado.
     await expect(banner).toHaveCSS('opacity', '0');
     expect(await banner.evaluate((el) => getComputedStyle(el).transform)).toBe('matrix(1, 0, 0, 1, 0, 20)');
@@ -192,7 +270,7 @@ test.describe('entrada animada de las secciones (CA-90)', () => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
-    const banner = page.locator('[data-reveal]').nth(1);
+    const banner = page.locator('[data-reveal]').nth(2);
     await banner.scrollIntoViewIfNeeded();
     await expect(banner).toHaveCSS('opacity', '1');
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -221,10 +299,81 @@ test.describe('entrada animada de las secciones (CA-90)', () => {
     test('las secciones se ven igualmente', async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 800 });
       await page.goto('/');
-      const wrapper = page.locator('[data-reveal]').nth(1);
+      const wrapper = page.locator('[data-reveal]').nth(2);
       await expect(wrapper).toHaveCSS('opacity', '1');
       expect(transformIsNone(await wrapper.evaluate((el) => getComputedStyle(el).transform))).toBe(true);
       await expect(page.getByTestId('shipping-banner')).toBeVisible();
     });
   });
+});
+
+// CA-95 (T-054): banner de otoño bajo Explora, con foto de fondo, mensaje, botón y texto legible sobre un degradado.
+
+test.describe('banner de otoño (CA-95)', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('está justo debajo de Explora, con el mensaje y «Ver abrigos» hacia /hombre', async ({ page }) => {
+    await open(page);
+    const explore = await page.getByRole('region', { name: 'Explora' }).boundingBox();
+    const banner = page.getByTestId('autumn-banner');
+    await expect(banner.getByRole('heading', { level: 2, name: 'Prepárate para el frío' })).toBeVisible();
+    const link = banner.getByRole('link', { name: 'Ver abrigos' });
+    await expect(link).toHaveAttribute('href', '/hombre');
+    const box = await banner.boundingBox();
+    expect(box?.y ?? 0).toBeGreaterThan((explore?.y ?? 0) + (explore?.height ?? 0) - 1);
+    // Entre Explora y el banner de envío gratis, y no más abajo.
+    const shipping = await page.getByTestId('shipping-banner').boundingBox();
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual((shipping?.y ?? 0) + 1);
+    await link.click();
+    await expect(page).toHaveURL(/\/hombre$/);
+  });
+
+  test('la foto de otoño carga como fondo y el degradado usa un token', async ({ page }) => {
+    await open(page);
+    const banner = page.getByTestId('autumn-banner');
+    const img = banner.locator('img');
+    await img.scrollIntoViewIfNeeded();
+    const loaded = await img.evaluate(async (el) => {
+      if (!(el instanceof HTMLImageElement)) return false;
+      await el.decode().catch(() => undefined);
+      return el.naturalWidth > 0 && el.currentSrc.includes('banner-otono');
+    });
+    expect(loaded).toBe(true);
+    const gradient = await banner.locator('div[aria-hidden="true"]').evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(gradient).toContain('linear-gradient');
+    expect(Number(/oklab\(([\d.]+)/.exec(gradient)?.[1] ?? '0')).toBeGreaterThan(0.1);
+  });
+
+  for (const width of [320, 375, 768, 1024, 1280]) {
+    test(`sin scroll horizontal y con el texto AA (4,5:1) a ${width} px`, async ({ page }) => {
+      await open(page, width);
+      const banner = page.getByTestId('autumn-banner');
+      await banner.scrollIntoViewIfNeeded();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+      await expect(banner.locator('img')).toBeVisible();
+      await banner.locator('img').evaluate((el) => (el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : undefined));
+      const target = page.getByTestId('autumn-text');
+      await target.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+      const textColor = await target.evaluate((el) => getComputedStyle(el).color);
+      const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(textColor);
+      expect(match).not.toBeNull();
+      const textL = luminance(Number(match?.[1]), Number(match?.[2]), Number(match?.[3]));
+      await target.evaluate((el) => el.setAttribute('style', 'color: transparent !important'));
+      const rect = await target.evaluate((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const r = range.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      });
+      const png = await page.screenshot({ clip: rect });
+      const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      let worst = Infinity;
+      for (let i = 0; i < data.length; i += info.channels) {
+        worst = Math.min(worst, contrast(textL, luminance(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0)));
+      }
+      await target.evaluate((el) => el.removeAttribute('style'));
+      expect(worst, `contraste mínimo a ${width}px`).toBeGreaterThanOrEqual(4.5);
+    });
+  }
 });

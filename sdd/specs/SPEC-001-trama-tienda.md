@@ -679,3 +679,68 @@ sutil.
 
 **Nuevas tareas derivadas:** T-049 (slider del hero), T-050 (Explora deslizable en móvil) y T-051 (entrada
 animada de las secciones).
+
+### Enmienda 25 — 2026-10-20 — sin ADR — buscador, barra de otoño, banner de otoño y stock de otoño (CA-91 a CA-97)
+
+**Origen:** el usuario pide un buscador en la cabecera, actualizar la barra de anuncios a la colección Otoño/Invierno,
+un banner de otoño en la portada y seis productos nuevos de otoño en el catálogo.
+
+**Qué cambia:**
+- **RF-25 (nuevo): buscador.** La cabecera tiene un buscador de productos por nombre (escritorio: campo centrado;
+  móvil: icono de lupa que abre un panel). Envía a `/buscar?q=…`, que lista los productos activos cuyo nombre
+  contiene el texto. El encargo era solo la interfaz; sin la página de destino sería un enlace muerto (puerta 7), así
+  que se incluye una búsqueda mínima por nombre (sin relevancia, sin sugerencias, sin historial).
+- **CA-81 se sustituye por CA-94** en lo que dice el texto de la barra: ahora anuncia la colección y el envío gratis;
+  desaparece el mensaje de devoluciones de la barra (RF-16 sigue vigente en el bloque de envío y devolución). El
+  umbral sigue saliendo de la constante de `shop.ts` (50,00 €): el «49,99 €» del encargo contradice RF-22 y el
+  usuario eligió la constante.
+- **RF-23 (portada)** añade un banner de otoño bajo Explora.
+- **RF-01 (catálogo)** amplía las categorías de nueve a once: `abrigos` y `jerseis` (VERIFICAR: nombre visible). Cambia
+  el CHECK de `products.category` y `size_guides.category` (migración; mismo patrón que la Enmienda 22).
+- Seis productos de ejemplo de otoño (ficticios; precios, tallas y colores propuestos, VERIFICAR). No son novedad
+  (`is_new = false`), como los de la Enmienda 22. Colores nuevos con muestra: `camel`, `crema` y `marron`.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-91 | RF-25 | Un visitante en cualquier página de la tienda a 768 px o más | Mira la cabecera | Hay un campo `type=search` con nombre accesible, placeholder «Buscar productos...», fondo `bg-surface-muted`, `rounded-control` e icono de lupa; al enviarlo va a `/buscar?q=<texto>` | test e2e `search` y unitario |
+| CA-92 | RF-25 | Un visitante a menos de 768 px | Pulsa el icono de lupa | Se abre un panel con el buscador y el foco en el campo; Esc o el botón de cerrar lo cierran y devuelven el foco; sin JavaScript abre con `#buscador`; sin scroll horizontal ni cortes | test e2e `search` y `responsive` |
+| CA-93 | RF-25 | Un texto de búsqueda | Se abre `/buscar?q=…` | Lista los productos activos cuyo nombre contiene el texto (sin distinguir mayúsculas), con el número de resultados; sin coincidencias o sin texto, un estado vacío con enlace al catálogo; los comodines (`%`, `_`) se tratan como texto | test e2e `search`, unitario y de integración |
+| CA-94 | RF-23 | Cualquier página de la tienda (no el panel admin) | Se abre | La barra de anuncios dice «Nueva colección Otoño/Invierno ya disponible» y «Envío gratis a partir de» el umbral real, legible (contraste AA) y sin scroll horizontal | test e2e `top-bar` y unitario `TopBar` |
+| CA-95 | RF-23 | La portada | Se llega bajo Explora | Hay un banner con la foto de otoño de fondo, «Prepárate para el frío» y un botón «Ver abrigos» a `/hombre`; el texto cumple AA sobre un degradado oscuro; sin scroll horizontal de 320 a 1280 px | test e2e `home-sections` y unitario |
+| CA-96 | RF-01 | La base de datos | Se crea un producto con categoría `abrigos` o `jerseis` y otra no admitida | Las dos primeras se aceptan; la otra se rechaza; los chips del catálogo las muestran en su orden canónico | test de integración `categories-check` y unitario |
+| CA-97 | RF-01 | Los seis productos de otoño | Se abre el catálogo de su género y su ficha | Cada uno aparece con su categoría, precio, color y foto de `/images/products/`, y se puede filtrar por su categoría | test e2e `catalog-autumn` |
+
+**Nuevas tareas derivadas:** T-052 (buscador y `/buscar`), T-053 (barra de otoño), T-054 (banner de otoño), T-055
+(categorías `abrigos` y `jerseis`) y T-056 (seed de otoño).
+
+### Enmienda 26 — 2026-10-20 — sin ADR — banner de envío gratis con foto y newsletter (CA-98 a CA-101)
+
+**Origen:** el usuario pide cerrar la portada: la franja gris de envío gratis pasa a ser un banner con foto y se añade
+una sección de propuestas de valor y suscripción a la newsletter.
+
+**Qué cambia:**
+- **CA-84 se sustituye por CA-98:** el banner de envío gratis deja de ser una franja `bg-surface-muted` y pasa a ser
+  un banner con foto (`banner-envio-gratis.webp`) y el texto centrado sobre un degradado oscuro. El importe sigue
+  saliendo de `FREE_SHIPPING_THRESHOLD_CENTS` (50,00 €, RF-22); el «49,99 €» del encargo contradice el carrito.
+- **RF-26 (nuevo): newsletter.** Cualquier visitante puede suscribirse con su email y su consentimiento expreso
+  (casilla sin marcar, con enlace a `/privacidad`). Nadie puede leer la lista desde la tienda.
+- **Datos y privacidad (sección 9):** se guarda el email, el consentimiento (siempre `true`) y la fecha de alta, para
+  enviar la newsletter; se conserva hasta que la persona pida la baja. No hay baja automática ni envío de correos en
+  esta enmienda (VERIFICAR antes de usarla con clientes reales: RGPD y LSSI; el texto de privacidad de ejemplo no lo
+  menciona aún).
+- **Riesgos (sección 8):** endpoint público de escritura sin límite de ritmo propio: se acota con RLS (solo
+  `insert`, consentimiento obligatorio, formato y longitud del email) y con los límites de la API de Supabase; un
+  captcha o límite por IP queda como mejora (VERIFICAR). Un email repetido responde igual que uno nuevo para no
+  revelar quién está suscrito.
+- **Textos de las propuestas de valor:** el encargo decía «Más de 1.200 marcas» y «Financiación en 3 plazos», que no
+  son ciertos en esta tienda (≈ 27 productos y sin financiación). Se usan textos veraces (el usuario lo eligió).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-98 | RF-23 | La portada | Se llega al banner de envío gratis | Tiene la foto de fondo y «Envío gratis a partir de 50,00 €» centrado sobre un degradado oscuro (AA); altura de 224 px en móvil y 320 px desde 768 px; sin scroll horizontal de 320 a 1280 px | test e2e `home-sections` y unitario |
+| CA-99 | RF-26 | La tabla `newsletter_subscribers` | Un visitante, un cliente con sesión y un admin intentan insertar, leer, cambiar y borrar | Cualquiera puede insertar con consentimiento `true` y un email válido; sin consentimiento o con un email mal formado se rechaza; nadie puede leer, cambiar ni borrar filas con la clave pública; un email repetido se rechaza | test de integración `newsletter-rls` |
+| CA-100 | RF-26 | Un email y un consentimiento | Se envían a la acción del servidor | Se validan con Zod (email válido en minúsculas, consentimiento `true`); si son válidos se guarda y se devuelve éxito; si no, errores por campo; un email ya suscrito devuelve el mismo éxito | test unitario `newsletter` y e2e `newsletter` |
+| CA-101 | RF-26 | La portada | Se llega a la sección de newsletter | Hay tres propuestas de valor (icono, título y texto) y un formulario con email, casilla de consentimiento con enlace a `/privacidad` y «Suscribirme»; el resultado se anuncia en una región `aria-live="polite"`; en móvil las tres propuestas se apilan, sin scroll horizontal | test e2e `newsletter` y unitario |
+
+**Nuevas tareas derivadas:** T-057 (banner de envío), T-058 (tabla y RLS), T-059 (acción del servidor) y T-060
+(sección de newsletter).

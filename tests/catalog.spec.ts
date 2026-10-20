@@ -59,7 +59,7 @@ test.describe('CA-01: mujer + blusas, solo blusas de mujer', () => {
     await open(page, '/mujer');
     await openFilters(page);
     // El chip se aplica al clic (SPEC-002 RF-03): no hace falta pulsar «Aplicar filtros».
-    await page.locator('form:visible').getByText('Blusas', { exact: true }).click();
+    await page.locator('form:visible:not([role="search"])').getByText('Blusas', { exact: true }).click();
     await expect(page).toHaveURL(/categoria=blusas/);
     await expect(page.getByRole('status')).toHaveCount(0);
     await expect.poll(async () => sorted(await names(page))).toEqual(sorted(BLUSAS_MUJER));
@@ -148,22 +148,24 @@ test.describe('orden y precio', () => {
     expect(prices.length).toBeGreaterThan(1);
     expect(prices).toEqual([...prices].sort((a, b) => a - b));
     expect(prices[0]).toBe(2990);
-    expect((await names(page)).at(-1)).toBe('Pantalón de traje');
+    // Con el seed de otoño (T-056) el más caro es el abrigo de paño (89,90 €).
+    expect((await names(page)).at(-1)).toBe('Abrigo de paño gris');
   });
 
   test('precio descendente: el más caro primero', async ({ page }) => {
     await open(page, '/hombre?orden=precio-desc');
-    expect((await names(page))[0]).toBe('Pantalón de traje');
+    expect((await names(page))[0]).toBe('Abrigo de paño gris');
   });
 
   test('rango de precios en euros', async ({ page }) => {
     await open(page, '/hombre?min=70&max=90');
-    expect(await names(page)).toEqual(['Pantalón de traje']);
+    // Entre 70 y 90 €: el pantalón de traje y los dos productos de otoño de hombre (T-056).
+    expect(sorted(await names(page))).toEqual(sorted(['Pantalón de traje', 'Chaqueta acolchada negra', 'Abrigo de paño gris']));
   });
 
   test('los precios se muestran en euros con coma decimal', async ({ page }) => {
     await open(page, '/hombre?min=70&max=90');
-    await expect(page.locator('article').first()).toContainText('79,90');
+    await expect(page.locator('article').filter({ hasText: '79,90' }).first()).toBeVisible();
   });
 });
 
@@ -277,7 +279,7 @@ test.describe('interfaz del listado', () => {
     await open(page, '/mujer?categoria=blusas');
     await openFilters(page);
     const controls = page
-      .locator('form:visible')
+      .locator('form:visible:not([role="search"])')
       .first()
       .locator('button:visible, select:visible, input[type="number"]:visible, a:visible');
     const count = await controls.count();

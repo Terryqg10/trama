@@ -47,21 +47,25 @@ const CATEGORY_NAMES: Readonly<Record<Gender, Readonly<Record<string, readonly s
     pantalones: ['Pantalón chino slim', 'Pantalón de traje', 'Pantalón cargo negro'],
     camisetas: ['Camiseta gráfica blanca', 'Camiseta negra', 'Polera cómic art', 'Polera dark art', 'Polera Arañaz', 'Polera verde gráfico', 'Polera pop collage'],
     sudaderas: ['Sudadera oversize negra', 'Hoodie gris'],
-    chaquetas: ['Chaqueta cortavientos gris', 'Bomber negra'],
+    chaquetas: ['Chaqueta cortavientos gris', 'Bomber negra', 'Chaqueta acolchada negra'],
+    abrigos: ['Abrigo de paño gris'],
+    jerseis: ['Jersey de cuello alto negro'],
   },
   mujer: {
     pantalones: ['Pantalón fluido', 'Pantalón cargo beige'],
     camisetas: ['Polera kawaii blanca', 'Polera kawaii negra', 'Polera pop cómic'],
     sudaderas: ['Sudadera cropped rosa'],
     chaquetas: ['Chaqueta vaquera oversize'],
+    abrigos: ['Abrigo largo camel'],
+    jerseis: ['Jersey de punto crema', 'Jersey de punto marrón'],
     faldas: ['Falda cargo negra'],
     tops: ['Top crop negro'],
   },
 };
 
 const CATEGORY_CHIPS: Readonly<Record<Gender, readonly string[]>> = {
-  hombre: ['polos', 'camisas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas'],
-  mujer: ['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'faldas', 'tops'],
+  hombre: ['polos', 'camisas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'abrigos', 'jerseis'],
+  mujer: ['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'abrigos', 'jerseis', 'faldas', 'tops'],
 };
 
 const sorted = (values: readonly string[]) => [...values].sort();

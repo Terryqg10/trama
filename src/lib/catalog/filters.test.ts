@@ -92,8 +92,8 @@ describe('parseCatalogParams: valores inválidos se ignoran (CA-09, RF-09)', () 
   });
 });
 
-describe('parseCatalogParams: las nueve categorías (CA-79)', () => {
-  it.each(['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'faldas', 'tops'])(
+describe('parseCatalogParams: las once categorías (CA-79)', () => {
+  it.each(['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'abrigos', 'jerseis', 'faldas', 'tops'])(
     'acepta la categoría %s',
     (categoria) => {
       expect(ok({ categoria }).category).toBe(categoria);
@@ -101,6 +101,6 @@ describe('parseCatalogParams: las nueve categorías (CA-79)', () => {
   );
 
   it('rechaza una categoría desconocida', () => {
-    expect(ok({ categoria: 'abrigos' }).category).toBeUndefined();
+    expect(ok({ categoria: 'bufandas' }).category).toBeUndefined();
   });
 });

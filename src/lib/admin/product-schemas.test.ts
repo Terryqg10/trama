@@ -133,8 +133,8 @@ describe('variantSchema', () => {
   });
 });
 
-describe('productSchema: las nueve categorías (CA-79)', () => {
-  it.each(['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'faldas', 'tops'])(
+describe('productSchema: las once categorías (CA-79)', () => {
+  it.each(['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'abrigos', 'jerseis', 'faldas', 'tops'])(
     'acepta un producto de la categoría %s',
     (category) => {
       expect(productSchema.safeParse({ ...validProduct, category }).success).toBe(true);
@@ -142,6 +142,6 @@ describe('productSchema: las nueve categorías (CA-79)', () => {
   );
 
   it('rechaza una categoría desconocida', () => {
-    expect(productSchema.safeParse({ ...validProduct, category: 'abrigos' }).success).toBe(false);
+    expect(productSchema.safeParse({ ...validProduct, category: 'bufandas' }).success).toBe(false);
   });
 });

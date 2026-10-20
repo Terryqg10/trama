@@ -113,6 +113,27 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_subscribers: {
+        Row: {
+          consent: boolean
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          consent: boolean
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          consent?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           color: string
@@ -421,7 +442,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_order_payment: {
+        Args: { p_event_id: string; p_order_id: string }
+        Returns: Json
+      }
       is_admin: { Args: never; Returns: boolean }
+      release_expired_reservations: { Args: never; Returns: number }
+      release_order_reservations: {
+        Args: { p_order_id: string }
+        Returns: number
+      }
+      reserve_stock: {
+        Args: { p_lines: Json; p_order_id: string; p_ttl?: string }
+        Returns: Json
+      }
     }
     Enums: {
       order_status:

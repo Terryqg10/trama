@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const GENDERS = ['hombre', 'mujer'] as const;
-/** Orden canónico de las categorías (Enmienda 22: nueve). Los chips de filtro siguen este orden. */
+/** Orden canónico de las categorías (Enmienda 22 y 25: once). Los chips de filtro siguen este orden. */
 export const CATEGORIES = [
   'polos',
   'camisas',
@@ -10,6 +10,8 @@ export const CATEGORIES = [
   'camisetas',
   'sudaderas',
   'chaquetas',
+  'abrigos',
+  'jerseis',
   'faldas',
   'tops',
 ] as const;

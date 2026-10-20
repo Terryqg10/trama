@@ -85,7 +85,7 @@ test.describe('CA-52: controles alineados a 320, 375, 768 y 1280 px', () => {
   for (const width of WIDTHS) {
     test(`a ${width} px`, async ({ page }) => {
       await openFilters(page, width);
-      const form = page.locator('form:visible').first();
+      const form = page.locator('form:visible:not([role="search"])').first();
       const formBox = await form.boundingBox();
       expect(formBox).not.toBeNull();
       if (!formBox) return;

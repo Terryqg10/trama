@@ -1,20 +1,20 @@
 import { expect, test } from '@playwright/test';
 
-// CA-81 (T-046): barra de anuncios sobre la cabecera de la tienda, con el envío gratis desde el umbral real
-// (50,00 €, RF-22) y las devoluciones en 30 días (RF-16). No aparece en el panel admin.
+// CA-81 (T-046) y CA-94 (T-053): barra de anuncios sobre la cabecera de la tienda, con la colección de otoño y el
+// envío gratis desde el umbral real (50,00 €, RF-22). No aparece en el panel admin.
 
 const WIDTHS = [320, 375, 768, 1280] as const;
 const PAGES = ['/', '/hombre', '/mujer', '/novedades', '/carrito', '/acceso'] as const;
 
-test.describe('barra de anuncios (CA-81)', () => {
+test.describe('barra de anuncios (CA-81, CA-94)', () => {
   for (const url of PAGES) {
-    test(`${url}: está sobre la cabecera con el umbral real y los 30 días`, async ({ page }) => {
+    test(`${url}: está sobre la cabecera con la colección y el umbral real`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 800 });
       await page.goto(url);
       const bar = page.getByTestId('top-bar');
       await expect(bar).toBeVisible();
+      await expect(bar).toContainText('Nueva colección Otoño/Invierno ya disponible');
       await expect(bar).toContainText('Envío gratis a partir de 50,00 €');
-      await expect(bar).toContainText('Devoluciones gratuitas en 30 días');
       // El importe equivocado de la petición original (49,99 €) no puede aparecer.
       await expect(bar).not.toContainText('49,99');
 

@@ -1,9 +1,11 @@
 import { PageContainer } from '@/components/PageContainer';
 import { ShippingInfo } from '@/components/ShippingInfo';
 import { AnimatedSection } from '@/components/home/AnimatedSection';
+import { AutumnBanner } from '@/components/home/AutumnBanner';
 import { ExploreSection } from '@/components/home/ExploreSection';
 import { HERO_SLIDES } from '@/components/home/hero-slides';
 import { NewArrivals } from '@/components/home/NewArrivals';
+import { NewsletterSection } from '@/components/home/NewsletterSection';
 import { ShippingBanner } from '@/components/home/ShippingBanner';
 import { HeroSlider } from '@/components/layout/HeroSlider';
 
@@ -18,6 +20,9 @@ export default function Home() {
         <AnimatedSection>
           <ExploreSection />
         </AnimatedSection>
+        <AnimatedSection className="mt-10">
+          <AutumnBanner />
+        </AnimatedSection>
       </PageContainer>
       <AnimatedSection>
         <ShippingBanner />
@@ -30,6 +35,7 @@ export default function Home() {
           <ShippingInfo />
         </div>
       </PageContainer>
+      <NewsletterSection />
     </>
   );
 }

@@ -395,3 +395,55 @@ T-047 (el CA-82 pasa a CA-86).
 - **Entrada animada** solo con opacidad y `transform` (no provoca reflujo); con reduced-motion no hay movimiento.
 
 Las tareas nuevas siguen desde T-052.
+
+### Enmienda 15 — 2026-10-20 — sin ADR — buscador y colección de otoño
+
+**Origen:** Enmienda 25 de SPEC-001 (CA-91 a CA-97). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-052** | Buscador en `SiteHeader` (campo en escritorio, panel en móvil) y página `/buscar` | CA-91, CA-92, CA-93 | — |
+| **T-053** | Texto de la barra de anuncios de otoño | CA-94 | T-046 |
+| **T-054** | Banner de otoño bajo Explora | CA-95 | T-048 |
+| **T-055** | Categorías `abrigos` y `jerseis` (migración, código, muestras de color) | CA-96 | T-044 |
+| **T-056** | Seed de los seis productos de otoño | CA-97 | T-055 |
+
+**Decisiones de UI:**
+- Buscador centrado en cabecera de escritorio y lupa que abre panel en móvil: convención del sector (Zalando, Mango,
+  ASOS); sin desvío. El panel móvil usa el mismo patrón `#buscador` + `:target` + `useHashOverlay` que el menú.
+- `/buscar` es una búsqueda por nombre (`ilike`) sin relevancia: decisión de alcance mínimo, no de convención. Una
+  búsqueda real (sinónimos, tolerancia a errores, sugerencias) es otra tarea.
+- **Barra de anuncios:** el encargo escribía «49,99 €»; se usa la constante (50,00 €), igual que en T-046.
+- **Archivo de la cabecera:** el encargo decía `layout/Header.tsx`; la cabecera real es `src/components/SiteHeader.tsx`.
+- **Categorías nuevas** en lugar de meter abrigos en «chaquetas» y jerséis en «sudaderas»: son prendas distintas
+  para quien filtra (VERIFICAR con el usuario). Coste: migración y tests de categoría, como en T-044.
+- **Imagen del banner:** `banner-otono.webp` (no existe `.jpg`); con `next/image` y degradado de token `fg`.
+
+Las tareas nuevas siguen desde T-057.
+
+### Enmienda 16 — 2026-10-20 — sin ADR — banner de envío con foto y newsletter
+
+**Origen:** Enmienda 26 de SPEC-001 (CA-98 a CA-101). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-057** | Banner de envío gratis con foto (sustituye la franja) | CA-98 | T-048 |
+| **T-058** | Migración de `newsletter_subscribers` con RLS solo de inserción y prueba de aislamiento | CA-99 | — |
+| **T-059** | Acción del servidor de suscripción con Zod | CA-100 | T-058 |
+| **T-060** | `NewsletterSection`: propuestas de valor y formulario | CA-101 | T-059 |
+
+**Decisiones de UI:**
+- Banner de envío gratis con foto y newsletter con propuestas de valor al pie de la portada: convención del sector.
+- **Alturas del banner:** el encargo pedía `h-[30vh] md:h-[40vh]`; los valores arbitrarios están prohibidos
+  (`rules/styles.md`), así que se usan `h-56` (224 px) y `md:h-80` (320 px), equivalentes a 30 y 40 vh en una
+  pantalla de unos 750 px. Reversible.
+- **Velo `bg-black/40` → degradado de `fg`:** el 40 % de negro no basta sobre una foto clara (mármol y papel); se usa
+  `fg` al 70 % (token) y el contraste se comprueba con píxeles.
+- **Newsletter con consentimiento expreso** (casilla sin marcar, enlace a `/privacidad`), sin doble confirmación por
+  email (VERIFICAR con RGPD/LSSI antes de usarla de verdad).
+- La acción se crea en `src/app/actions/newsletter.ts` como pidió el usuario; el resto de acciones viven en
+  `src/lib/<área>/actions.ts`. Su lógica (esquema y alta) va en `src/lib/newsletter/`.
+- La tabla no está en `types.generated.ts` hasta regenerar los tipos tras aplicar la migración; el alta usa un
+  cliente sin tipar y valida con Zod, como `createServiceClient`.
+
+Las tareas nuevas siguen desde T-061.

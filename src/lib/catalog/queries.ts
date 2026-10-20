@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createPublicClient, type PublicSupabaseClient } from '@/lib/supabase/server';
 import type { CatalogFilters } from './filters';
+import { containsPattern } from './search';
 import {
   catalogRowSchema,
   productDetailRowSchema,
@@ -59,6 +60,25 @@ export async function listProducts(
 
   const rows = z.array(catalogRowSchema).parse(data);
   return sortProducts(rows.map(toCatalogProduct), filters.sort);
+}
+
+/**
+ * Busca productos activos cuyo nombre contiene el texto, sin distinguir mayúsculas (RF-25, CA-93). El texto llega ya
+ * normalizado (`parseSearchQuery`); vacío no consulta. Las políticas RLS ocultan los inactivos.
+ */
+export async function searchProducts(
+  query: string,
+  client: PublicSupabaseClient = createPublicClient(),
+): Promise<CatalogProduct[]> {
+  if (query === '') return [];
+  const { data, error } = await client
+    .from('products')
+    .select(LIST_SELECT)
+    .ilike('name', containsPattern(query))
+    .limit(MAX_PRODUCTS);
+  if (error) throw new Error(`No se pudo buscar en el catálogo: ${error.message}`);
+  const rows = z.array(catalogRowSchema).parse(data);
+  return sortProducts(rows.map(toCatalogProduct), 'novedades');
 }
 
 /** Devuelve la ficha de un producto activo, o `null` si no existe o no es visible. */

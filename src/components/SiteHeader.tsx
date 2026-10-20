@@ -1,14 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useRef } from 'react';
-import { Menu, ShoppingBag, User, X } from 'lucide-react';
+import type { Route } from 'next';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, type FormEvent, type MouseEvent, type RefObject } from 'react';
+import { Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { MAX_SEARCH_LENGTH, parseSearchQuery } from '@/lib/catalog/search';
 import { ACTION_NAV, MAIN_NAV } from '@/lib/domain/navigation';
 import { Logo } from './Logo';
 import { useHashOverlay } from './useHashOverlay';
 
 const MENU_ID = 'menu-movil';
+const SEARCH_ID = 'buscador';
 
 const linkBase =
   'inline-flex min-h-11 items-center rounded-control px-4 text-sm font-medium';
@@ -20,6 +23,57 @@ const iconButton =
 /** Enlaces del menú a pantalla completa: tipografía grande (≥ 20 px) y áreas amplias. */
 const overlayLinkBase =
   'flex min-h-14 w-full items-center rounded-control px-4 text-xl font-semibold';
+
+/**
+ * Campo de búsqueda (RF-25, CA-91 y CA-92). Es un formulario GET a `/buscar`, así que funciona sin JavaScript; con
+ * JavaScript se navega sin recargar la página y se cierra el panel móvil (`onSearch`).
+ */
+function SearchField({
+  className,
+  inputRef,
+  onSearch,
+  showButton = false,
+}: {
+  readonly className?: string;
+  readonly inputRef?: RefObject<HTMLInputElement | null>;
+  readonly onSearch?: () => void;
+  readonly showButton?: boolean;
+}) {
+  const router = useRouter();
+
+  function onSubmit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    const query = parseSearchQuery(new FormData(event.currentTarget).get('q')?.toString());
+    router.push(`/buscar?q=${encodeURIComponent(query)}` as Route);
+    onSearch?.();
+  }
+
+  return (
+    <form role="search" action="/buscar" method="get" onSubmit={onSubmit} className={`flex items-center gap-2 ${className ?? ''}`}>
+      <div className="relative min-w-0 flex-1">
+        <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-fg-muted" />
+        <input
+          ref={inputRef}
+          type="search"
+          name="q"
+          aria-label="Buscar productos"
+          placeholder="Buscar productos..."
+          maxLength={MAX_SEARCH_LENGTH}
+          autoComplete="off"
+          className="min-h-11 w-full rounded-control border border-border bg-surface-muted pl-10 pr-3 text-sm text-fg placeholder:text-fg-muted"
+        />
+      </div>
+      {showButton ? (
+        <button
+          type="submit"
+          className="inline-flex min-h-11 items-center rounded-control bg-accent px-4 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
+        >
+          Buscar
+        </button>
+      ) : null}
+    </form>
+  );
+}
 
 /**
  * Cabecera. En escritorio (≥ `--bp-md`) el menú es horizontal. En móvil es un overlay a
@@ -37,6 +91,26 @@ export function SiteHeader() {
     overlay: menuRef,
     close: closeRef,
   });
+
+  const searchTriggerRef = useRef<HTMLAnchorElement>(null);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
+  const searchCloseRef = useRef<HTMLAnchorElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const search = useHashOverlay(SEARCH_ID, '--bp-lg', {
+    trigger: searchTriggerRef,
+    overlay: searchPanelRef,
+    close: searchCloseRef,
+  });
+
+  // El hook enfoca el botón de cerrar al abrir; en el buscador el foco va al campo.
+  useEffect(() => {
+    if (search.open) searchInputRef.current?.focus();
+  }, [search.open]);
+
+  function onSearchPanelClick(event: MouseEvent<HTMLElement>): void {
+    if (event.target === event.currentTarget) search.close();
+    else search.onClick(event);
+  }
 
   function itemClass(href: string): string {
     return `${linkBase} ${pathname === href ? linkCurrent : linkIdle}`;
@@ -64,7 +138,26 @@ export function SiteHeader() {
           ))}
         </nav>
 
+        <div className="hidden min-w-0 flex-1 justify-center px-4 lg:flex">
+          <SearchField className="w-full max-w-md" />
+        </div>
+
         <div className="ml-auto flex items-center gap-1">
+          <a
+            ref={searchTriggerRef}
+            href={`#${SEARCH_ID}`}
+            data-testid="search-open"
+            aria-haspopup="dialog"
+            aria-expanded={search.open}
+            aria-label="Abrir buscador"
+            onClick={(event) => {
+              event.preventDefault();
+              search.openOverlay();
+            }}
+            className={`${iconButton} lg:hidden`}
+          >
+            <Search aria-hidden="true" />
+          </a>
           <Link href={ACTION_NAV.account.href} aria-label={ACTION_NAV.account.label} className={iconButton}>
             <User aria-hidden="true" />
           </Link>
@@ -86,6 +179,47 @@ export function SiteHeader() {
           >
             <Menu aria-hidden="true" />
           </a>
+        </div>
+      </div>
+
+      <div className="lg:hidden">
+        <div
+          ref={searchPanelRef}
+          id={SEARCH_ID}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Buscar productos"
+          data-testid="search-panel"
+          onKeyDown={search.onKeyDown}
+          onClick={onSearchPanelClick}
+          className={
+            search.open
+              ? 'fixed inset-0 z-50 bg-fg/50'
+              : search.mounted
+                ? 'hidden'
+                : 'hidden target:fixed target:inset-0 target:z-50 target:block target:bg-fg/50'
+          }
+        >
+          <span tabIndex={0} onFocus={() => search.focusEdge('last')} data-focus-guard="start" />
+          <div className="bg-surface px-(--layout-gutter) py-4 shadow-card">
+            <div className="flex items-center gap-2">
+              <SearchField className="min-w-0 flex-1" inputRef={searchInputRef} onSearch={search.close} showButton />
+              <a
+                ref={searchCloseRef}
+                href="#cerrar-buscador"
+                aria-label="Cerrar buscador"
+                data-testid="search-close"
+                onClick={(event) => {
+                  event.preventDefault();
+                  search.close();
+                }}
+                className={iconButton}
+              >
+                <X aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+          <span tabIndex={0} onFocus={() => search.focusEdge('first')} data-focus-guard="end" />
         </div>
       </div>
 

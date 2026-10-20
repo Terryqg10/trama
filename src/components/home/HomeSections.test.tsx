@@ -2,12 +2,13 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { TopBar } from '../layout/TopBar';
 import { catalogRowSchema, toCatalogProduct } from '@/lib/catalog/product';
-import { FREE_SHIPPING_THRESHOLD_CENTS, RETURN_WINDOW_DAYS, formatEuros } from '@/lib/domain/shop';
+import { FREE_SHIPPING_THRESHOLD_CENTS, formatEuros } from '@/lib/domain/shop';
+import { AutumnBanner } from './AutumnBanner';
 import { ExploreSection } from './ExploreSection';
 import { NEW_ARRIVALS_LIMIT, NewArrivalsView } from './NewArrivals';
 import { ShippingBanner } from './ShippingBanner';
 
-// CA-81, CA-83, CA-84 y CA-85 (nivel de componente). El e2e `top-bar` y `home-sections` los comprueban en el navegador.
+// CA-81, CA-83, CA-94, CA-98 y CA-85 (nivel de componente). El e2e `top-bar` y `home-sections` los comprueban en el navegador.
 
 function product(index: number) {
   return toCatalogProduct(
@@ -26,12 +27,12 @@ function product(index: number) {
   );
 }
 
-describe('TopBar (CA-81)', () => {
-  it('muestra el umbral y los días de las constantes de la tienda, nunca un importe a mano', () => {
+describe('TopBar (CA-81, CA-94)', () => {
+  it('muestra la colección y el umbral de la constante de la tienda, nunca un importe a mano', () => {
     render(<TopBar />);
     const bar = screen.getByTestId('top-bar');
     expect(bar.textContent).toContain(`Envío gratis a partir de ${formatEuros(FREE_SHIPPING_THRESHOLD_CENTS)}`);
-    expect(bar.textContent).toContain(`Devoluciones gratuitas en ${RETURN_WINDOW_DAYS} días`);
+    expect(bar.textContent).toContain('Nueva colección Otoño/Invierno ya disponible');
     expect(bar.textContent).not.toContain('49,99');
   });
 
@@ -54,12 +55,29 @@ describe('ExploreSection (CA-83)', () => {
   });
 });
 
-describe('ShippingBanner (CA-84)', () => {
-  it('dice el umbral real de envío gratis', () => {
+describe('ShippingBanner (CA-98)', () => {
+  it('dice el umbral real de envío gratis, no un importe a mano', () => {
     render(<ShippingBanner />);
-    expect(screen.getByTestId('shipping-banner').textContent).toBe(
-      `Envío gratis en pedidos superiores a ${formatEuros(FREE_SHIPPING_THRESHOLD_CENTS)}`,
+    expect(screen.getByTestId('shipping-banner-text').textContent).toBe(
+      `Envío gratis a partir de ${formatEuros(FREE_SHIPPING_THRESHOLD_CENTS)}`,
     );
+    expect(screen.getByTestId('shipping-banner').textContent).not.toContain('49,99');
+  });
+
+  it('lleva la foto decorativa de fondo y un velo oscuro con tokens (fg), sin negro ni valores arbitrarios', () => {
+    const { container } = render(<ShippingBanner />);
+    expect(container.querySelector('img')?.getAttribute('alt')).toBe('');
+    const veil = container.querySelector('div[aria-hidden="true"]');
+    expect(veil?.className).toContain('bg-fg/70');
+    const classes = screen.getByTestId('shipping-banner').className + (veil?.className ?? '');
+    expect(classes).not.toMatch(/black|\[[^\]]+\]/);
+  });
+
+  it('mide 224 px en móvil y 320 px desde md (h-56 y md:h-80)', () => {
+    render(<ShippingBanner />);
+    const classes = screen.getByTestId('shipping-banner').className;
+    expect(classes).toContain('h-56');
+    expect(classes).toContain('md:h-80');
   });
 });
 
@@ -78,5 +96,21 @@ describe('NewArrivalsView (CA-85)', () => {
 
   it('el máximo de novedades es 8', () => {
     expect(NEW_ARRIVALS_LIMIT).toBe(8);
+  });
+});
+
+describe('AutumnBanner (CA-95)', () => {
+  it('muestra el mensaje y el botón «Ver abrigos» hacia /hombre', () => {
+    render(<AutumnBanner />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Prepárate para el frío' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Ver abrigos' }).getAttribute('href')).toBe('/hombre');
+  });
+
+  it('la foto es decorativa y el degradado usa tokens (fg), no valores arbitrarios', () => {
+    const { container } = render(<AutumnBanner />);
+    expect(container.querySelector('img')?.getAttribute('alt')).toBe('');
+    const gradient = container.querySelector('div[aria-hidden="true"]');
+    expect(gradient?.className).toContain('from-fg/90');
+    expect(gradient?.className).not.toMatch(/black|\[[^\]]+\]/);
   });
 });
