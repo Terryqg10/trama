@@ -21,3 +21,19 @@
     transform: none !important;
   }
 }
+
+/*
+ * Bandas a sangre alineadas con el contenedor de la página (CA-115, T-070). `.band` es un contenedor de tamaño en línea:
+ * `cqw` mide el ancho de la banda SIN la barra de scroll (`100vw` la incluiría y desalinearía el texto unos píxeles).
+ * `.band-inset-start` / `-end` dan al texto el margen que lo pone donde empieza el contenido del contenedor (la mitad de lo
+ * que sobra a cada lado más el margen lateral; en pantallas estrechas, solo el margen lateral). Solo tokens: `--layout-container` y `--layout-gutter`.
+ */
+.band {
+  container-type: inline-size;
+}
+.band-inset-start {
+  padding-inline-start: calc(max(0px, (100cqw - var(--layout-container)) / 2) + var(--layout-gutter));
+}
+.band-inset-end {
+  padding-inline-end: calc(max(0px, (100cqw - var(--layout-container)) / 2) + var(--layout-gutter));
+}

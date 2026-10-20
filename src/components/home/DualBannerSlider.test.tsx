@@ -60,7 +60,7 @@ describe('DualBannerSlider: estructura (CA-112)', () => {
     const scrim = container.querySelector('[data-testid="dual-banner-card"] div[aria-hidden="true"]');
     expect(scrim?.className).toContain('from-fg/90');
     expect(container.innerHTML).not.toMatch(/bg-black|\[[0-9#][^\]]*\]/);
-    expect(screen.getAllByTestId('dual-banner-text')[0]?.className).toContain('text-accent-fg');
+    expect(screen.getAllByTestId('dual-banner-text')[0]?.closest('.text-accent-fg')).not.toBeNull();
   });
 
   it('el slide que no se ve es inert y la capa se funde con transition-opacity (sin transición con reduced-motion)', () => {
@@ -149,5 +149,33 @@ describe('DualBannerSlider: cambio automático (CA-113)', () => {
     for (const button of within(screen.getByTestId('dual-banner-controls')).getAllByRole('button')) {
       expect(button.className).toContain('size-11');
     }
+  });
+});
+
+describe('DualBannerSlider: a sangre y alineado con el contenedor (CA-115)', () => {
+  it('no lleva contenedor con ancho máximo, esquinas redondeadas ni hueco entre las tarjetas', () => {
+    const { container } = render(<DualBannerSlider slides={DUAL_BANNER_SLIDES} />);
+    const html = container.innerHTML;
+    expect(html).not.toContain('rounded-card');
+    expect(html).not.toMatch(/gap-d/);
+    expect(screen.getByTestId('dual-banner').className).toContain('w-full');
+    expect(screen.getByTestId('dual-banner').className).toContain('band');
+  });
+
+  it('el texto de la tarjeta izquierda se alinea con el contenedor (band-inset-start) y el de la derecha usa el margen lateral', () => {
+    render(<DualBannerSlider slides={DUAL_BANNER_SLIDES} />);
+    const [left, right] = screen.getAllByTestId('dual-banner-text');
+    expect(left?.parentElement?.className).toContain('band-inset-start');
+    expect(right?.parentElement?.className).toContain('band-inset-end');
+    expect(right?.parentElement?.className).toContain('ps-(--layout-gutter)');
+  });
+
+  it('los controles van dentro de la imagen, abajo y centrados, con z-10', () => {
+    render(<DualBannerSlider slides={DUAL_BANNER_SLIDES} />);
+    const controls = screen.getByTestId('dual-banner-controls');
+    expect(controls.className).toContain('absolute');
+    expect(controls.className).toContain('z-10');
+    expect(controls.className).toContain('left-1/2');
+    expect(controls.className).toContain('bottom-4');
   });
 });

@@ -117,7 +117,8 @@ describe('HeroSlider: controles (CA-87)', () => {
 
   it('flechas y puntos tienen nombre accesible y el punto activo lo indica con aria-current', () => {
     render(<HeroSlider slides={HERO_SLIDES} />);
-    const controls = within(screen.getByTestId('hero-controls'));
+    // Las flechas están a los lados y los puntos en la píldora de abajo (CA-114): se buscan en todo el slider.
+    const controls = within(screen.getByTestId('hero-slider'));
     expect(controls.getByRole('button', { name: 'Slide anterior' })).toBeTruthy();
     expect(controls.getByRole('button', { name: 'Slide siguiente' })).toBeTruthy();
     const dots = controls.getAllByRole('button', { name: /^Ir a la slide/ });
@@ -137,7 +138,7 @@ describe('HeroSlider: controles (CA-87)', () => {
 
   it('los controles miden al menos 44 × 44 px (size-11)', () => {
     render(<HeroSlider slides={HERO_SLIDES} />);
-    for (const button of within(screen.getByTestId('hero-controls')).getAllByRole('button')) {
+    for (const button of within(screen.getByTestId('hero-slider')).getAllByRole('button')) {
       expect(button.className).toContain('size-11');
     }
   });
@@ -201,5 +202,46 @@ describe('HeroSlider: autoplay (CA-88)', () => {
     expect(screen.queryByRole('button', { name: /cambio automático/ })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Slide siguiente' }));
     expect(embla.scrollNext).toHaveBeenCalledWith(true);
+  });
+});
+
+describe('HeroSlider: controles dentro de la imagen (CA-114)', () => {
+  it('las flechas son absolutas, con z-10 y están a cada lado; los puntos, abajo y centrados con z-10', () => {
+    render(<HeroSlider slides={HERO_SLIDES} />);
+    const prev = screen.getByTestId('hero-prev');
+    const next = screen.getByTestId('hero-next');
+    const pill = screen.getByTestId('hero-controls');
+    for (const target of [prev, next, pill]) {
+      expect(target.className).toContain('absolute');
+      expect(target.className).toContain('z-10');
+    }
+    expect(prev.className).toContain('left-3');
+    expect(next.className).toContain('right-3');
+    expect(pill.className).toContain('left-1/2');
+    expect(pill.className).toContain('-translate-x-1/2');
+    expect(pill.className).toContain('bottom-4');
+  });
+
+  it('el orden del DOM sigue el visual: anterior, puntos, siguiente', () => {
+    render(<HeroSlider slides={HERO_SLIDES} />);
+    const names = within(screen.getByTestId('hero-slider'))
+      .getAllByRole('button')
+      .map((button) => button.getAttribute('aria-label'));
+    expect(names.slice(0, 5)).toEqual([
+      'Slide anterior',
+      'Ir a la slide 1: Nueva colección',
+      'Ir a la slide 2: Estilo urbano',
+      'Ir a la slide 3: Kawaii style',
+      expect.stringContaining('cambio automático'),
+    ]);
+    expect(names.at(-1)).toBe('Slide siguiente');
+  });
+
+  it('los controles llevan un fondo semitransparente de token (fg/70) y no empujan el diseño (son absolutos)', () => {
+    render(<HeroSlider slides={HERO_SLIDES} />);
+    for (const target of [screen.getByTestId('hero-prev'), screen.getByTestId('hero-next'), screen.getByTestId('hero-controls')]) {
+      expect(target.className).toContain('bg-fg/70');
+      expect(target.className).not.toMatch(/bg-black|[[^]]+]/);
+    }
   });
 });

@@ -22,6 +22,10 @@ export interface HeroSlide {
 
 export const AUTOPLAY_MS = 5000;
 
+/** Flechas laterales (CA-114): en el tercio superior en móvil, para no tapar el texto, y centradas en vertical desde `md`. */
+const arrowClass =
+  'absolute top-1/3 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-fg/70 text-accent-fg hover:bg-fg/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-fg md:top-1/2';
+
 const controlClass =
   'inline-flex size-11 items-center justify-center rounded-full text-accent-fg hover:bg-accent-fg/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-fg';
 
@@ -139,7 +143,7 @@ export function HeroSlider({ slides }: { readonly slides: readonly HeroSlide[] }
                 />
                 <div
                   data-testid="hero-text"
-                  className="absolute inset-x-0 bottom-14 p-6 text-accent-fg sm:p-8 md:bottom-16 md:max-w-3xl md:p-12 lg:bottom-20 lg:p-16"
+                  className="absolute inset-x-0 bottom-14 p-6 text-accent-fg sm:p-8 md:bottom-16 md:max-w-3xl md:p-12 md:pl-20 lg:bottom-20 lg:p-16 lg:pl-24"
                 >
                   <Title className="mt-2 text-display font-bold">{slide.title}</Title>
                   <p className="mt-2 text-lg font-semibold">{slide.subtitle}</p>
@@ -156,13 +160,20 @@ export function HeroSlider({ slides }: { readonly slides: readonly HeroSlide[] }
         </div>
       </div>
 
+      {/* Flechas a los lados y puntos abajo y centrados, dentro de la foto y por encima del degradado (z-10). */}
+      <button
+        type="button"
+        aria-label="Slide anterior"
+        data-testid="hero-prev"
+        onClick={prev}
+        className={`${arrowClass} left-3 md:left-6`}
+      >
+        <ChevronLeft aria-hidden="true" className="size-6" />
+      </button>
       <div
         data-testid="hero-controls"
-        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center rounded-full bg-fg/70 px-1 md:left-12 md:translate-x-0 lg:left-16"
+        className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center rounded-full bg-fg/70 px-1"
       >
-        <button type="button" aria-label="Slide anterior" onClick={prev} className={controlClass}>
-          <ChevronLeft aria-hidden="true" className="size-6" />
-        </button>
         <ul className="flex items-center">
           {slides.map((slide, index) => (
             <li key={slide.id}>
@@ -181,9 +192,6 @@ export function HeroSlider({ slides }: { readonly slides: readonly HeroSlide[] }
             </li>
           ))}
         </ul>
-        <button type="button" aria-label="Slide siguiente" onClick={next} className={controlClass}>
-          <ChevronRight aria-hidden="true" className="size-6" />
-        </button>
         {reduced ? null : (
           <button
             type="button"
@@ -197,6 +205,15 @@ export function HeroSlider({ slides }: { readonly slides: readonly HeroSlide[] }
           </button>
         )}
       </div>
+      <button
+        type="button"
+        aria-label="Slide siguiente"
+        data-testid="hero-next"
+        onClick={next}
+        className={`${arrowClass} right-3 md:right-6`}
+      >
+        <ChevronRight aria-hidden="true" className="size-6" />
+      </button>
     </section>
   );
 }

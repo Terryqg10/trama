@@ -509,3 +509,25 @@ Las tareas nuevas siguen desde T-068.
 - Las fotos son de 16:9 y las tarjetas de 4:3: `object-cover` recorta los lados (los sujetos están centrados).
 
 Las tareas nuevas siguen desde T-069.
+
+### Enmienda 20 — 2026-10-21 — sin ADR — controles del hero y estructura a sangre / en contenedor
+
+**Origen:** Enmienda 30 de SPEC-001 (CA-114 y CA-115). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-069** | Flechas laterales y puntos abajo y centrados dentro del hero, con `z-10` y fondo semitransparente | CA-114 | T-049 |
+| **T-070** | Bandas a sangre (hero, dividido, otoño, envío) y secciones en contenedor; texto alineado con el contenedor | CA-115 | T-068, T-069 |
+
+**Decisiones de UI:**
+- **Tokens, no `max-w-7xl px-gutter`:** el encargo escribía esas clases de Tailwind; el contenedor del estilo es
+  `max-w-(--layout-container)` (72 rem) y el margen `px-(--layout-gutter)`. Se usan los tokens.
+- **Alineación con el contenedor** con unidades de contenedor (`cqw`) en una clase de `globals.css` (`band-inset-*`): `100vw`
+  incluiría la barra de scroll y desalinearía el texto unos píxeles. Es el único CSS nuevo.
+- **Alturas fijas** (`h-80`, `h-96`, `lg:h-112`) en lugar de proporciones: a sangre en una pantalla de 2560 px, 4:3 daría
+  banners de casi mil píxeles de alto.
+- Los banners a sangre no llevan esquinas redondeadas ni hueco entre las dos tarjetas.
+- El texto va centrado en vertical dentro de cada tarjeta (como pidió el usuario), así que el degradado es más uniforme.
+- Convención del sector: bandas a sangre alternadas con rejillas en contenedor (Zara, ASOS, H&M); sin desvío.
+
+Las tareas nuevas siguen desde T-071.

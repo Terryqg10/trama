@@ -822,3 +822,29 @@ repite lo que dicen el banner y las propuestas de valor; y quiere movimiento en 
 | CA-113 | RF-23 | El banner dividido con el movimiento permitido | Pasan 5 s | Las dos tarjetas pasan a las dos siguientes con un fundido cruzado (opacidad) y vuelven al primero; se detiene con ratón, foco o botón de pausa; los puntos eligen el slide; el slide que no se ve no recibe foco ni lo leen los lectores; con reduced-motion no hay cambio automático ni fundido | test e2e `dual-banner` y unitario |
 
 **Nuevas tareas derivadas:** T-068 (`DualBannerSlider`).
+
+### Enmienda 30 — 2026-10-21 — sin ADR — controles del hero y bandas a sangre frente a secciones en contenedor (CA-114 y CA-115)
+
+**Origen:** el usuario ve mal los controles del hero y la mezcla de anchos de la portada (banners dentro del contenedor y
+otros a sangre).
+
+**Qué cambia:**
+- **Controles del hero (CA-87 se precisa):** las flechas van a los lados de la foto, centradas en vertical, y los puntos
+  (con el botón de pausa) abajo y centrados, todo dentro de la imagen, por encima del degradado (`z-10`) y sobre un fondo
+  semitransparente que contrasta con cualquier foto. Nada de esto empuja el diseño.
+- **Bandas a sangre:** el hero, el banner dividido, el banner de otoño y el banner de envío ocupan todo el ancho de la
+  ventana, sin contenedor. Las secciones «Explora», «Novedades» y «Compra con tranquilidad» van en el contenedor de la página
+  (`--layout-container`, 72 rem, con el margen lateral `--layout-gutter`).
+- **Alineación del texto:** aunque la foto ocupe todo el ancho, el texto del banner dividido y del banner de otoño se alinea
+  con el borde del contenedor (en pantallas anchas) y nunca se acerca al borde de la ventana más que el margen lateral.
+- **CA-95 y CA-112 se ajustan** en lo que decían de la forma (tarjetas redondeadas dentro del contenedor): ahora las
+  tarjetas son de ancho completo, sin esquinas redondeadas ni hueco entre ellas. Lo demás (enlaces, contraste, apilado en
+  móvil, fundido, pausa) se mantiene.
+- Los controles del banner dividido pasan de estar debajo a estar dentro de la imagen, abajo y centrados (como en el hero).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-114 | RF-23 | El hero | Se abre a 375 px y a 1280 px | Las flechas están dentro de la foto, una a cada lado (centradas en vertical desde 768 px y en el tercio superior en móvil); los puntos y la pausa, dentro de la foto, abajo y centrados; todos con `z-10`, 44 px y contraste ≥ 3:1 con el fondo real; el hero mantiene su alto y no se desplaza nada hacia abajo | test e2e `home-hero` |
+| CA-115 | RF-23 | La portada | Se abre de 320 a 1920 px | El hero, el banner dividido, el banner de otoño y el banner de envío miden el ancho de la ventana; «Explora», «Novedades» y «Compra con tranquilidad» no pasan de 72 rem y están centradas; el texto de los banners dividido y de otoño empieza en el borde del contenedor (o a un margen lateral en pantallas estrechas); sin scroll horizontal | test e2e `home-layout` |
+
+**Nuevas tareas derivadas:** T-069 (controles del hero) y T-070 (bandas a sangre y secciones en contenedor).

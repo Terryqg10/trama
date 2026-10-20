@@ -182,7 +182,7 @@ test.describe('Controles del slider (CA-87)', () => {
   });
 
   test('las flechas y los puntos tienen nombre y miden al menos 44 × 44 px', async ({ page }) => {
-    const controls = page.getByTestId('hero-controls').getByRole('button');
+    const controls = slider(page).getByRole('button');
     // Anterior, tres puntos y siguiente: con menos movimiento no hay botón de pausa (sale tras hidratar).
     await expect(controls).toHaveCount(5);
     const count = await controls.count();
@@ -356,5 +356,118 @@ test.describe('Autoplay (CA-88)', () => {
     await page.clock.runFor(30_000);
     await expect(dot(page, 0)).toHaveAttribute('aria-current', 'true');
     await expect(slider(page).getByRole('button', { name: /cambio automático/ })).toHaveCount(0);
+  });
+});
+
+// CA-114 (T-069): las flechas están a los lados de la foto y los puntos (con la pausa) abajo y centrados, todo dentro de
+// la imagen, por encima del degradado (z-index 10), con 44 px y contraste suficiente con la foto real.
+test.describe('Controles dentro de la imagen (CA-114)', () => {
+  const prev = (page: Page) => page.getByTestId('hero-prev');
+  const next = (page: Page) => page.getByTestId('hero-next');
+  const pill = (page: Page) => page.getByTestId('hero-controls');
+
+  for (const width of [320, 375, 767, 768, 1280, 1920]) {
+    test(`a ${width} px las flechas están a los lados y los puntos abajo y centrados, dentro de la foto`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      await expect(dot(page, 0)).toHaveAttribute('aria-current', 'true');
+      await decodedImage(page, 0);
+      const area = await slider(page).boundingBox();
+      const left = await prev(page).boundingBox();
+      const right = await next(page).boundingBox();
+      const dots = await pill(page).boundingBox();
+      expect(area && left && right && dots).toBeTruthy();
+      if (!area || !left || !right || !dots) return;
+      const inside = (b: { x: number; y: number; width: number; height: number }): boolean =>
+        b.x >= area.x - 0.5 && b.y >= area.y - 0.5 && b.x + b.width <= area.x + area.width + 0.5 && b.y + b.height <= area.y + area.height + 0.5;
+      expect(inside(left), 'flecha izquierda dentro de la foto').toBe(true);
+      expect(inside(right), 'flecha derecha dentro de la foto').toBe(true);
+      expect(inside(dots), 'puntos dentro de la foto').toBe(true);
+      // Una a cada lado.
+      expect(left.x - area.x).toBeLessThanOrEqual(30);
+      expect(area.x + area.width - (right.x + right.width)).toBeLessThanOrEqual(30);
+      // Verticalmente: centradas desde 768 px y en el tercio superior en móvil (para no tapar el texto).
+      const centreY = left.y + left.height / 2 - area.y;
+      if (width >= 768) expect(Math.abs(centreY - area.height / 2)).toBeLessThanOrEqual(3);
+      else expect(centreY).toBeLessThanOrEqual(area.height * 0.4);
+      // Los puntos, abajo y centrados.
+      expect(Math.abs(dots.x + dots.width / 2 - (area.x + area.width / 2))).toBeLessThanOrEqual(2);
+      expect(area.y + area.height - (dots.y + dots.height)).toBeLessThanOrEqual(24);
+      expect(dots.y).toBeGreaterThan(area.y + area.height / 2);
+    });
+  }
+
+  test('las flechas y los puntos están por encima del degradado (z-index 10) y miden 44 × 44 px', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/');
+    await expect(dot(page, 0)).toHaveAttribute('aria-current', 'true');
+    for (const target of [prev(page), next(page), pill(page)]) {
+      expect(await target.evaluate((el) => getComputedStyle(el).zIndex)).toBe('10');
+      expect(await target.evaluate((el) => getComputedStyle(el).position)).toBe('absolute');
+    }
+    for (const target of [prev(page), next(page)]) {
+      const box = await target.boundingBox();
+      expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  test('ninguna flecha ni punto tapa el texto ni el botón de la slide', async ({ page }) => {
+    for (const width of [320, 375, 768, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      await decodedImage(page, 0);
+      // Se mide el texto real (con un Range), no la caja del bloque, que ocupa todo el ancho disponible.
+      const text = await slide(page, 0).getByTestId('hero-text').locator('h1, p, a').evaluateAll((items) =>
+        items.map((item) => {
+          const range = document.createRange();
+          range.selectNodeContents(item);
+          return range.getBoundingClientRect().toJSON() as { x: number; y: number; right: number; bottom: number };
+        }),
+      );
+      for (const target of [prev(page), next(page), pill(page)]) {
+        const b = await target.boundingBox();
+        if (!b) throw new Error('sin caja');
+        for (const t of text) {
+          const overlap = b.x < t.right && b.x + b.width > t.x && b.y < t.bottom && b.y + b.height > t.y;
+          expect(overlap, `controles sobre el texto a ${width}px`).toBe(false);
+        }
+      }
+    }
+  });
+
+  test('el contraste de los controles con la foto real es de al menos 3:1 (iconos blancos sobre bg-fg/70)', async ({ page }) => {
+    for (const width of [375, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      await expect(dot(page, 0)).toHaveAttribute('aria-current', 'true');
+      for (let index = 0; index < 3; index++) {
+        if (index > 0) await goTo(page, index);
+        await decodedImage(page, index);
+        for (const target of [prev(page), next(page), pill(page)]) {
+          const shot = await target.screenshot();
+          const { data, info } = await sharp(shot).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+          const at = (x: number, y: number): number => {
+            const i = (Math.min(info.height - 1, Math.max(0, y)) * info.width + Math.min(info.width - 1, Math.max(0, x))) * info.channels;
+            return luminance(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0);
+          };
+          // Fondo de la píldora o del círculo: muestras cerca de los bordes (lejos del icono), a media altura y arriba/abajo.
+          const samples = [at(8, Math.floor(info.height / 2)), at(info.width - 9, Math.floor(info.height / 2)), at(Math.floor(info.width / 2), 8), at(Math.floor(info.width / 2), info.height - 9)];
+          const white = luminance(255, 255, 255);
+          for (const sample of samples) expect(contrast(white, sample), `contraste a ${width}px, slide ${index + 1}`).toBeGreaterThanOrEqual(3);
+        }
+      }
+    }
+  });
+
+  test('el hero mantiene su alto: la foto y el slider miden lo mismo (los controles no empujan nada)', async ({ page }) => {
+    for (const width of [375, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      await decodedImage(page, 0);
+      const area = await slider(page).boundingBox();
+      const image = await slide(page, 0).locator('img').boundingBox();
+      expect(Math.abs((area?.height ?? 0) - (image?.height ?? 99))).toBeLessThanOrEqual(1);
+    }
   });
 });
