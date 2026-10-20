@@ -1,6 +1,8 @@
 import { PageContainer } from '@/components/PageContainer';
 import { AnimatedSection } from '@/components/home/AnimatedSection';
 import { AutumnBanner } from '@/components/home/AutumnBanner';
+import { DUAL_BANNER_SLIDES } from '@/components/home/dual-banner-slides';
+import { DualBannerSlider } from '@/components/home/DualBannerSlider';
 import { ExploreSection } from '@/components/home/ExploreSection';
 import { HERO_SLIDES } from '@/components/home/hero-slides';
 import { NewArrivals } from '@/components/home/NewArrivals';
@@ -19,6 +21,9 @@ export default function Home() {
       <PageContainer>
         <AnimatedSection>
           <ExploreSection />
+        </AnimatedSection>
+        <AnimatedSection className="mt-10">
+          <DualBannerSlider slides={DUAL_BANNER_SLIDES} />
         </AnimatedSection>
         <AnimatedSection className="mt-10">
           <AutumnBanner />

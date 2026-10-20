@@ -801,3 +801,24 @@ repite lo que dicen el banner y las propuestas de valor; y quiere movimiento en 
 | CA-111 | RF-16 | La portada | Se llega a la sección de confianza | Hay cuatro tarjetas con icono, título y texto (envío con tarifa y umbral, devolución a 30 días, pago seguro y seguimiento de pedido con enlace a la cuenta), la nota de política de ejemplo y un enlace a las condiciones; sin asteriscos; tres propuestas de valor ya no aparecen sobre el newsletter; 1 columna en móvil, 2 desde 640 px y 4 desde 1024 px, sin scroll horizontal | test e2e `shipping` y `trust-section` |
 
 **Nuevas tareas derivadas:** T-065 (logo), T-066 (barra de anuncios rotativa) y T-067 (sección de confianza).
+
+### Enmienda 29 — 2026-10-21 — sin ADR — banner dividido con fundido (CA-112 y CA-113)
+
+**Origen:** el usuario pide un banner de dos columnas bajo «Explora» que cambie solo de imágenes con un fundido suave.
+
+**Qué cambia:**
+- RF-23 (portada) añade un **banner dividido** (`DualBannerSlider`) con dos «slides» de dos tarjetas cada uno, bajo Explora.
+- Como cambia solo, lleva **botón de pausa** y puntos para elegir el slide (WCAG 2.2.2); se detiene con ratón y foco; con
+  `prefers-reduced-motion` no hay cambio automático ni fundido (se elige a mano con los puntos).
+- **Textos de ejemplo según las fotos** (el encargo pedía «Colección Otoño» y «Calzado Urbano», inventados): una gabardina
+  («Colección otoño»), un chico con sudadera verde («Sudaderas esenciales»), una chica con jersey de punto («Punto y
+  jerséis») y unas botas negras («Calzado urbano»). **Trama no vende calzado:** esa tarjeta enlaza a Novedades (VERIFICAR
+  antes de usarla en una tienda real). Los demás enlaces usan filtros que existen (`/hombre?categoria=sudaderas`,
+  `/mujer?categoria=jerseis`).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-112 | RF-23 | La portada | Se llega al banner dividido (justo debajo de Explora) | A 768 px o más hay dos tarjetas en dos columnas iguales y por debajo se apilan en una; cada una con foto que cubre toda la tarjeta (`object-cover`), degradado oscuro, subtítulo, título grande y un botón con enlace válido; el texto cumple AA sobre la foto en los dos slides; sin scroll horizontal de 320 a 1280 px | test e2e `dual-banner` y unitario |
+| CA-113 | RF-23 | El banner dividido con el movimiento permitido | Pasan 5 s | Las dos tarjetas pasan a las dos siguientes con un fundido cruzado (opacidad) y vuelven al primero; se detiene con ratón, foco o botón de pausa; los puntos eligen el slide; el slide que no se ve no recibe foco ni lo leen los lectores; con reduced-motion no hay cambio automático ni fundido | test e2e `dual-banner` y unitario |
+
+**Nuevas tareas derivadas:** T-068 (`DualBannerSlider`).

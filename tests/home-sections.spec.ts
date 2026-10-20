@@ -255,8 +255,8 @@ test.describe('entrada animada de las secciones (CA-90)', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
     const sections = page.locator('[data-reveal]');
-    await expect(sections).toHaveCount(4);
-    const banner = sections.nth(2);
+    await expect(sections).toHaveCount(5);
+    const banner = sections.nth(3);
     // Está por debajo del primer pantallazo: aún no ha entrado.
     await expect(banner).toHaveCSS('opacity', '0');
     expect(await banner.evaluate((el) => getComputedStyle(el).transform)).toBe('matrix(1, 0, 0, 1, 0, 20)');
@@ -270,7 +270,7 @@ test.describe('entrada animada de las secciones (CA-90)', () => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
-    const banner = page.locator('[data-reveal]').nth(2);
+    const banner = page.locator('[data-reveal]').nth(3);
     await banner.scrollIntoViewIfNeeded();
     await expect(banner).toHaveCSS('opacity', '1');
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -299,7 +299,7 @@ test.describe('entrada animada de las secciones (CA-90)', () => {
     test('las secciones se ven igualmente', async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 800 });
       await page.goto('/');
-      const wrapper = page.locator('[data-reveal]').nth(2);
+      const wrapper = page.locator('[data-reveal]').nth(3);
       await expect(wrapper).toHaveCSS('opacity', '1');
       expect(transformIsNone(await wrapper.evaluate((el) => getComputedStyle(el).transform))).toBe(true);
       await expect(page.getByTestId('shipping-banner')).toBeVisible();

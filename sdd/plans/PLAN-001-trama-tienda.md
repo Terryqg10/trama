@@ -491,3 +491,21 @@ Las tareas nuevas siguen desde T-065.
   de valor y bloque de envío). La ficha y el carrito conservan `ShippingInfo`, que RF-16 pide visible allí.
 
 Las tareas nuevas siguen desde T-068.
+
+### Enmienda 19 — 2026-10-21 — sin ADR — banner dividido con fundido
+
+**Origen:** Enmienda 29 de SPEC-001 (CA-112 y CA-113). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-068** | `DualBannerSlider`: dos slides de dos tarjetas con fundido cruzado, pausa y puntos | CA-112, CA-113 | T-048 |
+
+**Decisiones de UI:**
+- Dos tarjetas lado a lado con CTA en cada una y cambio automático con fundido: convención del sector (ASOS, Zara, H&M).
+- **Fundido cruzado con Tailwind** (`transition-opacity`, `motion-reduce:transition-none`) y no con `motion`: solo se anima
+  `opacity`, y las dos capas conviven en la misma celda de una rejilla (la altura es la de la más alta, sin saltos).
+- **Temporizador propio** de 5 s, como en el hero (T-049); pausa por ratón, foco y botón.
+- El encargo decía `useEffect` con `setInterval`: así se hace, con `usePrefersReducedMotion` para el movimiento.
+- Las fotos son de 16:9 y las tarjetas de 4:3: `object-cover` recorta los lados (los sujetos están centrados).
+
+Las tareas nuevas siguen desde T-069.
