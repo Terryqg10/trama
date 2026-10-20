@@ -307,54 +307,90 @@ test.describe('entrada animada de las secciones (CA-90)', () => {
   });
 });
 
-// CA-95 (T-054): banner de otoño bajo Explora, con foto de fondo, mensaje, botón y texto legible sobre un degradado.
+// CA-116 (T-071): sección «Prepárate para el frío» con carrusel de cuatro tarjetas de categoría.
 
-test.describe('banner de otoño (CA-95)', () => {
+const COLD_TILES = [
+  ['Abrigos', '/mujer?categoria=abrigos'],
+  ['Jerséis', '/mujer?categoria=jerseis'],
+  ['Chaquetas', '/hombre?categoria=chaquetas'],
+  ['Sudaderas', '/hombre?categoria=sudaderas'],
+] as const;
+
+test.describe('Prepárate para el frío (CA-116)', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('está justo debajo de Explora, con el mensaje y «Ver abrigos» hacia /hombre', async ({ page }) => {
+  test('está bajo el banner dividido, con título y cuatro tarjetas con enlace válido, foto y zona táctil ≥ 44 px', async ({ page }) => {
     await open(page);
-    const explore = await page.getByRole('region', { name: 'Explora' }).boundingBox();
-    const banner = page.getByTestId('autumn-banner');
-    await expect(banner.getByRole('heading', { level: 2, name: 'Prepárate para el frío' })).toBeVisible();
-    const link = banner.getByRole('link', { name: 'Ver abrigos' });
-    await expect(link).toHaveAttribute('href', '/hombre');
-    const box = await banner.boundingBox();
-    expect(box?.y ?? 0).toBeGreaterThan((explore?.y ?? 0) + (explore?.height ?? 0) - 1);
-    // Entre Explora y el banner de envío gratis, y no más abajo.
-    const shipping = await page.getByTestId('shipping-banner').boundingBox();
-    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual((shipping?.y ?? 0) + 1);
-    await link.click();
-    await expect(page).toHaveURL(/\/hombre$/);
+    const section = page.getByTestId('cold-section');
+    await expect(section.getByRole('heading', { level: 2, name: 'Prepárate para el frío' })).toBeVisible();
+    const dual = await page.getByTestId('dual-banner').boundingBox();
+    const box = await section.boundingBox();
+    expect(box?.y ?? 0).toBeGreaterThan((dual?.y ?? 0) + (dual?.height ?? 0) - 1);
+    const tiles = section.getByTestId('cold-tile');
+    await expect(tiles).toHaveCount(4);
+    for (const [index, [label, href]] of COLD_TILES.entries()) {
+      const tile = tiles.nth(index);
+      await expect(tile).toHaveAttribute('href', href);
+      await expect(tile).toContainText(label);
+      await tile.scrollIntoViewIfNeeded();
+      const img = tile.locator('img');
+      await img.evaluate((el) => (el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : undefined));
+      expect(await img.evaluate((el) => (el instanceof HTMLImageElement ? el.naturalWidth : 0))).toBeGreaterThan(0);
+      const size = await tile.boundingBox();
+      expect(size?.width ?? 0).toBeGreaterThanOrEqual(44);
+      expect(size?.height ?? 0).toBeGreaterThanOrEqual(44);
+    }
   });
 
-  test('la foto de otoño carga como fondo y el degradado usa un token', async ({ page }) => {
-    await open(page);
-    const banner = page.getByTestId('autumn-banner');
-    const img = banner.locator('img');
-    await img.scrollIntoViewIfNeeded();
-    const loaded = await img.evaluate(async (el) => {
-      if (!(el instanceof HTMLImageElement)) return false;
-      await el.decode().catch(() => undefined);
-      return el.naturalWidth > 0 && el.currentSrc.includes('banner-otono');
-    });
-    expect(loaded).toBe(true);
-    const gradient = await banner.locator('div[aria-hidden="true"]').evaluate((el) => getComputedStyle(el).backgroundImage);
-    expect(gradient).toContain('linear-gradient');
-    expect(Number(/oklab\(([\d.]+)/.exec(gradient)?.[1] ?? '0')).toBeGreaterThan(0.1);
+  test('cada tarjeta lleva a un listado con productos', async ({ page }) => {
+    for (const [, href] of COLD_TILES) {
+      await open(page);
+      await page.getByTestId('cold-section').locator(`a[href="${href}"]`).click();
+      await expect(page).toHaveURL(new RegExp(href.replace('?', '\\?')));
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      expect(await page.locator('main a[href^="/producto/"]').count(), href).toBeGreaterThan(0);
+    }
   });
 
-  for (const width of [320, 375, 768, 1024, 1280]) {
-    test(`sin scroll horizontal y con el texto AA (4,5:1) a ${width} px`, async ({ page }) => {
+  test('desde 768 px son 4 columnas en el contenedor y en móvil se desliza con imán', async ({ page }) => {
+    await open(page, 1280);
+    const wide = await page.getByTestId('cold-section').boundingBox();
+    expect(wide?.width ?? 0).toBeLessThanOrEqual(1152);
+    const tops = await page.getByTestId('cold-tile').evaluateAll((items) => items.map((i) => Math.round(i.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(1);
+    await open(page, 375);
+    const list = page.getByTestId('cold-list');
+    await list.scrollIntoViewIfNeeded();
+    const styles = await list.evaluate((el) => ({ snap: getComputedStyle(el).scrollSnapType, scrollable: el.scrollWidth > el.clientWidth }));
+    expect(styles.snap).toContain('x');
+    expect(styles.scrollable).toBe(true);
+    // La siguiente tarjeta asoma: la segunda empieza dentro de la ventana.
+    const second = await page.getByTestId('cold-tile').nth(1).boundingBox();
+    expect(second?.x ?? 0).toBeLessThan(375);
+  });
+
+  test('el foco es visible y no hay autoavance ni scroll horizontal de página', async ({ page }) => {
+    for (const width of [320, 375, 768, 1280, 1920]) {
       await open(page, width);
-      const banner = page.getByTestId('autumn-banner');
-      await banner.scrollIntoViewIfNeeded();
+      const tile = page.getByTestId('cold-tile').first();
+      await tile.scrollIntoViewIfNeeded();
+      await tile.focus();
+      expect(await tile.evaluate((el) => getComputedStyle(el).outlineStyle), `foco a ${width}px`).not.toBe('none');
+      const before = await page.getByTestId('cold-list').evaluate((el) => el.scrollLeft);
+      await page.waitForTimeout(600);
+      expect(await page.getByTestId('cold-list').evaluate((el) => el.scrollLeft)).toBe(before);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-      expect(overflow).toBeLessThanOrEqual(1);
-      await expect(banner.locator('img')).toBeVisible();
-      await banner.locator('img').evaluate((el) => (el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : undefined));
-      const target = page.getByTestId('autumn-text');
-      await target.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+      expect(overflow, `scroll horizontal a ${width}px`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test('la etiqueta de cada tarjeta cumple AA (4,5:1) sobre la foto', async ({ page }) => {
+    await open(page, 1280);
+    for (const [index, [label]] of COLD_TILES.entries()) {
+      const tile = page.getByTestId('cold-tile').nth(index);
+      await tile.scrollIntoViewIfNeeded();
+      await tile.locator('img').evaluate((el) => (el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : undefined));
+      const target = tile.locator('span', { hasText: label });
       const textColor = await target.evaluate((el) => getComputedStyle(el).color);
       const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(textColor);
       expect(match).not.toBeNull();
@@ -373,7 +409,7 @@ test.describe('banner de otoño (CA-95)', () => {
         worst = Math.min(worst, contrast(textL, luminance(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0)));
       }
       await target.evaluate((el) => el.removeAttribute('style'));
-      expect(worst, `contraste mínimo a ${width}px`).toBeGreaterThanOrEqual(4.5);
-    });
-  }
+      expect(worst, `contraste de «${label}»`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 });

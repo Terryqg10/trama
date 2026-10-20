@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { TopBar } from '../layout/TopBar';
 import { catalogRowSchema, toCatalogProduct } from '@/lib/catalog/product';
 import { FREE_SHIPPING_THRESHOLD_CENTS, formatEuros } from '@/lib/domain/shop';
-import { AutumnBanner } from './AutumnBanner';
+import { ColdWeatherSection } from './ColdWeatherSection';
 import { ExploreSection } from './ExploreSection';
 import { NEW_ARRIVALS_LIMIT, NewArrivalsView } from './NewArrivals';
 import { ShippingBanner } from './ShippingBanner';
@@ -99,17 +99,23 @@ describe('NewArrivalsView (CA-85)', () => {
   });
 });
 
-describe('AutumnBanner (CA-95)', () => {
-  it('muestra el mensaje y el botón «Ver abrigos» hacia /hombre', () => {
-    render(<AutumnBanner />);
+describe('ColdWeatherSection (CA-116)', () => {
+  it('tiene el título y cuatro tarjetas con enlace a su categoría', () => {
+    render(<ColdWeatherSection />);
     expect(screen.getByRole('heading', { level: 2, name: 'Prepárate para el frío' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Ver abrigos' }).getAttribute('href')).toBe('/hombre');
+    const links = screen.getAllByRole('link');
+    expect(links.map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
+      ['Abrigos', '/mujer?categoria=abrigos'],
+      ['Jerséis', '/mujer?categoria=jerseis'],
+      ['Chaquetas', '/hombre?categoria=chaquetas'],
+      ['Sudaderas', '/hombre?categoria=sudaderas'],
+    ]);
   });
 
-  it('la foto es decorativa y el degradado usa tokens (fg), no valores arbitrarios', () => {
-    const { container } = render(<AutumnBanner />);
-    expect(container.querySelector('img')?.getAttribute('alt')).toBe('');
-    const gradient = container.querySelector('div[aria-hidden="true"]');
+  it('las fotos son decorativas y el degradado usa tokens (fg), no valores arbitrarios', () => {
+    const { container } = render(<ColdWeatherSection />);
+    for (const img of container.querySelectorAll('img')) expect(img.getAttribute('alt')).toBe('');
+    const gradient = container.querySelector('span[aria-hidden="true"]');
     expect(gradient?.className).toContain('from-fg/90');
     expect(gradient?.className).not.toMatch(/black|\[[^\]]+\]/);
   });

@@ -14,7 +14,7 @@ const gutter = (width: number): number => Math.min(24, Math.max(16, width * 0.04
 /** Dónde empieza el contenido del contenedor (y por tanto el texto alineado con él). */
 const edge = (width: number): number => Math.max(0, (width - CONTAINER) / 2) + gutter(width);
 
-const FULL_BLEED = ['hero-slider', 'dual-banner', 'autumn-banner', 'shipping-banner'] as const;
+const FULL_BLEED = ['hero-slider', 'dual-banner', 'shipping-banner'] as const;
 
 async function open(page: Page, width: number): Promise<void> {
   await page.setViewportSize({ width, height: 900 });
@@ -56,9 +56,9 @@ test.describe('bandas a sangre (CA-115)', () => {
     }
   });
 
-  test('el banner dividido y el de otoño no tienen esquinas redondeadas ni hueco entre las dos tarjetas', async ({ page }) => {
+  test('el banner dividido no tiene esquinas redondeadas ni hueco entre las dos tarjetas', async ({ page }) => {
     await open(page, 1280);
-    for (const testId of ['dual-banner', 'autumn-banner']) {
+    for (const testId of ['dual-banner']) {
       const radius = await page.getByTestId(testId).evaluate((el) => getComputedStyle(el).borderTopLeftRadius);
       expect(radius, `radio de ${testId}`).toBe('0px');
     }
@@ -104,14 +104,6 @@ test.describe('secciones en contenedor (CA-115)', () => {
 });
 
 test.describe('texto de los banners alineado con el contenedor (CA-115)', () => {
-  test('el titular del banner de otoño empieza en el borde del contenedor', async ({ page }) => {
-    for (const width of WIDTHS) {
-      await open(page, width);
-      const b = await box(page, 'autumn-text');
-      expect(Math.abs((b?.x ?? 0) - edge(width)), `otoño a ${width}px`).toBeLessThanOrEqual(1.5);
-    }
-  });
-
   test('en el banner dividido, el texto de la tarjeta izquierda empieza en el borde del contenedor', async ({ page }) => {
     for (const width of WIDTHS) {
       await open(page, width);
@@ -136,22 +128,18 @@ test.describe('texto de los banners alineado con el contenedor (CA-115)', () => 
   test('en móvil el texto nunca queda a menos de un margen lateral de la ventana', async ({ page }) => {
     for (const width of [320, 375, 640]) {
       await open(page, width);
-      for (const testId of ['autumn-text']) {
-        const b = await box(page, testId);
-        expect(b?.x ?? 0).toBeGreaterThanOrEqual(gutter(width) - 1.5);
-      }
     }
   });
 });
 
 test.describe('orden de la portada (CA-115)', () => {
-  test('hero, Explora, banner dividido, banner de otoño, banner de envío, Novedades, confianza y newsletter', async ({ page }) => {
+  test('hero, Explora, banner dividido, «Prepárate para el frío», banner de envío, Novedades, confianza y newsletter', async ({ page }) => {
     await open(page, 1280);
     const order = [
       page.getByTestId('hero-slider'),
       page.getByRole('region', { name: 'Explora' }),
       page.getByTestId('dual-banner'),
-      page.getByTestId('autumn-banner'),
+      page.getByTestId('cold-section'),
       page.getByTestId('shipping-banner'),
       page.getByTestId('new-arrivals'),
       page.getByTestId('trust-section'),
@@ -162,12 +150,4 @@ test.describe('orden de la portada (CA-115)', () => {
     expect(ys).toEqual([...ys].sort((a, b) => a - b));
   });
 
-  test('no se cuela ningún espacio entre el banner dividido, el de otoño y el de envío', async ({ page }) => {
-    await open(page, 1280);
-    const [dual, autumn, shipping] = await Promise.all(
-      ['dual-banner', 'autumn-banner', 'shipping-banner'].map((id) => page.getByTestId(id).evaluate((el) => el.getBoundingClientRect().toJSON() as { top: number; bottom: number })),
-    );
-    expect(Math.abs((autumn?.top ?? 0) - (dual?.bottom ?? 99))).toBeLessThanOrEqual(1);
-    expect(Math.abs((shipping?.top ?? 0) - (autumn?.bottom ?? 99))).toBeLessThanOrEqual(1);
-  });
 });

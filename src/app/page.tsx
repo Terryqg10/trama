@@ -1,5 +1,5 @@
 import { AnimatedSection } from '@/components/home/AnimatedSection';
-import { AutumnBanner } from '@/components/home/AutumnBanner';
+import { ColdWeatherSection } from '@/components/home/ColdWeatherSection';
 import { DUAL_BANNER_SLIDES } from '@/components/home/dual-banner-slides';
 import { DualBannerSlider } from '@/components/home/DualBannerSlider';
 import { ExploreSection } from '@/components/home/ExploreSection';
@@ -18,9 +18,9 @@ const BOXED = 'mx-auto max-w-(--layout-container) px-(--layout-gutter) py-16';
 
 /**
  * Portada. Dos tipos de bloque (CA-115, T-070):
- * - A sangre (sin contenedor): hero, banner dividido, banner de otoño, banner de envío y newsletter. Su texto se alinea
+ * - A sangre (sin contenedor): hero, banner dividido, banner de envío y newsletter. Su texto se alinea
  *   con el contenedor por dentro.
- * - En contenedor (`BOXED`): Explora, Novedades y la sección de confianza.
+ * - En contenedor (`BOXED`): Explora, «Prepárate para el frío», Novedades y la sección de confianza.
  */
 export default function Home() {
   return (
@@ -34,9 +34,11 @@ export default function Home() {
       <AnimatedSection>
         <DualBannerSlider slides={DUAL_BANNER_SLIDES} />
       </AnimatedSection>
-      <AnimatedSection>
-        <AutumnBanner />
-      </AnimatedSection>
+      <section className={BOXED}>
+        <AnimatedSection>
+          <ColdWeatherSection />
+        </AnimatedSection>
+      </section>
       <AnimatedSection>
         <ShippingBanner />
       </AnimatedSection>

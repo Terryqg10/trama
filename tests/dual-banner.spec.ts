@@ -29,13 +29,13 @@ const overflow = (page: Page) => page.evaluate(() => document.documentElement.sc
 test.describe('estructura (CA-112)', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('está bajo Explora y antes del banner de otoño', async ({ page }) => {
+  test('está bajo Explora y antes de «Prepárate para el frío»', async ({ page }) => {
     await open(page);
     const explore = await page.getByRole('region', { name: 'Explora' }).boundingBox();
     const dual = await banner(page).boundingBox();
-    const autumn = await page.getByTestId('autumn-banner').boundingBox();
+    const cold = await page.getByTestId('cold-section').boundingBox();
     expect(dual?.y ?? 0).toBeGreaterThan((explore?.y ?? 0) + (explore?.height ?? 0) - 1);
-    expect((dual?.y ?? 0) + (dual?.height ?? 0)).toBeLessThanOrEqual((autumn?.y ?? 0) + 1);
+    expect((dual?.y ?? 0) + (dual?.height ?? 0)).toBeLessThanOrEqual((cold?.y ?? 0) + 1);
   });
 
   test('a 768 px o más son dos columnas iguales; por debajo se apilan', async ({ page }) => {
