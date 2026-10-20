@@ -91,3 +91,16 @@ describe('parseCatalogParams: valores inválidos se ignoran (CA-09, RF-09)', () 
     });
   });
 });
+
+describe('parseCatalogParams: las nueve categorías (CA-79)', () => {
+  it.each(['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'faldas', 'tops'])(
+    'acepta la categoría %s',
+    (categoria) => {
+      expect(ok({ categoria }).category).toBe(categoria);
+    },
+  );
+
+  it('rechaza una categoría desconocida', () => {
+    expect(ok({ categoria: 'abrigos' }).category).toBeUndefined();
+  });
+});

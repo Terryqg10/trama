@@ -1,7 +1,18 @@
 import { z } from 'zod';
 
 export const GENDERS = ['hombre', 'mujer'] as const;
-export const CATEGORIES = ['polos', 'camisas', 'blusas', 'pantalones'] as const;
+/** Orden canónico de las categorías (Enmienda 22: nueve). Los chips de filtro siguen este orden. */
+export const CATEGORIES = [
+  'polos',
+  'camisas',
+  'blusas',
+  'pantalones',
+  'camisetas',
+  'sudaderas',
+  'chaquetas',
+  'faldas',
+  'tops',
+] as const;
 export const OCCASIONS = ['casual', 'vestir'] as const;
 export const SORTS = ['novedades', 'precio-asc', 'precio-desc'] as const;
 

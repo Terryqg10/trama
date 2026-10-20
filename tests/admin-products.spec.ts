@@ -76,6 +76,35 @@ test.describe('acceso', () => {
   });
 });
 
+test.describe('categorías nuevas en el panel (CA-79, T-044)', () => {
+  test('el formulario ofrece las nueve categorías y crea un producto de una nueva sin error de base de datos', async ({ page }) => {
+    const credentials = await adminUser('productos-categorias');
+    await login(page, credentials);
+    await page.goto('/admin/productos/nuevo');
+
+    const values = await page.getByLabel('Categoría').locator('option').evaluateAll((options) =>
+      options.map((option) => (option instanceof HTMLOptionElement ? option.value : '')),
+    );
+    // La primera opción es el marcador «Elige…» (valor vacío).
+    expect(values.filter((value) => value !== '')).toEqual(['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'faldas', 'tops']);
+
+    const name = `Falda e2e ${COLOR}`;
+    await page.getByLabel('Nombre', { exact: true }).fill(name);
+    await page.getByLabel('Género').selectOption('mujer');
+    await page.getByLabel('Categoría').selectOption('faldas');
+    await page.getByLabel('Ocasión').selectOption('casual');
+    const slug = `e2e-falda-${COLOR}`;
+    slugs.push(slug);
+    await page.getByLabel('URL (slug)').fill(slug);
+    await page.getByRole('button', { name: 'Crear producto' }).click();
+    await expect(page).toHaveURL(/\/admin\/productos\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(name);
+
+    const stored = await admin.from('products').select('category').eq('slug', slug).single();
+    expect(stored.data?.category).toBe('faldas');
+  });
+});
+
 test.describe('admin-create-product (CA-16)', () => {
   test('el admin crea un producto con variantes y aparece en el catálogo, y puede editarlo, ajustar el stock y darlo de baja', async ({ page }) => {
     const credentials = await adminUser('productos-crear');

@@ -17,19 +17,32 @@ function readGuides(): Record<string, unknown> {
   return Object.fromEntries(Object.entries(guides));
 }
 
+// Enmienda 22: hay nueve categorías, pero las guías de tallas de ejemplo solo cubren las cuatro originales. Las
+// categorías nuevas no tienen guía y la ficha no muestra el enlace (getSizeGuide devuelve null).
+const WITH_GUIDE = ['polos', 'camisas', 'blusas', 'pantalones'] as const;
+
 describe('seed de guías de tallas', () => {
-  it('trae exactamente las cuatro categorías', () => {
-    expect(Object.keys(readGuides()).sort()).toEqual([...CATEGORIES].sort());
+  it('trae las cuatro categorías originales y ninguna categoría desconocida', () => {
+    const keys = Object.keys(readGuides()).sort();
+    expect(keys).toEqual([...WITH_GUIDE].sort());
+    for (const key of keys) expect(CATEGORIES.some((category) => category === key)).toBe(true);
   });
 
-  for (const category of CATEGORIES) {
+  for (const category of WITH_GUIDE) {
     it(`la guía de «${category}» cumple el esquema`, () => {
       expect(parseSizeGuide(readGuides()[category])).not.toBeNull();
     });
   }
 
+  it('las categorías nuevas no tienen guía en el seed', () => {
+    const withGuide: readonly string[] = WITH_GUIDE;
+    for (const category of CATEGORIES.filter((c) => !withGuide.includes(c))) {
+      expect(readGuides()[category]).toBeUndefined();
+    }
+  });
+
   it('las medidas están marcadas como de ejemplo', () => {
-    for (const category of CATEGORIES) {
+    for (const category of WITH_GUIDE) {
       expect(parseSizeGuide(readGuides()[category])?.note).toContain('ejemplo');
     }
   });

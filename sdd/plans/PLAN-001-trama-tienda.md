@@ -338,3 +338,17 @@ cambia ninguna otra tarea ni ningún CA. Las tareas nuevas siguen desde T-039.
 
 T-041 incluye una migración que aplica el usuario con la CLI de Supabase. El corazón en las tarjetas del listado
 queda fuera. Las tareas nuevas siguen desde T-044.
+
+### Enmienda 12 — 2026-10-20 — sin ADR — nuevas categorías y 21 productos de ejemplo
+
+**Origen:** Enmienda 22 de SPEC-001 (CA-79 y CA-80).
+
+**Qué cambia:** se crean dos tareas, en este orden. Ninguna cambia otras tareas ni otros CA.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-044** | Migración de los CHECK de categoría y código de las nueve categorías (filtros, admin y tests) | CA-79 | — |
+| **T-045** | Seed de los 21 productos nuevos, muestras de color nuevas (rosa y rojo) y e2e del catálogo | CA-80 | T-044, T-036 |
+
+T-044 y T-045 incluyen cada una una escritura en la BD de `trama-dev` (migración y seed) que se aplica con la CLI de
+Supabase con la autorización del usuario. Las tareas nuevas siguen desde T-046.

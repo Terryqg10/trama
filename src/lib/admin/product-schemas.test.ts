@@ -132,3 +132,16 @@ describe('variantSchema', () => {
     if (result.success) expect(result.data).toEqual({ price: 1995, stock: 3 });
   });
 });
+
+describe('productSchema: las nueve categorías (CA-79)', () => {
+  it.each(['polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'faldas', 'tops'])(
+    'acepta un producto de la categoría %s',
+    (category) => {
+      expect(productSchema.safeParse({ ...validProduct, category }).success).toBe(true);
+    },
+  );
+
+  it('rechaza una categoría desconocida', () => {
+    expect(productSchema.safeParse({ ...validProduct, category: 'abrigos' }).success).toBe(false);
+  });
+});

@@ -77,3 +77,24 @@ describe('capitalize', () => {
     expect(capitalize('')).toBe('');
   });
 });
+
+describe('deriveFacets: nueve categorías (CA-79)', () => {
+  it('ofrece solo las categorías presentes y en el orden canónico', () => {
+    const facets = deriveFacets([
+      product({ category: 'tops' }),
+      product({ category: 'camisetas' }),
+      product({ category: 'polos' }),
+      product({ category: 'faldas' }),
+      product({ category: 'sudaderas' }),
+    ]);
+    expect(facets.categories).toEqual(['polos', 'camisetas', 'sudaderas', 'faldas', 'tops']);
+  });
+
+  it('con las nueve presentes, las devuelve todas en el orden canónico', () => {
+    const all = ['tops', 'faldas', 'chaquetas', 'sudaderas', 'camisetas', 'pantalones', 'blusas', 'camisas', 'polos'];
+    const facets = deriveFacets(all.map((category) => product({ category })));
+    expect(facets.categories).toEqual([
+      'polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'faldas', 'tops',
+    ]);
+  });
+});

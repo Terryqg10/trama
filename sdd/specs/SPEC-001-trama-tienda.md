@@ -604,5 +604,25 @@ apartado «Favoritos» que exige cuenta. Lo tercero es una wishlist, que la secc
 **Nuevas tareas derivadas:** T-040 (barra: desvanecimiento y «Volver arriba»), T-041 (tabla `favorites`, RLS y
 acciones), T-042 (corazón en la ficha y en la barra, con login) y T-043 (apartado «Favoritos» en la cuenta).
 
+### Enmienda 22 — 2026-10-20 — sin ADR — nuevas categorías y 21 productos de ejemplo (CA-79 y CA-80)
+
+**Origen:** hay fotos reales de 21 productos nuevos (ropa urbana, estampados gráficos y básicos) que no caben en las
+cuatro categorías de RF-01. El catálogo de ejemplo se amplía y las categorías también.
+
+**Qué cambia:**
+- RF-01 (categorías): de (polos, camisas, blusas, pantalones) a (polos, camisas, blusas, pantalones, camisetas,
+  sudaderas, chaquetas, faldas, tops). Los CHECK de `products.category` y `size_guides.category` se actualizan. Las
+  categorías nuevas no tienen guía de tallas: la ficha no muestra el enlace (comportamiento ya previsto).
+- Se añaden 21 productos nuevos al catálogo de ejemplo (datos ficticios, precios de ejemplo). No cambian los 12
+  productos anteriores ni ningún CA existente; los tests del catálogo que comparan listas exactas se ajustan a los
+  datos nuevos (cambia el dato, no el requisito).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-79 | RF-01 | Las nueve categorías de ropa | Se filtra el catálogo por cada una (o se crea un producto de cada una desde el panel) | Se acepta sin errores de base de datos, el filtro muestra la categoría y los chips solo ofrecen las categorías presentes | test de integración `categories-check`, tests unitarios de filtros y e2e `catalog` |
+| CA-80 | RF-01 | Los 21 productos nuevos del catálogo de ejemplo | Se abre el catálogo de su género y su ficha | Cada uno aparece con su categoría, su precio, su color y su foto desde `/images/products/`, y se puede filtrar por su categoría | test e2e `catalog-new-products` |
+
+**Nuevas tareas derivadas:** T-044 (migración y código de las nuevas categorías) y T-045 (seed de los 21 productos).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
