@@ -10,6 +10,8 @@ const SWATCH_CLASS: Readonly<Record<string, string>> = {
   burdeos: 'bg-swatch-burdeos',
   gris: 'bg-swatch-gris',
   negro: 'bg-swatch-negro',
+  rojo: 'bg-swatch-rojo',
+  rosa: 'bg-swatch-rosa',
   verde: 'bg-swatch-verde',
 };
 

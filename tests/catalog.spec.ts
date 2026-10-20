@@ -137,9 +137,18 @@ test.describe('CA-32: filtro de ocasión', () => {
 test.describe('orden y precio', () => {
   test('precio ascendente: el más barato primero', async ({ page }) => {
     await open(page, '/hombre?orden=precio-asc');
-    const result = await names(page);
-    expect(result[0]).toBe('Polo piqué básico');
-    expect(result[result.length - 1]).toBe('Pantalón de traje');
+    // Con los productos nuevos (T-045) hay varios al mismo precio (29,90 €), así que se comprueba el orden de los
+    // precios mostrados y no qué producto va primero.
+    const prices = await page.locator('article').evaluateAll((cards) =>
+      cards.map((card) => {
+        const found = [...(card.textContent ?? '').matchAll(/(\d+),(\d{2})\s*€/g)].pop();
+        return found ? Number(found[1]) * 100 + Number(found[2]) : -1;
+      }),
+    );
+    expect(prices.length).toBeGreaterThan(1);
+    expect(prices).toEqual([...prices].sort((a, b) => a - b));
+    expect(prices[0]).toBe(2990);
+    expect((await names(page)).at(-1)).toBe('Pantalón de traje');
   });
 
   test('precio descendente: el más caro primero', async ({ page }) => {
