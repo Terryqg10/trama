@@ -150,4 +150,20 @@ test.describe('orden de la portada (CA-115)', () => {
     expect(ys).toEqual([...ys].sort((a, b) => a - b));
   });
 
+
+  test('dos bandas con foto a sangre nunca quedan seguidas: entre el banner dividido y la franja hay una sección', async ({ page }) => {
+    await open(page, 1280);
+    const [dual, cold, shipping] = await Promise.all(
+      ['dual-banner', 'cold-section', 'shipping-banner'].map((id) =>
+        page.getByTestId(id).evaluate((el) => el.getBoundingClientRect().toJSON() as { top: number; bottom: number }),
+      ),
+    );
+    expect(cold?.top ?? 0).toBeGreaterThan((dual?.bottom ?? 0) - 1);
+    expect(shipping?.top ?? 0).toBeGreaterThan((cold?.bottom ?? 0) - 1);
+    await expect(page.getByTestId('shipping-banner').locator('img')).toHaveCount(0);
+    // Entre el hero y el banner dividido está Explora.
+    const hero = await page.getByTestId('hero-slider').evaluate((el) => el.getBoundingClientRect().bottom);
+    const explore = await page.getByRole('region', { name: 'Explora' }).evaluate((el) => el.getBoundingClientRect().top);
+    expect(explore).toBeGreaterThan(hero - 1);
+  });
 });

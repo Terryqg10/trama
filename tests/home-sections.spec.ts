@@ -115,83 +115,54 @@ test.describe('Explora (CA-83)', () => {
   });
 });
 
-test.describe('banner de envío gratis (CA-84, CA-98)', () => {
+test.describe('franja de envío gratis (CA-117)', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('dice que el envío es gratis desde el umbral real, centrado y con foto de fondo', async ({ page }) => {
+  test('dice que el envío es gratis desde el umbral real, centrado y sin foto', async ({ page }) => {
     await open(page);
     const banner = page.getByTestId('shipping-banner');
     await expect(banner).toBeVisible();
     await expect(banner).toContainText('Envío gratis a partir de 50,00 €');
     await expect(banner).not.toContainText('49,99');
+    await expect(banner.locator('img')).toHaveCount(0);
     const text = page.getByTestId('shipping-banner-text');
     const bannerBox = await banner.boundingBox();
     const textBox = await text.boundingBox();
     const centre = (textBox?.x ?? 0) + (textBox?.width ?? 0) / 2;
     expect(Math.abs(centre - ((bannerBox?.x ?? 0) + (bannerBox?.width ?? 0) / 2))).toBeLessThan(2);
-    const img = banner.locator('img');
-    await img.scrollIntoViewIfNeeded();
-    const loaded = await img.evaluate(async (el) => {
-      if (!(el instanceof HTMLImageElement)) return false;
-      await el.decode().catch(() => undefined);
-      return el.naturalWidth > 0 && el.currentSrc.includes('banner-envio-gratis');
-    });
-    expect(loaded).toBe(true);
   });
 
-  for (const [width, height] of [
-    [320, 224],
-    [375, 224],
-    [767, 224],
-    [768, 320],
-    [1280, 320],
-  ] as const) {
-    test(`mide ${height} px de alto y cabe sin scroll horizontal a ${width} px`, async ({ page }) => {
+  for (const width of [320, 375, 768, 1280, 1920]) {
+    test(`es una franja fina a todo el ancho y cabe sin scroll horizontal a ${width} px`, async ({ page }) => {
       await open(page, width);
       const banner = page.getByTestId('shipping-banner');
       await banner.scrollIntoViewIfNeeded();
-      expect((await banner.boundingBox())?.height ?? 0).toBeCloseTo(height, 0);
+      const box = await banner.boundingBox();
+      expect(box?.width ?? 0).toBeCloseTo(width - (await page.evaluate(() => window.innerWidth - document.documentElement.clientWidth)), 0);
+      expect(box?.height ?? 0).toBeLessThanOrEqual(100);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
     });
   }
 
   for (const width of [320, 375, 768, 1280]) {
-    test(`el texto sobre la foto cumple AA (4,5:1) a ${width} px`, async ({ page }) => {
+    test(`el texto cumple AA (4,5:1) sobre el fondo a ${width} px`, async ({ page }) => {
       await open(page, width);
+      const banner = page.getByTestId('shipping-banner');
       const target = page.getByTestId('shipping-banner-text');
       await target.evaluate((el) => el.scrollIntoView({ block: 'center' }));
-      await page.getByTestId('shipping-banner').locator('img').evaluate((el) => (el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : undefined));
       const textColor = await target.evaluate((el) => getComputedStyle(el).color);
       const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(textColor);
       expect(match).not.toBeNull();
       const textL = luminance(Number(match?.[1]), Number(match?.[2]), Number(match?.[3]));
       await target.evaluate((el) => el.setAttribute('style', 'color: transparent !important'));
-      // Captura del propio banner (no de la página): en el WebKit móvil, con DPR 3, un recorte de página sale en blanco.
-      const rect = await target.evaluate((el) => {
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        const r = range.getBoundingClientRect();
-        const banner = el.closest('[data-testid="shipping-banner"]')?.getBoundingClientRect();
-        return { x: r.x - (banner?.x ?? 0), y: r.y - (banner?.y ?? 0), width: r.width, height: r.height, bannerWidth: banner?.width ?? 1 };
-      });
-      const shot = await page.getByTestId('shipping-banner').screenshot();
-      const scale = (await sharp(shot).metadata()).width! / rect.bannerWidth;
-      const png = await sharp(shot)
-        .extract({
-          left: Math.round(rect.x * scale),
-          top: Math.round(rect.y * scale),
-          width: Math.max(1, Math.round(rect.width * scale)),
-          height: Math.max(1, Math.round(rect.height * scale)),
-        })
-        .png()
-        .toBuffer();
+      const png = await banner.screenshot();
+      await target.evaluate((el) => el.removeAttribute('style'));
       const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
       let worst = Infinity;
       for (let i = 0; i < data.length; i += info.channels) {
         worst = Math.min(worst, contrast(textL, luminance(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0)));
       }
-      await target.evaluate((el) => el.removeAttribute('style'));
       expect(worst, `contraste mínimo a ${width}px`).toBeGreaterThanOrEqual(4.5);
     });
   }

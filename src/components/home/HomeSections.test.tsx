@@ -55,7 +55,7 @@ describe('ExploreSection (CA-83)', () => {
   });
 });
 
-describe('ShippingBanner (CA-98)', () => {
+describe('ShippingBanner (CA-117)', () => {
   it('dice el umbral real de envío gratis, no un importe a mano', () => {
     render(<ShippingBanner />);
     expect(screen.getByTestId('shipping-banner-text').textContent).toBe(
@@ -64,20 +64,13 @@ describe('ShippingBanner (CA-98)', () => {
     expect(screen.getByTestId('shipping-banner').textContent).not.toContain('49,99');
   });
 
-  it('lleva la foto decorativa de fondo y un velo oscuro con tokens (fg), sin negro ni valores arbitrarios', () => {
+  it('es una franja de texto: sin foto y con tokens, sin negro ni valores arbitrarios', () => {
     const { container } = render(<ShippingBanner />);
-    expect(container.querySelector('img')?.getAttribute('alt')).toBe('');
-    const veil = container.querySelector('div[aria-hidden="true"]');
-    expect(veil?.className).toContain('bg-fg/70');
-    const classes = screen.getByTestId('shipping-banner').className + (veil?.className ?? '');
-    expect(classes).not.toMatch(/black|\[[^\]]+\]/);
-  });
-
-  it('mide 224 px en móvil y 320 px desde md (h-56 y md:h-80)', () => {
-    render(<ShippingBanner />);
-    const classes = screen.getByTestId('shipping-banner').className;
-    expect(classes).toContain('h-56');
-    expect(classes).toContain('md:h-80');
+    expect(container.querySelector('img')).toBeNull();
+    const classes = screen.getByTestId('shipping-banner').className + screen.getByTestId('shipping-banner-text').className;
+    expect(classes).toContain('bg-surface-muted');
+    expect(classes).toContain('text-fg');
+    expect(classes).not.toMatch(/black|#|\[(?!--)[^\]]+\]/);
   });
 });
 
