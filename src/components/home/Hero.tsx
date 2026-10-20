@@ -7,18 +7,18 @@ export const HERO_ALT =
   'Una mujer con blusa blanca y pantalón gris y un hombre con camisa blanca y pantalón chino beige, de pie en un interior luminoso de paredes de hormigón';
 
 /**
- * Hero de la portada (RF-23, T-037). Una sola imagen por pantalla, con dirección de arte:
- * - En móvil, la foto vertical arriba y el texto debajo, en columna.
- * - Desde `--bp-md` (md), la foto horizontal de fondo y el texto a la izquierda, sobre la pared lisa.
- * Los navegadores sin AVIF (p. ej. WebKit sin soporte) caen a WebP. El texto sobre la foto lleva un degradado
- * de `surface` (scrim) que garantiza contraste AA; lo comprueba el e2e `home-hero`.
+ * Hero a sangre de la portada (RF-23, CA-69 y CA-82; T-037 y T-047). Ocupa todo el ancho de la ventana, fuera del
+ * contenedor de página. Una sola imagen por pantalla, con dirección de arte:
+ * - En móvil, la foto vertical a `aspect-3/4`, con la pareja abajo y el texto arriba, sobre la pared lisa, con el
+ *   degradado de arriba abajo.
+ * - Desde `--bp-md` (md), la foto horizontal a 16:9, con la pareja a la derecha y el texto abajo a la izquierda; el
+ *   degradado va de izquierda a derecha para oscurecer la pared donde está el texto y no a la pareja.
+ * Los navegadores sin AVIF (p. ej. el WebKit de Playwright) caen a WebP. El texto es blanco (`accent-fg`) sobre un
+ * degradado oscuro del token `fg` (no un negro del navegador) y su contraste se comprueba con píxeles en el e2e.
  */
 export function Hero() {
   return (
-    <section
-      aria-labelledby="hero-titulo"
-      className="relative isolate overflow-hidden rounded-container bg-accent-soft md:flex md:aspect-video md:items-center"
-    >
+    <section aria-labelledby="hero-titulo" className="relative isolate w-full overflow-hidden bg-fg">
       <picture>
         <source media="(min-width: 768px)" srcSet={`${HORIZONTAL}.avif`} type="image/avif" />
         <source media="(min-width: 768px)" srcSet={`${HORIZONTAL}.webp`} type="image/webp" />
@@ -33,25 +33,26 @@ export function Hero() {
           fetchPriority="high"
           loading="eager"
           decoding="async"
-          className="block aspect-4/5 w-full object-cover object-bottom md:absolute md:inset-0 md:aspect-auto md:h-full md:object-right"
+          className="block aspect-3/4 w-full object-cover object-bottom md:aspect-video md:object-right"
         />
       </picture>
       <div
         aria-hidden="true"
-        className="absolute inset-0 hidden bg-linear-to-r from-surface/90 from-0% via-surface/85 via-55% to-transparent to-85% md:block"
+        className="absolute inset-0 bg-linear-to-b from-fg/80 via-fg/55 via-40% to-transparent md:bg-linear-to-r md:from-fg/85 md:via-fg/55 md:via-50%"
       />
-      <div data-testid="hero-text" className="relative p-6 sm:p-8 md:w-1/2 md:p-12 lg:p-16">
-        <h1 id="hero-titulo" className="text-display font-bold text-fg">
-          Trama
+      <div
+        data-testid="hero-text"
+        className="absolute inset-x-0 top-0 p-6 text-accent-fg sm:p-8 md:bottom-0 md:top-auto md:p-12 lg:p-16"
+      >
+        <p className="text-sm font-semibold uppercase tracking-wide">Nueva colección</p>
+        <h1 id="hero-titulo" className="mt-2 text-display font-bold">
+          Estilo urbano
         </h1>
-        <p className="mt-3 max-w-(--layout-prose-max) text-fg-muted">
-          Ropa casual y de vestir para hombre y mujer: polos, camisas, blusas y pantalones.
-        </p>
         <Link
           href="/novedades"
-          className="mt-6 inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
+          className="mt-6 inline-flex min-h-12 items-center rounded-control bg-surface px-8 text-base font-semibold text-fg hover:bg-accent-soft"
         >
-          Ver novedades
+          Ver colección
         </Link>
       </div>
     </section>

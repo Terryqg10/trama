@@ -2,15 +2,21 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { HERO_ALT, Hero } from './Hero';
 
-// CA-69 (nivel de componente): una sola imagen con foto vertical por defecto y horizontal desde md,
-// con AVIF y WebP, texto alternativo y un CTA con destino válido. El contraste y el cambio real de
-// imagen por ancho los comprueba el e2e `home-hero`.
+// CA-69 y CA-82 (nivel de componente): una sola imagen con foto vertical por defecto y horizontal desde md, con AVIF
+// y WebP, texto alternativo y un CTA con destino válido. El ancho completo, el contraste y el cambio real de imagen
+// por ancho los comprueba el e2e `home-hero`.
 
-describe('Hero (CA-69)', () => {
-  it('muestra el titular, el texto y el CTA al catálogo', () => {
+describe('Hero (CA-69, CA-82)', () => {
+  it('muestra «Nueva colección», el titular y el CTA al catálogo de novedades', () => {
     render(<Hero />);
-    expect(screen.getByRole('heading', { level: 1, name: 'Trama' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Ver novedades' }).getAttribute('href')).toBe('/novedades');
+    expect(screen.getByText('Nueva colección')).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'Estilo urbano' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Ver colección' }).getAttribute('href')).toBe('/novedades');
+  });
+
+  it('tiene un único h1', () => {
+    render(<Hero />);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
   it('usa la foto vertical por defecto y la horizontal desde 768 px, en AVIF con WebP de respaldo', () => {
@@ -37,5 +43,13 @@ describe('Hero (CA-69)', () => {
     const img = container.querySelector('picture > img');
     expect(img?.getAttribute('fetchpriority')).toBe('high');
     expect(img?.getAttribute('loading')).toBe('eager');
+  });
+
+  it('el degradado usa tokens (fg) y no el negro de Tailwind ni valores arbitrarios', () => {
+    const { container } = render(<Hero />);
+    const gradient = container.querySelector('section > div[aria-hidden="true"]');
+    expect(gradient?.className).toContain('from-fg/80');
+    expect(gradient?.className).not.toContain('black');
+    expect(gradient?.className).not.toMatch(/\[[^\]]+\]/);
   });
 });

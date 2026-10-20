@@ -4,11 +4,11 @@ import { Hero } from '@/components/home/Hero';
 
 export default function Home() {
   return (
-    <PageContainer>
+    <>
       <Hero />
-      <div className="mt-8">
+      <PageContainer>
         <ShippingInfo />
-      </div>
-    </PageContainer>
+      </PageContainer>
+    </>
   );
 }
