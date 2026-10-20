@@ -240,9 +240,9 @@ test.describe('portada completa', () => {
     }
   });
 
-  test('sigue mostrando el bloque de envío y devolución', async ({ page }) => {
+  test('sigue mostrando las condiciones de envío y devolución (sección de confianza)', async ({ page }) => {
     await open(page);
-    await expect(page.getByRole('heading', { name: 'Envío y devolución' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Compra con tranquilidad' })).toBeVisible();
   });
 });
 

@@ -469,3 +469,25 @@ Las tareas nuevas siguen desde T-061.
 - La API usa `searchProducts` (T-052) y devuelve 5 resultados con caché de borde de 30 s (`s-maxage`).
 
 Las tareas nuevas siguen desde T-065.
+
+### Enmienda 18 — 2026-10-21 — sin ADR — logo, barra rotativa y sección de confianza
+
+**Origen:** Enmienda 28 de SPEC-001 (CA-109 a CA-111). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-065** | El logo sube al inicio si ya se está en `/` | CA-109 | T-062 |
+| **T-066** | Barra de anuncios con mensajes rotativos, pausa y alternativa estática | CA-110 | T-053 |
+| **T-067** | `TrustSection` «Compra con tranquilidad» (sustituye el bloque y las propuestas de valor en la portada) | CA-111 | T-060 |
+
+**Decisiones de UI:**
+- Barra de anuncios con mensajes rotativos y botón de pausa: convención del sector (Zalando, ASOS, Mango). La barra
+  mide 44 px (antes 36 px en escritorio y unos 56 en móvil) para alojar el botón de pausa táctil de 44 × 44 px.
+- La transición usa solo `opacity` y `transform` (`motion/react`); la alternativa estática de reduced-motion
+  muestra los dos mensajes juntos.
+- **Logo:** no se cambia el enlace (sigue siendo `href="/"`); un manejador sube al inicio solo cuando ya se está en `/`
+  sin parámetros ni hash. Next no sube la página al navegar a la ruta actual cuando hay una cabecera fija.
+- **Sección de confianza:** una sola sección en lugar de tres bloques que repetían el envío gratis (banner, propuestas
+  de valor y bloque de envío). La ficha y el carrito conservan `ShippingInfo`, que RF-16 pide visible allí.
+
+Las tareas nuevas siguen desde T-068.

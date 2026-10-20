@@ -1,5 +1,4 @@
 import { PageContainer } from '@/components/PageContainer';
-import { ShippingInfo } from '@/components/ShippingInfo';
 import { AnimatedSection } from '@/components/home/AnimatedSection';
 import { AutumnBanner } from '@/components/home/AutumnBanner';
 import { ExploreSection } from '@/components/home/ExploreSection';
@@ -7,6 +6,7 @@ import { HERO_SLIDES } from '@/components/home/hero-slides';
 import { NewArrivals } from '@/components/home/NewArrivals';
 import { NewsletterSection } from '@/components/home/NewsletterSection';
 import { ShippingBanner } from '@/components/home/ShippingBanner';
+import { TrustSection } from '@/components/home/TrustSection';
 import { HeroSlider } from '@/components/layout/HeroSlider';
 
 /** La portada lee las novedades de la BD: se regenera como mucho cada minuto. */
@@ -31,9 +31,7 @@ export default function Home() {
         <AnimatedSection>
           <NewArrivals />
         </AnimatedSection>
-        <div className="mt-12">
-          <ShippingInfo />
-        </div>
+        <TrustSection />
       </PageContainer>
       <NewsletterSection />
     </>

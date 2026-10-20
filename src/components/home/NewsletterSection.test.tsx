@@ -1,22 +1,16 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { FREE_SHIPPING_THRESHOLD_CENTS, formatEuros } from '@/lib/domain/shop';
 import { NewsletterSection } from './NewsletterSection';
 
-// CA-101 (nivel de componente). El envío real y los mensajes tras la acción los comprueba el e2e `newsletter`.
+// CA-101 y CA-111 (nivel de componente). El envío real y los mensajes tras la acción los comprueba el e2e `newsletter`.
 
 vi.mock('@/app/actions/newsletter', () => ({ subscribeAction: vi.fn() }));
 
 describe('NewsletterSection (CA-101)', () => {
-  it('muestra tres propuestas de valor con icono, título y texto veraz', () => {
+  it('ya no muestra las tres propuestas de valor (pasaron a la sección de confianza)', () => {
     render(<NewsletterSection />);
-    const items = within(screen.getByTestId('value-props')).getAllByRole('listitem');
-    expect(items).toHaveLength(3);
-    expect(items.map((item) => item.querySelector('p')?.textContent)).toEqual(['MODA URBANA', 'ENVÍOS GRATIS', 'PAGO SEGURO']);
-    for (const item of items) expect(item.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
-    expect(items[1]?.textContent).toContain(`A partir de ${formatEuros(FREE_SHIPPING_THRESHOLD_CENTS)}`);
-    const all = screen.getByTestId('value-props').textContent ?? '';
-    expect(all).not.toMatch(/1\.200|marcas|plazos|49,99/i);
+    expect(screen.queryByTestId('value-props')).toBeNull();
+    expect(screen.queryByText('MODA URBANA')).toBeNull();
   });
 
   it('el formulario tiene email, casilla de consentimiento sin marcar con enlace a /privacidad y «Suscribirme»', () => {

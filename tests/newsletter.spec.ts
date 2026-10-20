@@ -26,38 +26,17 @@ test.afterAll(async () => {
   if (testEmails.length > 0) await adminClient().from('newsletter_subscribers').delete().in('email', testEmails);
 });
 
-test.describe('propuestas de valor (CA-101)', () => {
-  test('hay tres, con icono, título en negrita y texto, antes del bloque de newsletter', async ({ page }) => {
+test.describe('sin propuestas de valor sobre el newsletter (CA-101, CA-111)', () => {
+  test('las tres propuestas de valor ya no están: pasaron a la sección de confianza', async ({ page }) => {
     await open(page);
-    const props = page.getByTestId('value-props').getByRole('listitem');
-    await expect(props).toHaveCount(3);
-    await expect(props.nth(0)).toContainText('MODA URBANA');
-    await expect(props.nth(1)).toContainText('ENVÍOS GRATIS');
-    await expect(props.nth(1)).toContainText('A partir de 50,00 €.');
-    await expect(props.nth(2)).toContainText('PAGO SEGURO');
-    for (let i = 0; i < 3; i++) {
-      await expect(props.nth(i).locator('svg')).toHaveCount(1);
-      const weight = await props.nth(i).locator('p').first().evaluate((el) => Number(getComputedStyle(el).fontWeight));
-      expect(weight).toBeGreaterThanOrEqual(700);
-    }
-    const valueBox = await page.getByTestId('value-props').boundingBox();
-    const newsBox = await newsletter(page).boundingBox();
-    expect((valueBox?.y ?? 0) + (valueBox?.height ?? 0)).toBeLessThanOrEqual((newsBox?.y ?? 0) + 1);
+    await expect(page.getByTestId('value-props')).toHaveCount(0);
+    await expect(page.getByText('MODA URBANA')).toHaveCount(0);
+    await expect(page.getByText('ENVÍOS GRATIS')).toHaveCount(0);
   });
 
-  test('tres columnas a 1280 px y apiladas a 375 px, sin scroll horizontal de 320 a 1280 px', async ({ page }) => {
-    for (const [width, columns] of [
-      [1280, 3],
-      [768, 3],
-      [375, 1],
-      [320, 1],
-    ] as const) {
+  test('sin scroll horizontal de 320 a 1280 px', async ({ page }) => {
+    for (const width of [320, 375, 768, 1280]) {
       await open(page, width);
-      const lefts = await page
-        .getByTestId('value-props')
-        .getByRole('listitem')
-        .evaluateAll((items) => [...new Set(items.map((item) => Math.round(item.getBoundingClientRect().left)))]);
-      expect(lefts, `columnas a ${width}px`).toHaveLength(columns);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `scroll horizontal a ${width}px`).toBeLessThanOrEqual(1);
     }

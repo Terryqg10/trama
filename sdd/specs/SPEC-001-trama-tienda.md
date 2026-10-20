@@ -771,3 +771,33 @@ se escribe.
 | CA-108 | RF-25 | Un visitante a menos de 1024 px | Pulsa la lupa | El buscador se abre a pantalla completa con el campo enfocado y las sugerencias debajo; elegir un resultado, Esc o cerrar lo cierran; sin scroll horizontal de 320 a 1023 px | test e2e `search-typeahead` |
 
 **Nuevas tareas derivadas:** T-062 (cabecera fija), T-063 (API de búsqueda) y T-064 (`SearchBar` con sugerencias).
+
+### Enmienda 28 — 2026-10-21 — sin ADR — logo que sube, barra de anuncios rotativa y sección de confianza (CA-109 a CA-111)
+
+**Origen:** el usuario detecta tres cosas en la portada: el logo no sube al inicio cuando ya se está en `/` y se ha
+hecho scroll (consecuencia de la cabecera fija, Enmienda 27); el bloque «Envío y devolución» es pobre y genérico y
+repite lo que dicen el banner y las propuestas de valor; y quiere movimiento en la barra de anuncios.
+
+**Qué cambia:**
+- **Logo (RF-13):** en `/`, pulsar el logo sube suavemente al inicio de la página (sin animación con
+  `prefers-reduced-motion`). Desde cualquier otra página sigue llevando a `/`.
+- **Barra de anuncios (CA-94 se amplía):** los dos mensajes se turnan cada 4 s: el actual sube y se desvanece y entra el
+  siguiente desde abajo. Se pausa con el ratón encima, con el foco dentro y con un botón de pausa (WCAG 2.2.2). Con
+  `prefers-reduced-motion` no hay movimiento: se ven los dos mensajes a la vez, como antes. Los lectores de pantalla
+  tienen siempre los dos textos.
+- **Sección de confianza (RF-16 y CA-101):** en la portada, el bloque «Envío y devolución» pasa a ser una sección a
+  todo el ancho, «Compra con tranquilidad», con cuatro tarjetas con icono (envío, devolución, pago seguro y
+  seguimiento del pedido) y absorbe las tres propuestas de valor que había sobre el newsletter, que desaparecen
+  (**CA-101 se reduce al formulario**). La ficha y el carrito mantienen el bloque compacto (RF-16, CA-29).
+- **Contenido de ejemplo (decisión del usuario):** el texto de marketing de la sección incluye promesas que Trama no
+  puede cumplir (plazo de entrega de 24-48 h, devolución gratuita, reembolso en 5 días laborables). Es un proyecto de
+  portfolio: la sección lleva la nota «Condiciones de ejemplo…». VERIFICAR todo plazo antes de usarlo con una tienda real.
+  La tarifa (4,95 €), el umbral (50,00 €) y los 30 días salen de `shop.ts`.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-109 | RF-13 | Un visitante en `/` con scroll | Pulsa el logo de la cabecera (o el del menú móvil) | La página sube al inicio (suave; instantáneo con reduced-motion) y la URL sigue siendo `/`; desde otra página lleva a `/` | test e2e `logo-scroll` |
+| CA-110 | RF-23 | Cualquier página de la tienda | Pasan 4 s | La barra de anuncios cambia de mensaje con una transición (sale hacia arriba y se desvanece, entra el siguiente) y vuelve al primero; se detiene con ratón, foco o botón de pausa; con reduced-motion se ven los dos mensajes sin movimiento; ambos textos siempre están disponibles para lectores de pantalla; sin scroll horizontal | test e2e `top-bar` (reloj simulado) y unitario |
+| CA-111 | RF-16 | La portada | Se llega a la sección de confianza | Hay cuatro tarjetas con icono, título y texto (envío con tarifa y umbral, devolución a 30 días, pago seguro y seguimiento de pedido con enlace a la cuenta), la nota de política de ejemplo y un enlace a las condiciones; sin asteriscos; tres propuestas de valor ya no aparecen sobre el newsletter; 1 columna en móvil, 2 desde 640 px y 4 desde 1024 px, sin scroll horizontal | test e2e `shipping` y `trust-section` |
+
+**Nuevas tareas derivadas:** T-065 (logo), T-066 (barra de anuncios rotativa) y T-067 (sección de confianza).

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-// CA-81 (T-046) y CA-94 (T-053): barra de anuncios sobre la cabecera de la tienda, con la colección de otoño y el
+// CA-81 (T-046), CA-94 (T-053) y CA-110 (T-066, mensajes rotativos en `top-bar-rotation.spec.ts`): barra de anuncios sobre la cabecera de la tienda, con la colección de otoño y el
 // envío gratis desde el umbral real (50,00 €, RF-22). No aparece en el panel admin.
 
 const WIDTHS = [320, 375, 768, 1280] as const;
@@ -33,9 +33,9 @@ test.describe('barra de anuncios (CA-81, CA-94)', () => {
       await expect(bar).toBeVisible();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `scroll horizontal a ${width}px`).toBeLessThanOrEqual(1);
-      // Ningún mensaje se sale de la ventana.
-      const fits = await bar.locator('span').evaluateAll((spans, viewport) =>
-        spans.every((span) => {
+      // Ningún mensaje visible se sale de la ventana (el texto `sr-only` para lectores de pantalla no cuenta).
+      const fits = await bar.locator('span, [data-testid="top-bar-message"]').evaluateAll((spans, viewport) =>
+        spans.filter((span) => !span.closest('.sr-only')).every((span) => {
           const rect = span.getBoundingClientRect();
           return rect.width === 0 || (rect.left >= -0.5 && rect.right <= viewport + 0.5);
         }),
