@@ -76,7 +76,8 @@ export async function searchProducts(
     .select(LIST_SELECT)
     .ilike('name', containsPattern(query))
     .limit(MAX_PRODUCTS);
-  if (error) throw new Error(`No se pudo buscar en el catálogo: ${error.message}`);
+  // El mensaje se recorta: si el cortafuegos de Supabase bloquea la petición, `message` es una página HTML entera.
+  if (error) throw new Error(`No se pudo buscar en el catálogo: ${error.message.slice(0, 200)}`);
   const rows = z.array(catalogRowSchema).parse(data);
   return sortProducts(rows.map(toCatalogProduct), 'novedades');
 }

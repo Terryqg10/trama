@@ -1,16 +1,19 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectNoReload, markDocument } from './helpers/no-reload';
 
-// CA-91, CA-92 y CA-93 (T-052): buscador de la cabecera (campo en escritorio, panel en móvil) y página /buscar.
+// CA-91, CA-92 y CA-93 (T-052, ajustados por la Enmienda 27): buscador de la cabecera (campo en escritorio y pantalla
+// completa en móvil) y página /buscar. Las sugerencias están en `search-typeahead.spec.ts`.
 
-const desktopField = (page: Page) => page.locator('header').getByRole('searchbox', { name: 'Buscar productos' }).first();
+const desktopField = (page: Page) => page.locator('header').getByRole('combobox', { name: 'Buscar productos' }).first();
 const panel = (page: Page) => page.getByTestId('search-panel');
 const trigger = (page: Page) => page.getByTestId('search-open');
 
-async function open(page: Page, width: number, url = '/'): Promise<void> {
+async function open(page: Page, width: number, url = '/', withScript = true): Promise<void> {
   await page.setViewportSize({ width, height: width < 768 ? 812 : 800 });
   await page.goto(url);
   await expect(page.getByRole('main')).toBeVisible();
+  // Con JavaScript, esperar a que React controle el campo (si no, lo escrito se pierde al hidratar).
+  if (withScript) await expect(page.locator('header input[data-ready="true"]').first()).toBeAttached();
 }
 
 const overflow = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -69,7 +72,7 @@ test.describe('buscador en escritorio (CA-91)', () => {
 });
 
 test.describe('buscador en móvil (CA-92)', () => {
-  test('solo se ve el icono de lupa; al pulsarlo se abre un panel con el campo enfocado', async ({ page }) => {
+  test('solo se ve el icono de lupa; al pulsarlo se abre a pantalla completa con el campo enfocado', async ({ page }) => {
     await open(page, 375);
     await expect(desktopField(page)).toBeHidden();
     await expect(trigger(page)).toBeVisible();
@@ -78,12 +81,14 @@ test.describe('buscador en móvil (CA-92)', () => {
     await trigger(page).click();
     await expect(panel(page)).toBeVisible();
     await expect(panel(page)).toHaveAttribute('role', 'dialog');
-    await expect(panel(page).getByRole('searchbox', { name: 'Buscar productos' })).toBeFocused();
+    await expect(panel(page).getByRole('combobox', { name: 'Buscar productos' })).toBeFocused();
     await expect(trigger(page)).toHaveAttribute('aria-expanded', 'true');
+    const box = await panel(page).boundingBox();
+    expect([box?.x, box?.y, box?.width, box?.height]).toEqual([0, 0, 375, 812]);
     expect(await overflow(page)).toBeLessThanOrEqual(1);
   });
 
-  test('Esc, el botón de cerrar y el fondo lo cierran y el foco vuelve a la lupa', async ({ page }) => {
+  test('Esc y el botón de cerrar lo cierran y el foco vuelve a la lupa', async ({ page }) => {
     await open(page, 375);
     await trigger(page).click();
     await page.keyboard.press('Escape');
@@ -95,15 +100,12 @@ test.describe('buscador en móvil (CA-92)', () => {
     await expect(panel(page)).toBeHidden();
     await expect(trigger(page)).toBeFocused();
 
-    await trigger(page).click();
-    await page.mouse.click(200, 700);
-    await expect(panel(page)).toBeHidden();
   });
 
   test('buscar desde el panel lleva a los resultados y lo cierra', async ({ page }) => {
     await open(page, 375);
     await trigger(page).click();
-    await panel(page).getByRole('searchbox').fill('camiseta');
+    await panel(page).getByRole('combobox').fill('camiseta');
     await panel(page).getByRole('button', { name: 'Buscar' }).click();
     await expect(page).toHaveURL(/\/buscar\?q=camiseta$/);
     await expect(panel(page)).toBeHidden();
@@ -116,7 +118,7 @@ test.describe('buscador en móvil (CA-92)', () => {
       await trigger(page).click();
       await expect(panel(page)).toBeVisible();
       expect(await overflow(page), `scroll a ${width}px`).toBeLessThanOrEqual(1);
-      const box = await panel(page).getByRole('searchbox').boundingBox();
+      const box = await panel(page).getByRole('combobox').boundingBox();
       expect((box?.x ?? -1) + (box?.width ?? 0)).toBeLessThanOrEqual(width);
     }
   });
@@ -125,11 +127,11 @@ test.describe('buscador en móvil (CA-92)', () => {
     test.use({ javaScriptEnabled: false });
 
     test('el enlace #buscador abre el panel con :target y el formulario GET busca', async ({ page }) => {
-      await open(page, 375);
+      await open(page, 375, '/', false);
       await trigger(page).click();
       await expect(page).toHaveURL(/#buscador$/);
       await expect(panel(page)).toBeVisible();
-      await panel(page).getByRole('searchbox').fill('camiseta');
+      await panel(page).getByRole('combobox').fill('camiseta');
       await panel(page).getByRole('button', { name: 'Buscar' }).click();
       await expect(page).toHaveURL(/\/buscar\?q=camiseta$/);
       await expect(page.getByRole('heading', { level: 1, name: 'Resultados para «camiseta»' })).toBeVisible();
@@ -180,9 +182,10 @@ test.describe('página de resultados (CA-93)', () => {
     }
   });
 
-  test('un texto con HTML se muestra como texto', async ({ page }) => {
+  test('un texto con HTML se limpia y nunca se pinta como HTML', async ({ page }) => {
     await open(page, 1280, '/buscar?q=%3Cb%3Ex%3C%2Fb%3E');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('<b>x</b>');
+    // La lista blanca quita los signos < > /: queda «b x b» como texto.
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Resultados para «b x b»');
     await expect(page.locator('h1 b')).toHaveCount(0);
   });
 

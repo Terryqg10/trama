@@ -744,3 +744,30 @@ una sección de propuestas de valor y suscripción a la newsletter.
 
 **Nuevas tareas derivadas:** T-057 (banner de envío), T-058 (tabla y RLS), T-059 (acción del servidor) y T-060
 (sección de newsletter).
+
+### Enmienda 27 — 2026-10-20 — sin ADR — cabecera fija y buscador con autocompletado (CA-105 a CA-108)
+
+**Origen:** el usuario pide que la cabecera no desaparezca al hacer scroll y que el buscador sugiera productos mientras
+se escribe.
+
+**Qué cambia:**
+- La **cabecera es fija** (`sticky top-0`): la barra de anuncios queda encima y se va con el scroll; la cabecera se
+  queda pegada (`rules/ui-decisions.md`: cabeceras fijas por defecto).
+- RF-25 (buscador) se amplía con **sugerencias en tiempo real**: desde 2 caracteres, con 300 ms de espera, una
+  lista de hasta 5 productos (miniatura, nombre y precio «desde») que lleva a la ficha. Una ruta `GET /api/search?q=`
+  las sirve. Sin JavaScript, el formulario sigue enviando a `/buscar`.
+- **CA-91 y CA-92 se ajustan:** el campo ahora es un `combobox` (ya no un `searchbox`) y el panel móvil pasa a
+  pantalla completa; el resto de lo que verificaban se mantiene.
+- Datos y privacidad: el texto de la búsqueda viaja al servidor en la URL de la API; no se guarda ni se registra.
+- Riesgos (sección 8): endpoint público de lectura que consulta la base en cada pausa de escritura. Se acota con la
+  espera de 300 ms, el mínimo de 2 caracteres, el tope de 5 resultados, la caché de borde de 30 s y la RLS (solo
+  productos activos). Un límite por IP queda como mejora (VERIFICAR).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-105 | RF-13 | Cualquier página de la tienda con scroll | Se baja la página | La barra de anuncios está justo encima de la cabecera y se va con el scroll; la cabecera queda pegada arriba (`position: sticky`, `top: 0`) y por encima del contenido, sin que ningún ancestro lo impida | test e2e `header-sticky` |
+| CA-106 | RF-25 | Una petición a `GET /api/search?q=` | Llega con menos de 2 caracteres, con 2 o más, o con texto raro | Menos de 2: `[]`; 2 o más: hasta 5 productos activos cuyo nombre contiene el texto, con id, slug, nombre, precio «desde» en céntimos e imagen de la posición 0; los comodines se tratan como texto; la respuesta es JSON validado | test unitario y e2e `search-api` |
+| CA-107 | RF-25 | Un visitante a 1024 px o más | Escribe 2 o más caracteres en el buscador y se detiene 300 ms | Se abre una lista flotante con miniatura, nombre y precio de hasta 5 productos; un clic o Intro sobre uno lleva a su ficha; sin coincidencias dice «No encontramos nada, prueba con otra palabra»; es un `combobox` con `aria-expanded`, `aria-controls`, `aria-activedescendant`, flechas, Esc y un aviso `aria-live` | test e2e `search-typeahead` y unitario |
+| CA-108 | RF-25 | Un visitante a menos de 1024 px | Pulsa la lupa | El buscador se abre a pantalla completa con el campo enfocado y las sugerencias debajo; elegir un resultado, Esc o cerrar lo cierran; sin scroll horizontal de 320 a 1023 px | test e2e `search-typeahead` |
+
+**Nuevas tareas derivadas:** T-062 (cabecera fija), T-063 (API de búsqueda) y T-064 (`SearchBar` con sugerencias).

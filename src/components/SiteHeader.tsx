@@ -1,12 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import type { Route } from 'next';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, type FormEvent, type MouseEvent, type RefObject } from 'react';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { Menu, Search, ShoppingBag, User, X } from 'lucide-react';
-import { MAX_SEARCH_LENGTH, parseSearchQuery } from '@/lib/catalog/search';
 import { ACTION_NAV, MAIN_NAV } from '@/lib/domain/navigation';
+import { SearchBar } from './layout/SearchBar';
 import { Logo } from './Logo';
 import { useHashOverlay } from './useHashOverlay';
 
@@ -23,57 +22,6 @@ const iconButton =
 /** Enlaces del menú a pantalla completa: tipografía grande (≥ 20 px) y áreas amplias. */
 const overlayLinkBase =
   'flex min-h-14 w-full items-center rounded-control px-4 text-xl font-semibold';
-
-/**
- * Campo de búsqueda (RF-25, CA-91 y CA-92). Es un formulario GET a `/buscar`, así que funciona sin JavaScript; con
- * JavaScript se navega sin recargar la página y se cierra el panel móvil (`onSearch`).
- */
-function SearchField({
-  className,
-  inputRef,
-  onSearch,
-  showButton = false,
-}: {
-  readonly className?: string;
-  readonly inputRef?: RefObject<HTMLInputElement | null>;
-  readonly onSearch?: () => void;
-  readonly showButton?: boolean;
-}) {
-  const router = useRouter();
-
-  function onSubmit(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-    const query = parseSearchQuery(new FormData(event.currentTarget).get('q')?.toString());
-    router.push(`/buscar?q=${encodeURIComponent(query)}` as Route);
-    onSearch?.();
-  }
-
-  return (
-    <form role="search" action="/buscar" method="get" onSubmit={onSubmit} className={`flex items-center gap-2 ${className ?? ''}`}>
-      <div className="relative min-w-0 flex-1">
-        <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-fg-muted" />
-        <input
-          ref={inputRef}
-          type="search"
-          name="q"
-          aria-label="Buscar productos"
-          placeholder="Buscar productos..."
-          maxLength={MAX_SEARCH_LENGTH}
-          autoComplete="off"
-          className="min-h-11 w-full rounded-control border border-border bg-surface-muted pl-10 pr-3 text-sm text-fg placeholder:text-fg-muted"
-        />
-      </div>
-      {showButton ? (
-        <button
-          type="submit"
-          className="inline-flex min-h-11 items-center rounded-control bg-accent px-4 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
-        >
-          Buscar
-        </button>
-      ) : null}
-    </form>
-  );
-}
 
 /**
  * Cabecera. En escritorio (≥ `--bp-md`) el menú es horizontal. En móvil es un overlay a
@@ -107,11 +55,6 @@ export function SiteHeader() {
     if (search.open) searchInputRef.current?.focus();
   }, [search.open]);
 
-  function onSearchPanelClick(event: MouseEvent<HTMLElement>): void {
-    if (event.target === event.currentTarget) search.close();
-    else search.onClick(event);
-  }
-
   function itemClass(href: string): string {
     return `${linkBase} ${pathname === href ? linkCurrent : linkIdle}`;
   }
@@ -121,7 +64,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="border-b border-border bg-surface">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-surface">
       <div className="mx-auto flex min-h-(--nav-height) max-w-(--layout-container) items-center gap-2 px-(--layout-gutter)">
         <Logo />
 
@@ -139,7 +82,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden min-w-0 flex-1 justify-center px-4 lg:flex">
-          <SearchField className="w-full max-w-md" />
+          <SearchBar variant="inline" />
         </div>
 
         <div className="ml-auto flex items-center gap-1">
@@ -191,33 +134,34 @@ export function SiteHeader() {
           aria-label="Buscar productos"
           data-testid="search-panel"
           onKeyDown={search.onKeyDown}
-          onClick={onSearchPanelClick}
+          onClick={search.onClick}
           className={
             search.open
-              ? 'fixed inset-0 z-50 bg-fg/50'
+              ? 'fixed inset-0 z-50 flex h-dvh flex-col bg-surface'
               : search.mounted
                 ? 'hidden'
-                : 'hidden target:fixed target:inset-0 target:z-50 target:block target:bg-fg/50'
+                : 'hidden target:fixed target:inset-0 target:z-50 target:flex target:h-dvh target:flex-col target:bg-surface'
           }
         >
           <span tabIndex={0} onFocus={() => search.focusEdge('last')} data-focus-guard="start" />
-          <div className="bg-surface px-(--layout-gutter) py-4 shadow-card">
-            <div className="flex items-center gap-2">
-              <SearchField className="min-w-0 flex-1" inputRef={searchInputRef} onSearch={search.close} showButton />
-              <a
-                ref={searchCloseRef}
-                href="#cerrar-buscador"
-                aria-label="Cerrar buscador"
-                data-testid="search-close"
-                onClick={(event) => {
-                  event.preventDefault();
-                  search.close();
-                }}
-                className={iconButton}
-              >
-                <X aria-hidden="true" />
-              </a>
-            </div>
+          <div className="flex min-h-(--nav-height) shrink-0 items-center justify-between border-b border-border px-(--layout-gutter)">
+            <p className="text-lg font-semibold text-fg">Buscar</p>
+            <a
+              ref={searchCloseRef}
+              href="#cerrar-buscador"
+              aria-label="Cerrar buscador"
+              data-testid="search-close"
+              onClick={(event) => {
+                event.preventDefault();
+                search.close();
+              }}
+              className={iconButton}
+            >
+              <X aria-hidden="true" />
+            </a>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-(--layout-gutter) py-4">
+            <SearchBar variant="overlay" inputRef={searchInputRef} onNavigate={search.close} />
           </div>
           <span tabIndex={0} onFocus={() => search.focusEdge('first')} data-focus-guard="end" />
         </div>

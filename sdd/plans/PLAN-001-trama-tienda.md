@@ -447,3 +447,25 @@ Las tareas nuevas siguen desde T-057.
   cliente sin tipar y valida con Zod, como `createServiceClient`.
 
 Las tareas nuevas siguen desde T-061.
+
+### Enmienda 17 — 2026-10-20 — sin ADR — cabecera fija y buscador con autocompletado
+
+**Origen:** Enmienda 27 de SPEC-001 (CA-105 a CA-108). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-062** | Cabecera `sticky top-0 z-50` | CA-105 | T-046 |
+| **T-063** | `GET /api/search` con validación y tope de 5 | CA-106 | T-052 |
+| **T-064** | `SearchBar` (combobox con sugerencias) en la cabecera y a pantalla completa en móvil | CA-107, CA-108 | T-062, T-063 |
+
+**Decisiones de UI:**
+- Cabecera fija y buscador con sugerencias (miniatura, nombre y precio): convención del sector (Zalando, Mango, ASOS).
+- **Archivo de la cabecera:** el encargo decía `layout/Header.tsx`; la cabecera real es `src/components/SiteHeader.tsx`.
+- **Patrón ARIA:** combobox con lista (APG): el foco se queda en el campo y las opciones se señalan con
+  `aria-activedescendant`. Cada opción es un enlace (`role="option"`), así que funciona el clic derecho y abrir en
+  otra pestaña. La última opción es «Ver todos los resultados».
+- **Más allá de las sugerencias:** Intro sin opción activa envía el formulario a `/buscar` (también sin JavaScript).
+- **Campo desde 1024 px** (decisión de T-052): entre 768 y 1023 px hay lupa y pantalla completa.
+- La API usa `searchProducts` (T-052) y devuelve 5 resultados con caché de borde de 30 s (`s-maxage`).
+
+Las tareas nuevas siguen desde T-065.
