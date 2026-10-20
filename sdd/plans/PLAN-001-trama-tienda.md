@@ -352,3 +352,22 @@ queda fuera. Las tareas nuevas siguen desde T-044.
 
 T-044 y T-045 incluyen cada una una escritura en la BD de `trama-dev` (migración y seed) que se aplica con la CLI de
 Supabase con la autorización del usuario. Las tareas nuevas siguen desde T-046.
+
+### Enmienda 13 — 2026-10-20 — sin ADR — portada premium
+
+**Origen:** Enmienda 23 de SPEC-001 (CA-81 a CA-85).
+
+**Qué cambia:** se crean tres tareas de interfaz, en este orden. Se mantiene el estilo `v1-soft-commerce@0.3.0`
+(continuación de la tienda). Ninguna cambia otros CA; T-047 sustituye el diseño del hero de T-037 sin cambiar CA-69.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-046** | Barra de anuncios sobre la cabecera, en el marco de la tienda | CA-81 | — |
+| **T-047** | Hero a sangre con degradado oscuro de token y texto superpuesto | CA-82 | T-037 |
+| **T-048** | Sección Explora, banner de envío gratis y rejilla de Novedades | CA-83, CA-84, CA-85 | T-046 |
+
+**Decisiones de UI:** hero a ancho completo con titular y un CTA, barra de anuncios de envío y accesos por
+categoría son la convención del sector (Zalando, Mango, Massimo Dutti); no hay desvío. El degradado usa el token
+`fg` y no un negro del navegador (`rules/styles.md`).
+
+Las tareas nuevas siguen desde T-049.

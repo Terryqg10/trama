@@ -624,5 +624,29 @@ cuatro categorías de RF-01. El catálogo de ejemplo se amplía y las categoría
 
 **Nuevas tareas derivadas:** T-044 (migración y código de las nuevas categorías) y T-045 (seed de los 21 productos).
 
+### Enmienda 23 — 2026-10-20 — sin ADR — portada premium: barra de anuncios, hero a sangre y secciones (CA-81 a CA-85)
+
+**Origen:** el usuario pide rediseñar la portada como una tienda premium: barra de anuncios sobre la cabecera, hero a
+sangre con degradado, accesos visuales a las categorías, banner de envío gratis y rejilla de novedades. La spec solo
+tenía el Hero de RF-23 (CA-69).
+
+**Qué cambia:**
+- RF-23 (portada) se amplía: la portada abre con una **barra de anuncios** y un **hero a sangre**, y continúa con una
+  sección **Explora**, un **banner de envío gratis** y una rejilla de **Novedades**.
+- Los importes y plazos que se muestran (umbral de envío gratis y días de devolución) salen de las constantes de
+  `src/lib/domain/shop.ts` (hoy 50,00 € y 30 días, RF-16 y RF-22). No se escriben a mano en los componentes.
+- CA-69 sigue vigente (foto vertical en móvil y horizontal en escritorio, texto legible AA); cambia el diseño del
+  hero y se ajusta su verificación (el texto va sobre un degradado oscuro y se comprueba con píxeles reales).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-81 | RF-23 | Cualquier página de la tienda (no el panel admin) | Se abre | Sobre la cabecera hay una barra de anuncios con el envío gratis desde el umbral real y las devoluciones en 30 días, legible (contraste AA) y sin scroll horizontal | test e2e `top-bar` y test unitario `TopBar` |
+| CA-82 | RF-23 | Un visitante en la portada | La abre a 375 px y a 1280 px | El hero ocupa todo el ancho de la ventana con la foto vertical (móvil) o la horizontal (escritorio), «Nueva colección», un titular grande y un botón «Ver colección» a `/novedades`, y el texto sobre la foto cumple AA con un degradado oscuro | test e2e `home-hero` |
+| CA-83 | RF-23 | La portada | Se recorre la sección Explora | Hay cuatro accesos (Mujer, Hombre, Novedades y Ofertas) con imagen, cada uno con enlace válido, nombre accesible y zona táctil de al menos 44 px | test e2e `home-sections` |
+| CA-84 | RF-23 | La portada | Se llega al banner | Dice que el envío es gratis en pedidos superiores al umbral real (50,00 €), con texto centrado y legible | test e2e `home-sections` |
+| CA-85 | RF-23 | Productos marcados como novedad | Se abre la portada | Se ven hasta 8 con la tarjeta del catálogo y un enlace «Ver todo» a `/novedades`; sin novedades, la sección no se muestra | test e2e `home-sections` y test unitario |
+
+**Nuevas tareas derivadas:** T-046 (barra de anuncios), T-047 (hero a sangre) y T-048 (Explora, banner y Novedades).
+
 > Nota: umbrales marcados VERIFICAR (Lighthouse, cuotas, términos de proveedores) se
 > confirmarán antes de aprobar la spec.
