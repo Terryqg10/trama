@@ -64,12 +64,13 @@ test.describe('CA-03: el chip se aplica al clic, sin recargar', () => {
   });
 });
 
+// CA-10 (Enmienda 4, T-073): «Ordenar por» vive en la barra sobre el listado, no en el panel de filtros.
 test.describe('CA-10: «Ordenar por» se aplica al cambiar, sin recargar', () => {
   test('ordena por precio y cambia la URL sin recargar el documento', async ({ page }) => {
     await open(page, '/mujer');
     await markDocument(page);
 
-    await panel(page).locator('select[name="orden"]').selectOption('precio-asc');
+    await page.locator('select[name="orden"]').selectOption('precio-asc');
 
     await expect(page).toHaveURL(/orden=precio-asc/);
     await expect
@@ -88,7 +89,7 @@ test.describe('CA-10: «Ordenar por» se aplica al cambiar, sin recargar', () =>
 
   test('conserva los chips activos al cambiar el orden', async ({ page }) => {
     await open(page, '/mujer?categoria=blusas');
-    await panel(page).locator('select[name="orden"]').selectOption('precio-desc');
+    await page.locator('select[name="orden"]').selectOption('precio-desc');
     await expect(page).toHaveURL(/categoria=blusas/);
     await expect(page).toHaveURL(/orden=precio-desc/);
   });

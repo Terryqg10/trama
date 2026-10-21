@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { capitalize, type CatalogFacets } from '@/lib/catalog/facets';
 import {
   GENDERS,
@@ -9,6 +9,7 @@ import {
   type CatalogFilters as Filters,
   type Gender,
 } from '@/lib/catalog/filters';
+import { FILTERS_SIDEBAR_ID } from './CatalogLayout';
 import { FilterChips } from './FilterChips';
 import { FiltersDrawer } from './FiltersDrawer';
 
@@ -22,6 +23,9 @@ const SORT_LABELS: Record<(typeof SORTS)[number], string> = {
   'precio-asc': 'Precio: de menor a mayor',
   'precio-desc': 'Precio: de mayor a menor',
 };
+
+/** Opciones de «Ordenar por», que vive en la barra sobre el listado (CA-12, T-073). */
+export const SORT_OPTIONS: readonly Option[] = SORTS.map((sort) => ({ value: sort, label: SORT_LABELS[sort] }));
 
 const chipBase =
   'inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface px-4 text-sm text-fg ' +
@@ -112,7 +116,7 @@ interface CatalogFiltersProps {
 }
 
 /**
- * Formulario de filtros y orden: un formulario GET renderizado en servidor que
+ * Formulario de filtros: un formulario GET renderizado en servidor que
  * funciona sin JavaScript; `FilterChips` lo mejora con JavaScript (ADR-006). Se pinta
  * dos veces (columna lateral y panel móvil); solo uno está visible según el ancho,
  * y el oculto con `display: none` ni se envía ni se lee con lector de pantalla.
@@ -184,7 +188,7 @@ function FilterForm({
         selected={filters.color}
       />
 
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
         <label className="block text-sm font-semibold text-fg">
           Precio mínimo (€)
           <input
@@ -210,30 +214,6 @@ function FilterForm({
             defaultValue={filters.maxPriceCents === undefined ? '' : filters.maxPriceCents / 100}
             className={fieldClass}
           />
-        </label>
-        <label className="block text-sm font-semibold text-fg">
-          Ordenar por
-          {/* Sin chevrón nativo (`appearance-none`): el de lucide va dentro del control, a la
-              misma distancia del borde que el texto (`px-4`), y no bloquea clics. */}
-          <span className="relative mt-1 block">
-            <select
-              name="orden"
-              defaultValue={filters.sort}
-              data-testid="filters-sort"
-              className={`${controlClass} appearance-none pr-12`}
-            >
-              {SORTS.map((sort) => (
-                <option key={sort} value={sort}>
-                  {SORT_LABELS[sort]}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              aria-hidden="true"
-              data-testid="filters-sort-chevron"
-              className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-fg"
-            />
-          </span>
         </label>
       </div>
 
@@ -261,13 +241,14 @@ export function FiltersSidebar(props: CatalogFiltersProps) {
   const active = activeCount(props.filters, props.showGender);
   return (
     <aside
+      id={FILTERS_SIDEBAR_ID}
       aria-labelledby="filters-sidebar-title"
       data-testid="filters-sidebar"
       className="hidden lg:sticky lg:top-4 lg:block lg:max-h-dvh lg:w-(--filter-sidebar-width) lg:shrink-0 lg:self-start lg:overflow-y-auto lg:rounded-container lg:border lg:border-border lg:bg-surface"
     >
       <div className="flex min-h-11 items-center justify-between px-5 py-2">
         <h2 id="filters-sidebar-title" className="text-sm font-semibold text-fg">
-          Filtros y orden
+          Filtros
         </h2>
         <ActiveBadge active={active} testId="filters-count" />
       </div>

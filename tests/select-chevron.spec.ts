@@ -11,6 +11,13 @@ async function openFilters(page: Page, width: number): Promise<void> {
   await expect(page.locator('article').first()).toBeVisible();
   const open = page.locator('[data-testid="filters-open"]');
   if (await open.isVisible()) await open.click();
+}
+
+/** «Ordenar por» está en la barra sobre el listado (Enmienda 4, T-073): no hace falta abrir el drawer. */
+async function openCatalog(page: Page, width: number): Promise<void> {
+  await page.setViewportSize({ width, height: width >= 1024 ? 900 : 812 });
+  await page.goto('/mujer');
+  await expect(page.locator('article').first()).toBeVisible();
   await page.locator('select[name="orden"]:visible').evaluate((el) => {
     el.scrollIntoView({ block: 'center' });
   });
@@ -19,7 +26,7 @@ async function openFilters(page: Page, width: number): Promise<void> {
 test.describe('CA-51: «Ordenar por» lleva el chevrón de lucide, no el nativo', () => {
   for (const width of [375, 1280]) {
     test(`a ${width} px`, async ({ page }) => {
-      await openFilters(page, width);
+      await openCatalog(page, width);
       const select = page.locator('select[name="orden"]:visible');
       const chevron = select.locator('xpath=following-sibling::*[@data-testid="filters-sort-chevron"]');
 
@@ -65,7 +72,7 @@ test.describe('CA-51: «Ordenar por» lleva el chevrón de lucide, no el nativo'
   test('pulsar sobre el chevrón abre el select (no bloquea clics) y se puede cambiar', async ({
     page,
   }) => {
-    await openFilters(page, 1280);
+    await openCatalog(page, 1280);
     const select = page.locator('select[name="orden"]:visible');
     const box = await select.boundingBox();
     expect(box).not.toBeNull();
@@ -131,6 +138,10 @@ test.describe('CA-52: controles alineados a 320, 375, 768 y 1280 px', () => {
   test('en el drawer el pie queda pegado al fondo del viewport', async ({ page }) => {
     for (const width of [320, 375, 768]) {
       await openFilters(page, width);
+      // Como antes de T-073 (cuando el último campo era «Ordenar por»): se lleva el final del formulario a la vista.
+      await page.locator('[data-testid="filters-drawer"] input[name="max"]').evaluate((el) => {
+        el.scrollIntoView({ block: 'center' });
+      });
       const footer = page.locator('[data-testid="filters-drawer"]').getByRole('button', {
         name: 'Aplicar filtros',
       });
@@ -142,25 +153,6 @@ test.describe('CA-52: controles alineados a 320, 375, 768 y 1280 px', () => {
         expect(box.y + box.height, `pie a ${width} px`).toBeGreaterThan(viewportHeight - 24);
         expect(box.y + box.height).toBeLessThanOrEqual(viewportHeight);
       }
-    }
-  });
-
-  test('con el foco en «Ordenar por» el pie fijo no lo tapa', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 812 });
-    await page.goto('/mujer');
-    await expect(page.locator('article').first()).toBeVisible();
-    await page.locator('[data-testid="filters-open"]').click();
-    const select = page.locator('[data-testid="filters-drawer"] select[name="orden"]');
-    await select.focus();
-    const selectBox = await select.boundingBox();
-    const footerBox = await page
-      .locator('[data-testid="filters-drawer"]')
-      .getByRole('link', { name: 'Limpiar' })
-      .boundingBox();
-    expect(selectBox).not.toBeNull();
-    expect(footerBox).not.toBeNull();
-    if (selectBox && footerBox) {
-      expect(selectBox.y + selectBox.height).toBeLessThanOrEqual(footerBox.y);
     }
   });
 });

@@ -77,12 +77,11 @@ test.describe('CA-02 en tablet: por debajo de --bp-lg también hay drawer', () =
     await expect(trigger(page)).toBeHidden();
   });
 
-  test('«Ordenar por» se aplica al cambiar y el drawer sigue abierto', async ({ page }) => {
+  test('«Ordenar por» ya no está en el drawer: vive en la barra sobre el listado (CA-12)', async ({ page }) => {
     await open(page, '/mujer');
     await trigger(page).click();
-    await drawer(page).locator('select[name="orden"]').selectOption('precio-desc');
-    await expect(page).toHaveURL(/orden=precio-desc/);
-    await expect(drawer(page)).toBeVisible();
+    await expect(drawer(page).locator('select[name="orden"]')).toHaveCount(0);
+    await expect(page.locator('select[name="orden"]')).toHaveCount(1);
   });
 });
 
