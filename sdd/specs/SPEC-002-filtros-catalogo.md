@@ -154,3 +154,29 @@ estaba documentado y que, con JavaScript, el CSS `:target` abre el drawer sin qu
 
 **Nuevas tareas derivadas:** T-011 (orden de botones del drawer y sincronización del hash), T-012
 (indicador de carga al navegar al catálogo; sin CA todavía).
+
+### Enmienda 4 — 2026-10-21 — sin ADR — barra de orden, filtros ocultables y panel con acordeones (CA-12 y CA-13)
+
+**Origen:** el usuario pide que el catálogo siga la convención de las grandes tiendas (Zalando, ASOS, Zara, H&M): «Ordenar
+por» arriba a la derecha del listado, un botón para ocultar los filtros y un panel con secciones plegables.
+
+**Qué cambia:**
+- **«Ordenar por» sale del panel de filtros** y va en una barra sobre el listado, a la derecha (RF-03 se mantiene: se
+  aplica al cambiar). Como ya no está dentro del formulario de filtros, tiene su **propio formulario** `method="get"` con
+  campos ocultos con los filtros vigentes; sin JavaScript lleva un botón «Ordenar» (en `<noscript>`).
+- **«Ocultar filtros / Mostrar filtros»** (icono de ajustes de lucide, `aria-expanded` y `aria-controls`) en esa barra,
+  **solo con JavaScript y desde `--bp-lg`**, donde existe la columna lateral. Oculta la columna y el listado pasa de 3 a 4
+  columnas. **RF-08 se precisa:** el panel es visible por defecto y **sin JavaScript no se puede ocultar** (el botón no
+  existe). El estado **no se guarda** entre visitas (sigue vigente «Guardar filtros entre sesiones» como fuera de alcance).
+  En móvil y tablet (< `--bp-lg`) no cambia nada: botón «Filtros» y drawer.
+- **Acordeones:** categoría, ocasión, talla y color son `<details>`/`<summary>` nativos, abiertos por defecto (funcionan
+  sin JavaScript). El `<summary>` es de 44 px de alto y muestra cuántos filtros activos tiene esa sección.
+- **Precio:** dos campos pequeños «Mín.» y «Máx.» en una fila, con un guion entre ellos y el símbolo «€»; siguen
+  requiriendo «Aplicar» (RF-04).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-12 | RF-03, RF-08 | El catálogo a 1280 px con JavaScript | Se mira la barra sobre el listado y se pulsa «Ocultar filtros» | «Ordenar por» está a la derecha de la barra y ya no está en el panel; cambiarlo reordena sin recargar y la URL lleva `orden`, conservando los filtros; «Ocultar filtros» (`aria-expanded="true"`) oculta la columna lateral y el listado pasa a 4 columnas sin scroll horizontal; «Mostrar filtros» la devuelve; el foco no se pierde. Con JavaScript desactivado el panel sigue visible, no hay botón de ocultar y «Ordenar» funciona con su botón. A 375 y 768 px no hay botón de ocultar y el drawer sigue igual | test e2e `catalog-toolbar` (Chromium) y unitario |
+| CA-13 | RF-03, RF-04 | El panel de filtros | Se abre en escritorio y en el drawer | Categoría, ocasión, talla y color son acordeones nativos abiertos, plegables con teclado (Intro/Espacio) y de 44 px de alto; se pueden plegar sin perder el filtro marcado; el precio son dos campos «Mín.» y «Máx.» en una fila con guion y «€», con etiquetas accesibles, y se aplican con «Aplicar»; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test e2e `filters-accordion` (Chromium), test:a11y y unitario |
+
+**Nuevas tareas derivadas:** T-073 (barra con orden y ocultar filtros) y T-074 (acordeones y precio Mín./Máx.).

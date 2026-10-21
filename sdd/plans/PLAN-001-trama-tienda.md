@@ -553,3 +553,35 @@ Las tareas nuevas siguen desde T-071.
 - **Carrusel sin autoavance:** no necesita pausa (WCAG 2.2.2); el movimiento es solo el scroll del usuario.
 
 Las tareas nuevas siguen desde T-073.
+
+### Enmienda 22 — 2026-10-21 — sin ADR — catálogo a nivel de las grandes tiendas
+
+**Origen:** Enmienda 4 de SPEC-002 (CA-12 y CA-13) y Enmienda 32 de SPEC-001 (CA-118 a CA-120). Se mantiene
+`v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-073** | Barra sobre el listado con «Ordenar por» (formulario propio) y «Ocultar/Mostrar filtros» (solo JS y ≥ `--bp-lg`) | CA-12 | T-070 |
+| **T-074** | Acordeones nativos (`<details>`) en el panel de filtros y precio Mín./Máx. en una fila | CA-13 | T-073 |
+| **T-075** | Datos: `compare_at_cents` en `product_variants` (migración, CHECK, Zod, tipos, seed y prueba de integración) | CA-118 | — |
+| **T-076** | Insignia «−N %» y precio actual junto al anterior tachado en `ProductCard` | CA-119 | T-075 |
+| **T-077** | Panel de compra rápida (tallas y «Añadir a la cesta») al pasar el cursor o enfocar, solo escritorio | CA-120 | T-076 |
+
+**Decisiones de UI:**
+- **Convención del sector:** orden y ocultar filtros arriba a la derecha del listado, filtros en acordeones, insignia de
+  descuento y precio tachado, tallas y cesta al pasar el cursor (Zalando, ASOS, Zara, H&M); sin desvío.
+- **Una tarea por capa:** la petición se partió en cinco porque mezclaba datos (T-075), listado (T-073, T-074) y tarjeta
+  (T-076, T-077).
+- **Orden fuera del formulario de filtros:** formulario `method="get"` propio con campos ocultos de los filtros vigentes
+  (para no perder filtros ni degradar sin JavaScript). El selector ya aplica al cambiar (Enmienda 2 de SPEC-002).
+- **Ocultar filtros no se guarda** (sin `localStorage`) y no existe sin JavaScript ni por debajo de `--bp-lg`.
+- **Compra rápida solo con hover/foco en escritorio:** el hover no existe en táctil; en móvil la tarjeta va a la ficha.
+  El panel va por encima del enlace extendido (`z-10`) y es alcanzable con teclado (WCAG 2.1.1). **Decisión a vigilar:**
+  las tallas son las del primer color con stock (la foto de la tarjeta no está ligada a un color); con varios colores se
+  avisa «+N colores». Reversible: se puede quitar la compra rápida sin tocar el resto.
+- **Precio anterior por variante** (`compare_at_cents` junto a `price_cents`), porque el precio ya vive en la variante.
+  `/ofertas` no se conecta aquí (tarea aparte).
+- **Riesgo conocido:** `ProductCard` es un componente de servidor usado también en la portada y la búsqueda; el panel de
+  compra rápida será un componente cliente aparte, solo en el catálogo, y recibirá `signedIn` desde la página.
+
+Las tareas nuevas siguen desde T-078.

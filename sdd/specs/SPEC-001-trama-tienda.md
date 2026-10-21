@@ -875,3 +875,36 @@ de tarjetas verticales con la última cortada (convención del sector: Zara, ASO
 | CA-117 | RF-23 | La portada | Se llega a la franja de envío (bajo «Prepárate para el frío») | Es una franja de texto a todo el ancho, sin foto, con «Envío gratis a partir de 50,00 €» (importe de `shop.ts`) y contraste AA con tokens; en toda la portada no hay dos bandas con foto a sangre seguidas (hay una sección entre el hero y el banner dividido, y otra entre el banner dividido y la siguiente banda); sin scroll horizontal de 320 a 1920 px | test e2e `home-layout` y `home-sections` |
 
 **Nuevas tareas derivadas:** T-071 (sección «Prepárate para el frío») y T-072 (franja de envío y nuevo orden de la portada).
+
+### Enmienda 32 — 2026-10-21 — sin ADR — tarjeta de producto con descuento y compra rápida al pasar el cursor (CA-118 a CA-120)
+
+**Origen:** el usuario pide que las tarjetas del catálogo muestren el descuento (insignia y precio tachado) y, al pasar el
+cursor, las tallas y un botón de «Añadir a la cesta», como las grandes tiendas.
+
+**Qué cambia:**
+- **Precio anterior real, no simulado.** Se añade a `product_variants` la columna opcional `compare_at_cents` (precio antes
+  de la rebaja), con la restricción `compare_at_cents > price_cents` cuando existe. El seed marca como rebajadas unas
+  pocas prendas de ejemplo (**datos ficticios**, como el resto del catálogo). Las políticas RLS de la tabla no cambian: la
+  columna se lee con el mismo `select` público de variantes. Los esquemas Zod y los tipos se derivan de ella.
+- **Descuento en la tarjeta:** si la variante de menor precio tiene `compare_at_cents`, la tarjeta muestra una insignia
+  «−N %» (N = porcentaje redondeado) arriba a la izquierda y el precio actual en negrita con el anterior, más pequeño,
+  tachado (`line-through`, `text-fg-muted`). La insignia es texto, no solo color. El orden por precio sigue usando el
+  precio actual. **`/ofertas` no cambia en esta enmienda** (sigue con su estado vacío): conectarla a las rebajas es una
+  tarea aparte, anotada como pendiente.
+- **Compra rápida al pasar el cursor (solo escritorio):** con puntero fino y desde `--bp-lg`, al hacer hover o al enfocar con
+  teclado (`group-hover` y `group-focus-within`), un panel sube desde la parte baja de la imagen con las tallas
+  disponibles como botones pequeños y «Añadir a la cesta» (`bg-accent`, `text-accent-fg`). **Las tallas son las del primer
+  color con stock** (el de la foto de la tarjeta): si el producto tiene más colores se indica «+N colores» y se elige en la
+  ficha. El panel está sobre el enlace extendido de la tarjeta, así que no lo rompe: pulsar fuera de los botones sigue
+  llevando a la ficha. En móvil y tablet (< `--bp-lg` o sin hover) no hay panel y la tarjeta sigue yendo a la ficha.
+  Reutiliza la lógica del carrito de la ficha (invitado en el navegador, con sesión en la cuenta, CA-04 y CA-60). Con
+  `prefers-reduced-motion` el panel aparece sin deslizamiento. Sin JavaScript no hay compra rápida (la ficha sigue siendo
+  el camino).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-118 | RF-01, RF-02 | Una variante con `compare_at_cents` mayor que su precio | Se aplica la migración y se leen los productos | La columna es opcional, rechaza un precio anterior menor o igual al actual, aparece en el esquema Zod y en el tipo derivado, no cambia las políticas RLS (un anónimo la lee con el `select` público de variantes y no puede modificarla) y el seed deja entre 3 y 6 prendas rebajadas | test de integración `compare-at-price` (BD real) y unitario del esquema |
+| CA-119 | RF-01, RF-02 | Una tarjeta de producto con y sin rebaja | Se muestra en el listado | Con rebaja: insignia «−N %» arriba a la izquierda (N correcto), precio actual en negrita y anterior tachado con `text-fg-muted`, contraste AA, y el nombre accesible del precio dice «antes … ahora …»; sin rebaja: igual que hoy; la insignia «Nuevo» y la de «Agotado» siguen visibles y no se solapan; sin scroll horizontal de 320 a 1280 px | test e2e `catalog-discount` (Chromium) y unitario |
+| CA-120 | RF-01, RF-03 | El catálogo a 1280 px con puntero fino | Se pasa el cursor o se tabula hasta una tarjeta con stock | Aparece un panel sobre la parte baja de la imagen con las tallas del primer color con stock y «Añadir a la cesta»; elegir una talla y pulsar el botón añade esa variante al carrito (contador de la cabecera y aviso `aria-live`); pulsar el resto de la tarjeta lleva a la ficha; el panel y sus botones se alcanzan con teclado (≥ 44 px), Esc lo cierra y con reduced-motion no hay deslizamiento; a 375 y 768 px no existe y la tarjeta enlaza a la ficha; una tarjeta agotada no lo muestra | test e2e `catalog-quick-add` (Chromium) y unitario |
+
+**Nuevas tareas derivadas:** T-075 (datos: `compare_at_cents`), T-076 (insignia y precio tachado) y T-077 (compra rápida).
