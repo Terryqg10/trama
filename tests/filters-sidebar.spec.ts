@@ -86,6 +86,9 @@ test.describe('CA-08: el panel está visible por defecto en escritorio', () => {
     await open(page, '/mujer');
     await expect(page.locator('[data-testid="filters-panel"]')).toBeVisible();
     await expect(page.locator('details [data-testid="filters-panel"]')).toHaveCount(0);
-    await expect(page.locator('details:visible')).toHaveCount(0);
+    // Enmienda 4 (T-074): dentro del panel hay secciones plegables (<details>), abiertas por defecto; fuera de él, ninguna.
+    await expect(page.locator('details:visible:not([open])')).toHaveCount(0);
+    await expect(page.locator('details:visible')).toHaveCount(4);
+    await expect(page.locator('[data-testid="filters-panel"] details:visible')).toHaveCount(4);
   });
 });

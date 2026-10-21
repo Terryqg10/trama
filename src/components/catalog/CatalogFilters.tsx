@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { capitalize, type CatalogFacets } from '@/lib/catalog/facets';
 import {
   GENDERS,
@@ -33,9 +33,11 @@ const chipBase =
   'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent';
 
 /**
- * Grupo de chips de una sola opción. Son radios nativos: funcionan sin JavaScript.
- * El chip seleccionado lleva una marca (icono) además del color: no depende solo
- * del color (WCAG AA).
+ * Sección plegable de chips de una sola opción (CA-13, T-074). Es un `<details open>` nativo: abierto por defecto, se
+ * pliega con teclado (Intro/Espacio) y funciona sin JavaScript. Los radios son nativos: plegar la sección no pierde el
+ * filtro marcado (el contenido sigue en el formulario). El `<summary>` mide 44 px y muestra si la sección tiene un
+ * filtro activo; el chip seleccionado lleva una marca (icono) además del color (WCAG AA). La leyenda del `<fieldset>`
+ * solo la leen los lectores de pantalla: la visible es el `<summary>`.
  */
 function ChipGroup({
   legend,
@@ -49,34 +51,52 @@ function ChipGroup({
   readonly selected: string | undefined;
 }) {
   const all: readonly Option[] = [{ value: '', label: 'Todas' }, ...options];
+  const active = selected ? 1 : 0;
   return (
-    <fieldset className="min-w-0">
-      <legend className="mb-2 text-sm font-semibold text-fg">{legend}</legend>
-      <div className="flex flex-wrap gap-2">
-        {all.map((option) => (
-          <label key={option.value || 'todas'} className="relative inline-flex">
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              defaultChecked={(selected ?? '') === option.value}
-              className="peer sr-only"
-            />
-            <Check
-              aria-hidden="true"
-              className="absolute left-3 top-1/2 hidden size-4 -translate-y-1/2 text-accent-fg peer-checked:block"
-            />
-            <span className={chipBase}>{option.label}</span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
+    <details open data-testid="filters-section" className="group min-w-0 border-b border-border pb-4">
+      <summary
+        data-testid="filters-section-summary"
+        className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-control text-sm font-semibold text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden"
+      >
+        <span className="flex items-center gap-2">
+          {legend}
+          <ActiveBadge active={active} testId="filters-section-count" />
+        </span>
+        <ChevronDown
+          aria-hidden="true"
+          className="size-4 shrink-0 text-fg motion-safe:transition-transform group-open:rotate-180"
+        />
+      </summary>
+      <fieldset className="mt-2 min-w-0">
+        <legend className="sr-only">{legend}</legend>
+        <div className="flex flex-wrap gap-2">
+          {all.map((option) => (
+            <label key={option.value || 'todas'} className="relative inline-flex">
+              <input
+                type="radio"
+                name={name}
+                value={option.value}
+                defaultChecked={(selected ?? '') === option.value}
+                className="peer sr-only"
+              />
+              <Check
+                aria-hidden="true"
+                className="absolute left-3 top-1/2 hidden size-4 -translate-y-1/2 text-accent-fg peer-checked:block"
+              />
+              <span className={chipBase}>{option.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    </details>
   );
 }
 
-const controlClass =
-  'min-h-11 w-full rounded-control border border-border-strong bg-surface px-4 text-sm text-fg';
-const fieldClass = `mt-1 ${controlClass}`;
+/** Campo de precio: sin las flechas del navegador, que taparían el «€» (se escribe el importe). */
+const priceFieldClass =
+  'min-h-11 w-full min-w-0 rounded-control border border-border-strong bg-surface ps-3 pe-8 text-sm text-fg ' +
+  '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
+
 
 function activeCount(filters: Filters, hasGenderFilter: boolean): number {
   return [
@@ -188,34 +208,51 @@ function FilterForm({
         selected={filters.color}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-        <label className="block text-sm font-semibold text-fg">
-          Precio mínimo (€)
-          <input
-            type="number"
-            name="min"
-            inputMode="numeric"
-            min={0}
-            max={99999}
-            step={1}
-            defaultValue={filters.minPriceCents === undefined ? '' : filters.minPriceCents / 100}
-            className={fieldClass}
-          />
-        </label>
-        <label className="block text-sm font-semibold text-fg">
-          Precio máximo (€)
-          <input
-            type="number"
-            name="max"
-            inputMode="numeric"
-            min={0}
-            max={99999}
-            step={1}
-            defaultValue={filters.maxPriceCents === undefined ? '' : filters.maxPriceCents / 100}
-            className={fieldClass}
-          />
-        </label>
-      </div>
+      {/* Precio (CA-13): dos campos pequeños en una fila, «Mín.» y «Máx.», con un guion entre ellos y «€» dentro. Se
+          aplican con «Aplicar filtros» (RF-04). Las etiquetas visibles son los marcadores; las accesibles, el texto
+          `sr-only`. */}
+      <fieldset className="min-w-0">
+        <legend className="mb-2 text-sm font-semibold text-fg">Precio</legend>
+        <div className="flex items-center gap-2">
+          <label className="relative block min-w-0 flex-1">
+            <span className="sr-only">Precio mínimo (€)</span>
+            <input
+              type="number"
+              name="min"
+              inputMode="numeric"
+              placeholder="Mín."
+              min={0}
+              max={99999}
+              step={1}
+              defaultValue={filters.minPriceCents === undefined ? '' : filters.minPriceCents / 100}
+              className={priceFieldClass}
+            />
+            <span aria-hidden="true" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-fg-muted">
+              €
+            </span>
+          </label>
+          <span aria-hidden="true" className="text-fg-muted">
+            –
+          </span>
+          <label className="relative block min-w-0 flex-1">
+            <span className="sr-only">Precio máximo (€)</span>
+            <input
+              type="number"
+              name="max"
+              inputMode="numeric"
+              placeholder="Máx."
+              min={0}
+              max={99999}
+              step={1}
+              defaultValue={filters.maxPriceCents === undefined ? '' : filters.maxPriceCents / 100}
+              className={priceFieldClass}
+            />
+            <span aria-hidden="true" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-fg-muted">
+              €
+            </span>
+          </label>
+        </div>
+      </fieldset>
 
       <div
         className={
