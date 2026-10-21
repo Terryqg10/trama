@@ -122,3 +122,36 @@ describe('sortProducts', () => {
     expect(original.map((p) => p.id)).toEqual(['c', 'a']);
   });
 });
+
+// CA-118 (T-075): precio anterior de la variante (`compare_at_cents`).
+describe('compare_at_cents (CA-118)', () => {
+  const variant = (extra: Record<string, unknown>) => ({
+    id: 'v1',
+    size: 'M',
+    color: 'azul',
+    price_cents: 2990,
+    stock: 5,
+    ...extra,
+  });
+
+  it('acepta un precio anterior entero y lo expone como compareAtCents', () => {
+    const [first] = toCatalogProduct(row({ product_variants: [variant({ compare_at_cents: 3990 })] })).variants;
+    expect(first?.compareAtCents).toBe(3990);
+  });
+
+  it('acepta null (sin rebaja) y una fila sin la clave: compareAtCents queda en null', () => {
+    const withNull = toCatalogProduct(row({ product_variants: [variant({ compare_at_cents: null })] }));
+    const without = toCatalogProduct(row({ product_variants: [variant({})] }));
+    expect(withNull.variants[0]?.compareAtCents).toBeNull();
+    expect(without.variants[0]?.compareAtCents).toBeNull();
+  });
+
+  it.each([0, -1, 39.9, '3990'])('rechaza un precio anterior no válido: %j', (value) => {
+    expect(() => row({ product_variants: [variant({ compare_at_cents: value })] })).toThrow();
+  });
+
+  it('no cambia el precio «desde» ni el orden por precio: usan el precio actual', () => {
+    const rebajado = toCatalogProduct(row({ product_variants: [variant({ compare_at_cents: 9990 })] }));
+    expect(rebajado.fromPriceCents).toBe(2990);
+  });
+});

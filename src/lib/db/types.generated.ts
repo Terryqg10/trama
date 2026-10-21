@@ -249,6 +249,7 @@ export type Database = {
       product_variants: {
         Row: {
           color: string
+          compare_at_cents: number | null
           created_at: string
           id: string
           price_cents: number
@@ -258,6 +259,7 @@ export type Database = {
         }
         Insert: {
           color: string
+          compare_at_cents?: number | null
           created_at?: string
           id?: string
           price_cents: number
@@ -267,6 +269,7 @@ export type Database = {
         }
         Update: {
           color?: string
+          compare_at_cents?: number | null
           created_at?: string
           id?: string
           price_cents?: number

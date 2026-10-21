@@ -18,13 +18,13 @@ const MAX_PRODUCTS = 200;
 const LIST_SELECT =
   'id, slug, name, gender, category, occasion, is_new, created_at, ' +
   'product_images(path, alt, position), ' +
-  'product_variants!inner(id, size, color, price_cents, stock)';
+  'product_variants!inner(id, size, color, price_cents, compare_at_cents, stock)';
 
 const DETAIL_SELECT =
   'id, slug, name, description, gender, category, occasion, is_new, created_at, ' +
   'composition, care, model_height_cm, model_size, ' +
   'product_images(path, alt, position), ' +
-  'product_variants(id, size, color, price_cents, stock)';
+  'product_variants(id, size, color, price_cents, compare_at_cents, stock)';
 
 const slugSchema = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/).max(160);
 

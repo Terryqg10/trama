@@ -13,6 +13,11 @@ const variantRowSchema = z.object({
   size: z.string(),
   color: z.string(),
   price_cents: z.number().int().nonnegative(),
+  /**
+   * Precio antes de la rebaja (T-075, CA-118): opcional y siempre mayor que `price_cents` (CHECK en la BD). La BD lo
+   * devuelve siempre (`null` sin rebaja); `nullish` tolera filas sin la clave y se normaliza a `null` abajo.
+   */
+  compare_at_cents: z.number().int().positive().nullish(),
   stock: z.number().int().nonnegative(),
 });
 
@@ -49,6 +54,8 @@ export interface ProductVariant {
   readonly size: string;
   readonly color: string;
   readonly priceCents: number;
+  /** Precio antes de la rebaja; `null` si la variante no está rebajada. */
+  readonly compareAtCents: number | null;
   readonly stock: number;
 }
 
@@ -93,6 +100,7 @@ export function toCatalogProduct(row: CatalogRow): CatalogProduct {
     size: v.size,
     color: v.color,
     priceCents: v.price_cents,
+    compareAtCents: v.compare_at_cents ?? null,
     stock: v.stock,
   }));
   const prices = variants.map((v) => v.priceCents);
