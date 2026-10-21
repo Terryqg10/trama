@@ -180,3 +180,28 @@ por» arriba a la derecha del listado, un botón para ocultar los filtros y un p
 | CA-13 | RF-03, RF-04 | El panel de filtros | Se abre en escritorio y en el drawer | Categoría, ocasión, talla y color son acordeones nativos abiertos, plegables con teclado (Intro/Espacio) y de 44 px de alto; se pueden plegar sin perder el filtro marcado; el precio son dos campos «Mín.» y «Máx.» en una fila con guion y «€», con etiquetas accesibles, y se aplican con «Aplicar»; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test e2e `filters-accordion` (Chromium), test:a11y y unitario |
 
 **Nuevas tareas derivadas:** T-073 (barra con orden y ocultar filtros) y T-074 (acordeones y precio Mín./Máx.).
+
+### Enmienda 5 — 2026-10-21 — sin ADR — filtros en lista vertical en lugar de chips (CA-14)
+
+**Origen:** el usuario ve mal los filtros como píldoras que se envuelven (chips) y pide una lista vertical con casillas, como
+en las grandes tiendas (Zalando, ASOS, H&M). Decisión del usuario: **selección única** (sin cambiar datos ni URLs).
+
+**Qué cambia:**
+- **Categoría, ocasión, talla y género** (este solo en Novedades) dejan de ser chips y pasan a una **lista vertical** de
+  opciones: una casilla cuadrada con marca de verificación y el nombre al lado (`text-sm`, color de acento al marcar). Siguen
+  siendo **radios nativos** (se elige una sola opción, como dice «Fuera de alcance» sobre tallas múltiples), así que
+  funcionan sin JavaScript y RF-03 no cambia: se aplican al elegir, sin «Aplicar».
+- **Desaparece la opción «Todas».** Para quitar los filtros se usa «Limpiar», que mantiene el orden (RF-06) y **solo se
+  muestra cuando hay algún filtro activo**. Quitar el filtro de una sola sección sin quitar los demás **no se ofrece** (queda
+  como mejora posible).
+- **Disposición:** categoría y ocasión en una columna; **talla en cuadrícula de dos columnas** (son muchas y cortas).
+- **Color:** lista vertical con el **círculo de muestra** (mismos tokens `bg-swatch-<color>` de la ficha, ADR-007) y el nombre
+  del color al lado. El círculo es decorativo; el nombre es el texto accesible, así que el color nunca es lo único.
+- **Accesibilidad:** cada fila mide al menos 44 px de alto, tiene foco visible y la marca es un icono además del color
+  (WCAG 1.4.1). Los acordeones (CA-13) y el precio no cambian.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-14 | RF-03, RF-06 | El panel de filtros en escritorio y en el drawer | Se abre y se elige una opción | Categoría, ocasión y talla son listas verticales (sin `flex-wrap`) de filas de ≥ 44 px con casilla y nombre; no existe «Todas»; la talla va en 2 columnas y el color con su círculo y el nombre al lado; elegir una opción aplica el filtro sin recargar y deja marcada solo esa; la marca es un icono; foco visible con teclado (flechas dentro del grupo); «Limpiar» solo aparece con filtros activos y los quita todos conservando el orden; sin JavaScript sigue funcionando con «Aplicar filtros»; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test e2e `filters-list` (Chromium), test:a11y y unitario |
+
+**Nuevas tareas derivadas:** T-078 (filtros en lista vertical).

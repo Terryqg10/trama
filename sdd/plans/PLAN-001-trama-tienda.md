@@ -585,3 +585,21 @@ Las tareas nuevas siguen desde T-073.
   compra rápida será un componente cliente aparte, solo en el catálogo, y recibirá `signedIn` desde la página.
 
 Las tareas nuevas siguen desde T-078.
+
+### Enmienda 23 — 2026-10-21 — sin ADR — filtros en lista vertical
+
+**Origen:** Enmienda 5 de SPEC-002 (CA-14). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-078** | Categoría, ocasión, talla y color como lista vertical con casilla (radio nativo), sin «Todas»; «Limpiar» solo con filtros activos | CA-14 | T-074 |
+
+**Decisiones de UI:**
+- **Convención del sector:** lista vertical con casillas en el panel lateral (Zalando, ASOS, H&M); sin desvío.
+- **Selección única con radios nativos**, decidida por el usuario: no cambia el parseo de URL ni las consultas, funciona sin
+  JavaScript y mantiene `?categoria=blusas`. El aspecto de casilla es solo visual. **Contrapartida:** no se puede quitar el
+  filtro de una sola sección (solo «Limpiar», que quita todos); si hace falta, tarea aparte.
+- **Muestras de color:** se reutilizan los tokens `bg-swatch-*` y `swatchClass` de la ficha (ADR-007); sin colores nuevos.
+- **T-076 y T-077 siguen pendientes**: T-078 se hace antes por petición del usuario.
+
+Las tareas nuevas siguen desde T-079.
