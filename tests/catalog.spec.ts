@@ -281,6 +281,8 @@ test.describe('interfaz del listado', () => {
   test('los controles del formulario miden al menos 44 px de alto', async ({ page }) => {
     await open(page, '/mujer?categoria=blusas');
     await openFilters(page);
+    // Espera a que el intervalo de precio sustituya a los campos de antes de hidratar (T-079): si no, el control puede desaparecer a mitad.
+    await expect(page.locator('form:visible [data-testid="price-range"]').first()).toBeVisible();
     const controls = page
       .locator('form:visible:not([role="search"])')
       .first()
