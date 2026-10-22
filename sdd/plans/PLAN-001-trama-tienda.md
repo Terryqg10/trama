@@ -657,3 +657,24 @@ Las tareas nuevas siguen desde T-081.
 - **Insignia con el color de acento** (`bg-accent`) y no con `bg-danger`: coincide con la identidad de la tienda y
   se distingue de «Nuevo» (`accent-soft`); contraste AA con `accent-fg`.
 - **Reutiliza `AddToCartButton`** (carrito de invitado y de cuenta); un `fullWidth` opcional para el panel.
+
+### Enmienda 27 — 2026-10-22 — sin ADR — compra en la tarjeta debajo de la foto
+
+**Origen:** Enmienda 34 de SPEC-001 (CA-121). Se mantiene `v1-soft-commerce@0.3.0`. Sustituye el panel superpuesto de T-077.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-081** | Controles bajo la foto: miniaturas de color que cambian la imagen, tallas cuadradas y botón «Elige talla»/«Añadir a la cesta» | CA-121 | T-077 |
+
+**Decisiones de UI:**
+- **Convención del sector:** colores, tallas y cesta bajo la foto de la tarjeta (Sprinter, Zalando); sin desvío.
+- **Siempre visibles desde 768 px**, decisión del usuario: no dependen de hover (funcionan con táctil y teclado) y la foto nunca se tapa.
+  Por debajo de 768 px la tarjeta sigue limpia (2 columnas de ~160 px no dan para tallas y botón).
+- **El color manda la imagen y las tallas:** estado compartido en un cliente (proveedor de contexto) entre la imagen, las
+  miniaturas y las tallas; la tarjeta sigue siendo un componente de servidor. La imagen sale de `alt` («…, color <nombre>»), igual que la ficha.
+- **Muestras con los tokens `bg-swatch-*`** (ADR-007) en lugar de la miniatura de la foto: ya existen, no cargan más imágenes y
+  coinciden con los filtros. Un color sin token se muestra con su nombre en texto.
+- **Los controles van al fondo de la tarjeta** (`mt-auto`) para que se alineen aunque unas tarjetas lleven miniaturas y otras no.
+- **Se elimina** el panel superpuesto, el hover, el foco-dentro y el Esc de T-077.
+
+Las tareas nuevas siguen desde T-082.

@@ -935,3 +935,29 @@ algunos detalles de la Enmienda 32; el dato (`compare_at_cents`, T-075) ya exist
 | CA-120 | RF-01, RF-03 | El catálogo a 768 px o más con puntero con hover | Se pasa el cursor o se tabula hasta una tarjeta con stock | Aparece un panel sobre la parte baja de la imagen con las tallas del primer color con stock en 4 columnas (las agotadas tachadas y desactivadas) y «Añadir a la cesta», desactivado hasta elegir talla; elegir una talla y pulsar el botón añade esa variante al carrito (aviso `aria-live` y contador de la cabecera); pulsar el resto de la tarjeta lleva a la ficha; sin hover ni foco el panel no recibe pulsaciones; se alcanza con teclado (botones ≥ 44 px) y con `prefers-reduced-motion` no hay transición; a 375 px no existe; una tarjeta agotada no lo muestra | test e2e `catalog-quick-add` (Chromium) y unitario |
 
 **Nuevas tareas derivadas:** ninguna (ajusta T-076 y T-077).
+
+### Enmienda 34 — 2026-10-22 — sin ADR — compra en la tarjeta debajo de la foto, con colores (CA-121)
+
+**Origen:** el usuario ve mal el panel que sube sobre la foto (tapa el producto y no deja elegir color) y pide que los
+controles estén **debajo de la imagen**, con miniaturas de color (patrón Sprinter). Decisión del usuario: **siempre visibles
+desde 768 px**. **Sustituye a lo que CA-120 decía del panel** (superpuesto, solo con hover o foco, Esc para descartarlo).
+
+**Qué cambia:**
+- **Sin panel superpuesto:** la imagen queda libre; solo llevan encima las insignias de «Nuevo», «Agotado» y descuento.
+- **Estructura de la tarjeta** (desde `--bp-md`): imagen → nombre, nº de colores y precio → **miniaturas de color** (solo si hay
+  más de uno) → **tallas** → **«Añadir a la cesta»**. Por debajo de 768 px la tarjeta no cambia (foto, nombre y precio).
+  Los controles van siempre visibles: sirven igual con ratón, teclado y táctil; no hay hover ni Esc.
+- **Colores:** un círculo de 24 px con el color de la variante (los tokens `bg-swatch-*` de ADR-007) dentro de un botón de
+  44 px, `aria-pressed` y nombre accesible «Color Azul»; el elegido lleva `ring-2 ring-accent`. **Al elegir un color la imagen
+  principal de la tarjeta cambia** a la foto de ese color (la que acaba en «color <nombre>», como en la ficha; si no hay, la
+  primera) y las tallas pasan a ser las de ese color. Color inicial: el primero con stock.
+- **Tallas:** botones cuadrados de 44 px con `border-border` y `rounded-control`; la elegida, `bg-accent` y `text-accent-fg`;
+  las agotadas, tachadas, con opacidad reducida y desactivadas. Al cambiar de color se vuelve a no tener talla elegida.
+- **Botón:** a ancho completo, `bg-accent` y `text-accent-fg`; sin talla elegida está desactivado y dice **«Elige talla»**;
+  con talla, «Añadir a la cesta» (misma lógica de carrito de invitado y de cuenta que la ficha).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-121 | RF-01, RF-03 | El catálogo a 768 px o más | Se mira una tarjeta con stock y varios colores | La imagen no tiene nada encima salvo las insignias; debajo del nombre y el precio hay miniaturas de color (≥ 44 px, `aria-pressed`, la elegida con borde de acento), una fila de tallas cuadradas (las agotadas tachadas y desactivadas) y un botón a ancho completo desactivado con «Elige talla»; elegir un color cambia la imagen principal y las tallas; elegir talla y pulsar «Añadir a la cesta» añade esa variante al carrito (aviso `aria-live`); pulsar la foto o el nombre lleva a la ficha; sin hover ni foco todo sigue visible; una prenda de un solo color no lleva miniaturas; una agotada no lleva controles; a 375 px la tarjeta no tiene controles; sin scroll horizontal ni tarjetas cortadas de 320 a 1280 px; axe sin violaciones graves | test e2e `catalog-quick-add` (Chromium), test:a11y y unitarios |
+
+**Nuevas tareas derivadas:** T-081 (tarjeta con controles debajo de la foto).
