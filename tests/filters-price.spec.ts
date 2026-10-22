@@ -281,3 +281,50 @@ test.describe('sin JavaScript, foco y responsive (CA-15)', () => {
     });
   }
 });
+
+// CA-15 + CA-16 (Enmienda 7): en el drawer, soltar el tirador filtra sin cerrarlo y «Mín.» y «Máx.» siguen a la vista.
+test.describe('drawer: el intervalo no cierra el panel (CA-15)', () => {
+  for (const width of [375, 800]) {
+    test(`a ${width} px: soltar el tirador con el ratón filtra y el drawer sigue abierto con los valores`, async ({ page }) => {
+      const form = await open(page, '/hombre', width);
+      const range = await bounds(form);
+      const target = Math.round(range.min + (range.max - range.min) * 0.3);
+      const start = await thumbCenter(thumbMin(form), range.min, range);
+      const end = await thumbCenter(thumbMin(form), target, range);
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      await page.mouse.move(end.x, end.y, { steps: 8 });
+      await page.mouse.up();
+      await expect.poll(() => urlValue(page, 'min')).not.toBeNull();
+      const applied = String(urlValue(page, 'min'));
+      await expect(page.getByTestId('filters-drawer')).toBeVisible();
+      await expect(fieldMin(form)).toBeVisible();
+      await expect(fieldMax(form)).toBeVisible();
+      await expect(fieldMin(form)).toHaveValue(applied);
+      await expect(fieldMax(form)).toHaveValue(String(range.max));
+      await expect(thumbMin(form)).toHaveValue(applied);
+    });
+  }
+
+  test('con teclado y al escribir un valor con Intro el drawer tampoco se cierra', async ({ page }) => {
+    const form = await open(page, '/hombre', 375);
+    const range = await bounds(form);
+    await thumbMax(form).focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect.poll(() => urlValue(page, 'max'), { timeout: 5000 }).toBe(String(range.max - 1));
+    await expect(page.getByTestId('filters-drawer')).toBeVisible();
+    await fieldMin(form).fill(String(range.min + 4));
+    await fieldMin(form).press('Enter');
+    await expect.poll(() => urlValue(page, 'min')).toBe(String(range.min + 4));
+    await expect(page.getByTestId('filters-drawer')).toBeVisible();
+    await expect(fieldMin(form)).toHaveValue(String(range.min + 4));
+    await expect(fieldMax(form)).toHaveValue(String(range.max - 1));
+  });
+
+  test('«Aplicar filtros» sí cierra el drawer (como antes)', async ({ page }) => {
+    const form = await open(page, '/hombre', 375);
+    await fieldMax(form).fill(String((await bounds(form)).max - 2));
+    await form.getByRole('button', { name: 'Aplicar filtros' }).click();
+    await expect(page.getByTestId('filters-drawer')).toBeHidden();
+  });
+});

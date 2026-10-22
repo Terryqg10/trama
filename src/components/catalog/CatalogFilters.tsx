@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, X } from 'lucide-react';
+import { activeFilters, queryWithout } from '@/lib/catalog/active-filters';
 import { capitalize, type CatalogFacets } from '@/lib/catalog/facets';
 import { swatchClass } from '@/lib/catalog/swatches';
 import {
@@ -118,8 +119,8 @@ function activeCount(filters: Filters, hasGenderFilter: boolean): number {
     filters.occasion,
     filters.size,
     filters.color,
-    filters.minPriceCents !== undefined,
-    filters.maxPriceCents !== undefined,
+    // El precio cuenta como un solo filtro (un chip en la lista de activos, CA-16), tenga uno o los dos extremos.
+    filters.minPriceCents !== undefined || filters.maxPriceCents !== undefined,
   ].filter(Boolean).length;
 }
 
@@ -132,6 +133,51 @@ function ActiveBadge({ active, testId }: { readonly active: number; readonly tes
     >
       {active} {active === 1 ? 'activo' : 'activos'}
     </span>
+  );
+}
+
+/**
+ * Lista de filtros activos con una X por cada uno (CA-16, T-080). Cada chip es un **enlace** a la misma página sin ese
+ * filtro y con el resto (y el orden) intactos: funciona sin JavaScript, con navegación blanda y sin tocar «Limpiar», que
+ * sigue quitando todos. El precio es un solo chip (quita `min` y `max`). No se pinta si no hay filtros activos. La fila
+ * mide 44 px; el nombre accesible dice qué se quita, no solo «X».
+ */
+function ActiveFilters({
+  basePath,
+  filters,
+  showGender,
+}: {
+  readonly basePath: Route;
+  readonly filters: Filters;
+  readonly showGender: boolean;
+}) {
+  const items = activeFilters(filters, showGender);
+  if (items.length === 0) return null;
+  return (
+    <ul
+      aria-label="Filtros activos"
+      data-testid="active-filters"
+      className="flex flex-col gap-1 border-t border-border px-5 py-3"
+    >
+      {items.map((item) => (
+        <li key={item.key}>
+          <Link
+            href={{ pathname: basePath, query: queryWithout(filters, showGender, item.key) }}
+            scroll={false}
+            data-testid="active-filter"
+            data-keep-overlay=""
+            data-filter={item.key}
+            aria-label={`Quitar filtro ${item.label}: ${item.value}`}
+            className="flex min-h-11 w-full items-center justify-between gap-3 rounded-control border border-border-strong bg-surface px-3 text-sm text-fg hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            <span className="min-w-0">
+              <span className="text-fg-muted">{item.label}:</span> <span className="font-semibold">{item.value}</span>
+            </span>
+            <X aria-hidden="true" className="size-4 shrink-0" />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -268,6 +314,7 @@ export function FiltersSidebar(props: CatalogFiltersProps) {
         </h2>
         <ActiveBadge active={active} testId="filters-count" />
       </div>
+      <ActiveFilters basePath={props.basePath} filters={props.filters} showGender={props.showGender} />
       <FilterForm {...props} testId="filters-panel" />
     </aside>
   );
@@ -281,6 +328,7 @@ export function FiltersMobile(props: CatalogFiltersProps) {
   const active = activeCount(props.filters, props.showGender);
   return (
     <FiltersDrawer activeCount={active}>
+      <ActiveFilters basePath={props.basePath} filters={props.filters} showGender={props.showGender} />
       <FilterForm {...props} testId="filters-panel-mobile" footerSticky />
     </FiltersDrawer>
   );

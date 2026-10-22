@@ -118,12 +118,13 @@ export function useHashOverlay(
     target?.focus();
   }
 
-  // Un enlace del panel (distinto del botón de cerrar) lo cierra: «Limpiar», un destino del menú…
+  // Un enlace del panel (distinto del botón de cerrar) lo cierra: «Limpiar», un destino del menú… Salvo los que llevan
+  // `data-keep-overlay`: filtrados en vivo (quitar un filtro activo, CA-16) que dejan el panel abierto, como los chips.
   function onClick(event: MouseEvent<HTMLElement>): void {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const link = target.closest('a[href]');
-    if (link && link !== closeLink.current && overlay.current?.contains(link)) close();
+    if (link && link !== closeLink.current && overlay.current?.contains(link) && !link.hasAttribute('data-keep-overlay')) close();
   }
 
   return {

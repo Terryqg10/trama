@@ -1,7 +1,7 @@
 'use client';
 
 import { SlidersHorizontal, X } from 'lucide-react';
-import { useRef, type ReactNode } from 'react';
+import { useRef, type FormEvent, type ReactNode } from 'react';
 import { useHashOverlay } from '../useHashOverlay';
 
 const DRAWER_ID = 'filtros-movil';
@@ -30,6 +30,15 @@ export function FiltersDrawer({
     overlay: drawerRef,
     close: closeRef,
   });
+
+  // El drawer solo se cierra con el envío que hace un botón («Aplicar filtros», T-008). El envío programático del
+  // intervalo de precio al soltar el tirador (`requestSubmit()` sin botón, T-079) es un filtrado en vivo, como los
+  // chips: el panel se queda abierto y «Mín.» y «Máx.» a la vista (CA-15 y CA-16). Sin `SubmitEvent` se cierra siempre.
+  function onFormSubmit(event: FormEvent<HTMLDivElement>): void {
+    const native = event.nativeEvent;
+    const live = typeof SubmitEvent !== 'undefined' && native instanceof SubmitEvent && native.submitter === null;
+    if (!live) overlay.close();
+  }
 
   return (
     <div className="lg:hidden">
@@ -66,7 +75,7 @@ export function FiltersDrawer({
         data-testid="filters-drawer"
         onKeyDown={overlay.onKeyDown}
         onClick={overlay.onClick}
-        onSubmit={overlay.close}
+        onSubmit={onFormSubmit}
         className={
           overlay.open
             ? 'fixed inset-0 z-50 flex flex-col bg-bg'
