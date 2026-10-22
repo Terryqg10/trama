@@ -205,3 +205,30 @@ en las grandes tiendas (Zalando, ASOS, H&M). Decisión del usuario: **selección
 | CA-14 | RF-03, RF-06 | El panel de filtros en escritorio y en el drawer | Se abre y se elige una opción | Categoría, ocasión y talla son listas verticales (sin `flex-wrap`) de filas de ≥ 44 px con casilla y nombre; no existe «Todas»; la talla va en 2 columnas y el color con su círculo y el nombre al lado; elegir una opción aplica el filtro sin recargar y deja marcada solo esa; la marca es un icono; foco visible con teclado (flechas dentro del grupo); «Limpiar» solo aparece con filtros activos y los quita todos conservando el orden; sin JavaScript sigue funcionando con «Aplicar filtros»; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test e2e `filters-list` (Chromium), test:a11y y unitario |
 
 **Nuevas tareas derivadas:** T-078 (filtros en lista vertical).
+
+### Enmienda 6 — 2026-10-22 — sin ADR — precio con intervalo deslizante (CA-15)
+
+**Origen:** el usuario pide que el precio sea un intervalo con dos tiradores, como en las grandes tiendas, y que los números
+se actualicen en tiempo real mientras arrastra para ver dónde se detiene. Decisión del usuario: el listado se filtra **al
+soltar**. **Sustituye a lo que CA-13 decía del precio** (dos campos sueltos) y retira «rango visual con deslizadores» de lo
+que quedaba fuera de alcance.
+
+**Qué cambia:**
+- **Intervalo con dos tiradores** (dos `<input type="range">` nativos superpuestos, accesibles con teclado) con una barra que
+  resalta el tramo elegido. Los límites salen del catálogo del ámbito (el precio más bajo y el más alto de las variantes, en
+  euros enteros). Los campos «Mín.» y «Máx.» se mantienen encima y **se actualizan en tiempo real al arrastrar**; también se
+  puede escribir en ellos (se aplica con Intro o al salir del campo).
+- **Se filtra al soltar** el tirador (o poco después de la última flecha de teclado): navegación blanda, sin recargar. Con
+  JavaScript el precio deja de necesitar «Aplicar» (RF-04 se precisa); el botón «Aplicar filtros» sigue ahí.
+- Si un tirador queda en su límite, ese extremo **no se filtra** (la URL no lleva `min` o `max` y no cuenta como filtro activo).
+  Los tiradores no se cruzan.
+- **Sin JavaScript** se mantienen los dos campos numéricos con «Aplicar filtros» (el intervalo solo existe con JavaScript).
+- **Accesibilidad:** cada tirador tiene nombre accesible («Precio mínimo» y «Precio máximo»), valor con «€», foco visible y
+  zona táctil de 44 px; con `prefers-reduced-motion` no hay transiciones. Un único CSS nuevo en `globals.css` con tokens
+  (los tiradores de `input[type=range]` no se pueden estilar solo con clases).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-15 | RF-04 | El panel de filtros con JavaScript | Se arrastra un tirador del precio | Hay dos tiradores y una barra con el tramo elegido, con límites del catálogo; «Mín.» y «Máx.» cambian en tiempo real mientras se arrastra, sin tocar la URL; al soltar el listado se filtra sin recargar y la URL lleva `min`/`max`; un extremo en su límite no se filtra; los tiradores no se cruzan; con teclado (flechas, Inicio, Fin) también funciona; escribir en los campos y pulsar Intro mueve los tiradores y filtra; «Limpiar» y «Atrás» devuelven los tiradores y los números a la URL; tiradores de 44 px con foco visible y nombre accesible; sin scroll horizontal de 320 a 1280 px; sin JavaScript siguen los dos campos con «Aplicar filtros»; axe sin violaciones graves | test e2e `filters-price` (Chromium), test:a11y y unitarios |
+
+**Nuevas tareas derivadas:** T-079 (intervalo de precio).

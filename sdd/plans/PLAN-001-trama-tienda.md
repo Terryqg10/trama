@@ -603,3 +603,23 @@ Las tareas nuevas siguen desde T-078.
 - **T-076 y T-077 siguen pendientes**: T-078 se hace antes por petición del usuario.
 
 Las tareas nuevas siguen desde T-079.
+
+### Enmienda 24 — 2026-10-22 — sin ADR — precio con intervalo deslizante
+
+**Origen:** Enmienda 6 de SPEC-002 (CA-15). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-079** | Intervalo de precio con dos tiradores, números en tiempo real y filtrado al soltar; límites en las facetas | CA-15 | T-078 |
+
+**Decisiones de UI:**
+- **Convención del sector:** intervalo con dos tiradores y campos Mín./Máx. sincronizados (Zalando, ASOS, H&M); sin desvío.
+- **Dos `<input type="range">` nativos superpuestos** y no una librería: teclado, lectores de pantalla y táctil gratis, sin
+  dependencia nueva. El coste es un bloque de CSS en `globals.css` para los tiradores, con tokens.
+- **Filtra al soltar**, no en cada movimiento: una petición por gesto, no por píxel. Con teclado, tras una pausa corta.
+- **Progressive enhancement:** sin JavaScript se pinta el par de campos numéricos de T-074 (un `useHydrated` decide).
+- **Extremo en su límite = sin filtro**, para que la URL siga limpia y el precio no cuente como filtro activo sin motivo.
+- **El tirador de arriba** cambia según la posición, para que dos tiradores juntos en un extremo puedan separarse.
+- **T-076 y T-077 siguen pendientes.**
+
+Las tareas nuevas siguen desde T-080.
