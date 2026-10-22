@@ -128,6 +128,22 @@ export function summarize(lines: ReadonlyArray<{ readonly priceCents: number; re
 }
 
 /**
+ * Lo que se ahorra con las rebajas (CA-126): suma de (precio anterior − precio actual) × cantidad, solo de las líneas con un
+ * precio anterior mayor que el actual. Quien llama pasa solo las líneas que cuentan (disponibles y con su cantidad efectiva).
+ */
+export function savingsCents(
+  lines: ReadonlyArray<{ readonly priceCents: number; readonly compareAtCents: number | null; readonly qty: number }>,
+): number {
+  return lines.reduce(
+    (sum, line) =>
+      line.compareAtCents !== null && line.compareAtCents > line.priceCents
+        ? sum + (line.compareAtCents - line.priceCents) * line.qty
+        : sum,
+    0,
+  );
+}
+
+/**
  * Fusiona el carrito del invitado con el de la cuenta (CA-04): las líneas de la cuenta conservan su
  * orden, las nuevas del invitado van detrás, y las cantidades de una misma variante se suman con el
  * tope de la línea. Los topes de stock los aplica quien guarda (el servidor).

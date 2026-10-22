@@ -23,6 +23,7 @@ function info(variantId: string, overrides: Partial<CartLineInfo> = {}): CartLin
     size: 'M',
     color: 'negro',
     priceCents: 1995,
+    compareAtCents: null,
     stock: 5,
     image: { path: '/products/polos-negro.svg', alt: 'Polo piqué básico, color negro' },
     ...overrides,

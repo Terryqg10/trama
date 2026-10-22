@@ -14,6 +14,7 @@ function info(variantId: string, overrides: Partial<CartLineInfo> = {}): CartLin
     size: 'M',
     color: 'negro',
     priceCents: 2990,
+    compareAtCents: null,
     stock: 8,
     image: null,
     ...overrides,

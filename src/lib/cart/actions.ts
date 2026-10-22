@@ -31,6 +31,21 @@ function logFailure(name: string, error: unknown): void {
   console.error(`${name} falló`, error instanceof Error ? error.message : 'error desconocido');
 }
 
+/**
+ * Carrito de la cuenta, o `unauthenticated` si no hay sesión. El carrito lateral (T-085) lo usa al abrirse para saber si
+ * trabaja con la cuenta o con el navegador, sin que el layout tenga que leer la sesión. No recibe parámetros.
+ */
+export async function getAccountCartAction(): Promise<AccountCartResult> {
+  const { client, user } = await getCurrentUser();
+  if (!user) return { status: 'unauthenticated' };
+  try {
+    return { status: 'ok', cart: await loadAccountCart(client) };
+  } catch (error) {
+    logFailure('getAccountCartAction', error);
+    return { status: 'error' };
+  }
+}
+
 /** Guarda en la cuenta el carrito tal y como lo deja el cliente (cantidades recortadas al stock). */
 export async function saveAccountCartAction(lines: SavedCart): Promise<AccountCartResult> {
   const parsed = savedCartSchema.safeParse(lines);

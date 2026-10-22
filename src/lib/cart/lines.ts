@@ -13,7 +13,7 @@ import { MAX_CART_LINES } from './cart';
 export const variantIdsSchema = z.array(z.string().uuid()).max(MAX_CART_LINES);
 
 const SELECT =
-  'id, size, color, price_cents, stock, ' +
+  'id, size, color, price_cents, compare_at_cents, stock, ' +
   'products!inner(slug, name, product_images(path, alt, position))';
 
 const rowSchema = z.object({
@@ -21,6 +21,8 @@ const rowSchema = z.object({
   size: z.string(),
   color: z.string(),
   price_cents: z.number().int().nonnegative(),
+  /** Precio anterior de la variante (T-075); `nullish` tolera filas sin la clave. */
+  compare_at_cents: z.number().int().positive().nullish(),
   stock: z.number().int().nonnegative(),
   products: z.object({
     slug: z.string(),
@@ -42,6 +44,8 @@ export interface CartLineInfo {
   readonly size: string;
   readonly color: string;
   readonly priceCents: number;
+  /** Precio antes de la rebaja, o `null` si la variante no está rebajada (CA-126). */
+  readonly compareAtCents: number | null;
   readonly stock: number;
   readonly image: { readonly path: string; readonly alt: string } | null;
 }
@@ -69,6 +73,7 @@ export async function fetchCartLines(
         size: row.size,
         color: row.color,
         priceCents: row.price_cents,
+        compareAtCents: row.compare_at_cents ?? null,
         stock: row.stock,
         image: image ? { path: image.path, alt: image.alt } : null,
       };

@@ -3,29 +3,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { isPhotoPath } from '@/lib/catalog/image-path';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { getCartLinesAction, saveAccountCartAction } from '@/lib/cart/actions';
-import { maxQty, removeLine, setLineQty, summarize, type SavedCart } from '@/lib/cart/cart';
-import type { CartLineInfo } from '@/lib/cart/lines';
-import { useHydrated, useSavedCart, writeCart } from '@/lib/cart/store';
-import { useGuestCartMerge } from '@/lib/cart/use-guest-merge';
+import type { SavedCart } from '@/lib/cart/cart';
+import { useCart } from '@/lib/cart/use-cart';
 import { capitalize } from '@/lib/catalog/facets';
 import { formatEuros } from '@/lib/domain/shop';
 import { EmptyState } from '../EmptyState';
-
-interface Loaded {
-  /** Variantes por las que se preguntó al servidor (estén o no en el resultado). */
-  readonly requested: ReadonlySet<string>;
-  readonly lines: ReadonlyMap<string, CartLineInfo>;
-  readonly failed: boolean;
-}
-
-interface Notice {
-  /** Línea a la que se refiere el aviso; `null` si es del carrito entero. */
-  readonly variantId: string | null;
-  readonly text: string;
-}
 
 const stepButton =
   'inline-flex min-h-11 min-w-11 items-center justify-center rounded-control border border-border-strong bg-surface text-fg hover:bg-accent-soft disabled:cursor-not-allowed disabled:text-fg-muted';
@@ -43,60 +26,14 @@ const textButton =
  * fusionan con las de la cuenta (CA-04).
  */
 export function CartView({ initialAccountCart }: { readonly initialAccountCart?: SavedCart }) {
-  const hydrated = useHydrated();
-  const guestCart = useSavedCart();
-  const isAccount = initialAccountCart !== undefined;
-  const [accountCart, setAccountCart] = useState<SavedCart>(initialAccountCart ?? []);
-  const saved = isAccount ? accountCart : guestCart;
-  const [loaded, setLoaded] = useState<Loaded | null>(null);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const cart = useCart(initialAccountCart);
+  const { isAccount, status, lines, totals, notice, change, remove, retry } = cart;
 
-  // Guardado en la cuenta: en serie y solo se aplica la respuesta de la última petición.
-  const queue = useRef<Promise<void>>(Promise.resolve());
-  const latest = useRef(0);
-  const persist = useCallback((next: SavedCart, previous: SavedCart) => {
-    setAccountCart(next);
-    const ticket = ++latest.current;
-    queue.current = queue.current.then(async () => {
-      const result = await saveAccountCartAction(next).catch(() => ({ status: 'error' as const }));
-      if (ticket !== latest.current) return;
-      if (result.status === 'ok') setAccountCart(result.cart);
-      else {
-        setAccountCart(previous);
-        setNotice({ variantId: null, text: 'No hemos podido guardar el cambio. Inténtalo de nuevo.' });
-      }
-    });
-  }, []);
-
-  useGuestCartMerge(isAccount, setAccountCart);
-
-  const ids = saved.map((line) => line.variantId);
-  // Solo se vuelve a preguntar al servidor si hay variantes que aún no se han pedido.
-  const pendingKey = ids.filter((id) => !loaded?.requested.has(id)).join(',');
-  const allKey = ids.join(',');
-
-  useEffect(() => {
-    if (pendingKey === '') return;
-    const requestedIds = allKey.split(',');
-    let cancelled = false;
-    void getCartLinesAction(requestedIds).then((result) => {
-      if (cancelled) return;
-      setLoaded({
-        requested: new Set(requestedIds),
-        lines: new Map(result.status === 'ok' ? result.lines.map((line) => [line.variantId, line]) : []),
-        failed: result.status === 'error',
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [pendingKey, allKey]);
-
-  if (!hydrated) {
+  if (status === 'loading') {
     return <p className="text-fg-muted">Cargando carrito…</p>;
   }
 
-  if (saved.length === 0) {
+  if (status === 'empty') {
     return (
       <>
         <div aria-live="polite" className="sr-only">
@@ -111,11 +48,7 @@ export function CartView({ initialAccountCart }: { readonly initialAccountCart?:
     );
   }
 
-  if (pendingKey !== '' && !loaded?.failed) {
-    return <p className="text-fg-muted">Cargando carrito…</p>;
-  }
-
-  if (loaded?.failed) {
+  if (status === 'failed') {
     return (
       <div className="rounded-container border border-border bg-surface p-8 text-center">
         <p role="alert" className="text-lg font-semibold text-danger">
@@ -124,46 +57,13 @@ export function CartView({ initialAccountCart }: { readonly initialAccountCart?:
         <p className="mt-2 text-fg-muted">Tus prendas siguen guardadas. Inténtalo de nuevo.</p>
         <button
           type="button"
-          onClick={() => setLoaded(null)}
+          onClick={retry}
           className="mt-6 inline-flex min-h-11 items-center rounded-control bg-accent px-6 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
         >
           Reintentar
         </button>
       </div>
     );
-  }
-
-  const lines = saved.map((line) => {
-    const info = loaded?.lines.get(line.variantId) ?? null;
-    if (info === null) return { saved: line, info, state: 'missing' as const, qty: 0 };
-    if (info.stock === 0) return { saved: line, info, state: 'soldOut' as const, qty: 0 };
-    return { saved: line, info, state: 'ok' as const, qty: Math.min(line.qty, maxQty(info.stock)) };
-  });
-  const totals = summarize(
-    lines.flatMap((line) => (line.state === 'ok' && line.info ? [{ priceCents: line.info.priceCents, qty: line.qty }] : [])),
-  );
-
-  function apply(next: SavedCart) {
-    if (isAccount) persist(next, saved);
-    else writeCart(next);
-  }
-
-  function change(variantId: string, requested: number, info: CartLineInfo) {
-    const result = setLineQty(saved, variantId, requested, info.stock);
-    apply(result.cart);
-    setNotice(
-      result.capped
-        ? {
-            variantId,
-            text: `Solo quedan ${info.stock} unidades de ${info.productName} en talla ${info.size}.`,
-          }
-        : null,
-    );
-  }
-
-  function remove(variantId: string, name: string) {
-    apply(removeLine(saved, variantId));
-    setNotice({ variantId: null, text: `${name} se ha quitado del carrito.` });
   }
 
   return (

@@ -63,9 +63,25 @@ describe('fetchCartLines (CA-62, a nivel de consulta)', () => {
       size: 'M',
       color: TAG,
       priceCents: 1234,
+      compareAtCents: null,
       stock: 3,
       image: null,
     });
+  });
+
+  // CA-126 (T-084): el precio anterior de la variante llega con la línea, o `null`.
+  it('trae el precio anterior (compare_at_cents) de una variante rebajada y null de una que no lo está', async () => {
+    const discounted = await admin
+      .from('product_variants')
+      .insert({ product_id: productIds[0], size: 'L', color: TAG, price_cents: 1000, compare_at_cents: 1500, stock: 2 })
+      .select('id')
+      .single();
+    if (discounted.error) throw new Error(`createDiscounted: ${discounted.error.message}`);
+    const discountedId = idSchema.parse(discounted.data).id;
+    const lines = await fetchCartLines([activeVariantId, discountedId], publicClient());
+    const byId = new Map(lines.map((line) => [line.variantId, line]));
+    expect(byId.get(discountedId)).toMatchObject({ priceCents: 1000, compareAtCents: 1500 });
+    expect(byId.get(activeVariantId)?.compareAtCents).toBeNull();
   });
 
   it('no devuelve la variante de un producto retirado ni una variante que no existe', async () => {

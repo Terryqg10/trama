@@ -8,6 +8,7 @@ import {
   mergeCarts,
   parseSavedCart,
   removeLine,
+  savingsCents,
   setLineQty,
   shippingFor,
   summarize,
@@ -210,5 +211,23 @@ describe('mergeCarts (CA-04)', () => {
   it('con un lado vacío devuelve el otro', () => {
     expect(mergeCarts([], [{ variantId: B, qty: 1 }])).toEqual([{ variantId: B, qty: 1 }]);
     expect(mergeCarts([{ variantId: A, qty: 1 }], [])).toEqual([{ variantId: A, qty: 1 }]);
+  });
+});
+
+// CA-126 (T-084): ahorro por las rebajas de las líneas del carrito.
+describe('savingsCents', () => {
+  const line = (priceCents: number, compareAtCents: number | null, qty: number) => ({ priceCents, compareAtCents, qty });
+
+  it('es la suma de (anterior − actual) × cantidad de las líneas con rebaja', () => {
+    expect(savingsCents([line(8990, 11990, 2), line(4490, 5990, 1)])).toBe(3000 * 2 + 1500);
+  });
+
+  it('las líneas sin precio anterior no ahorran nada', () => {
+    expect(savingsCents([line(2990, null, 3)])).toBe(0);
+    expect(savingsCents([])).toBe(0);
+  });
+
+  it('ignora un precio anterior que no es mayor que el actual y no mezcla líneas rebajadas con las que no', () => {
+    expect(savingsCents([line(3000, 3000, 1), line(3000, 2500, 4), line(1000, 1500, 2)])).toBe(1000);
   });
 });
