@@ -678,3 +678,23 @@ Las tareas nuevas siguen desde T-081.
 - **Se elimina** el panel superpuesto, el hover, el foco-dentro y el Esc de T-077.
 
 Las tareas nuevas siguen desde T-082.
+
+### Enmienda 28 — 2026-10-22 — sin ADR — tarjeta limpia con hover bajo la tarjeta
+
+**Origen:** Enmienda 35 de SPEC-001 (CA-122). Se mantiene `v1-soft-commerce@0.3.0`. Sustituye los controles fijos de T-081.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-082** | Círculos de color (decorativos en móvil, botones desde 768 px) y panel de tallas y cesta colgando bajo la tarjeta al hacer hover o foco | CA-122 | T-081 |
+
+**Decisiones de UI:**
+- **El panel cuelga debajo de la tarjeta** (`absolute top-full`) y no se superpone a su foto ni empuja la rejilla: el encargo dejaba elegir
+  entre «encima de la zona de texto» y «deslizarse desde abajo»; la primera tapaba nombre y precio. Es el patrón de Sprinter y
+  Zalando (la tarjeta se «expande» sobre la fila siguiente). **Contrapartida:** cubre el borde superior de la tarjeta de debajo mientras
+  dura el hover; por eso la tarjeta activa sube de capa (`z-20`) y deja de recortar su contenido (`overflow-visible`).
+- **Una sola fila de círculos**, interactiva desde 768 px y decorativa por debajo: se renderizan dos filas (una estática de servidor y
+  otra de cliente) para no hidratar botones en móvil.
+- **Panel con foco y hover**, `pointer-events-none` mientras no se ve (tabletas), Esc para descartarlo (WCAG 1.4.13).
+- **Se retiran** las tallas y el botón fijos de T-081; los círculos de color y el cambio de foto se conservan.
+
+Las tareas nuevas siguen desde T-083.

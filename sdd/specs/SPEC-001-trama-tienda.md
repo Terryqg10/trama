@@ -961,3 +961,31 @@ desde 768 px**. **Sustituye a lo que CA-120 decía del panel** (superpuesto, sol
 | CA-121 | RF-01, RF-03 | El catálogo a 768 px o más | Se mira una tarjeta con stock y varios colores | La imagen no tiene nada encima salvo las insignias; debajo del nombre y el precio hay miniaturas de color (≥ 44 px, `aria-pressed`, la elegida con borde de acento), una fila de tallas cuadradas (las agotadas tachadas y desactivadas) y un botón a ancho completo desactivado con «Elige talla»; elegir un color cambia la imagen principal y las tallas; elegir talla y pulsar «Añadir a la cesta» añade esa variante al carrito (aviso `aria-live`); pulsar la foto o el nombre lleva a la ficha; sin hover ni foco todo sigue visible; una prenda de un solo color no lleva miniaturas; una agotada no lleva controles; a 375 px la tarjeta no tiene controles; sin scroll horizontal ni tarjetas cortadas de 320 a 1280 px; axe sin violaciones graves | test e2e `catalog-quick-add` (Chromium), test:a11y y unitarios |
 
 **Nuevas tareas derivadas:** T-081 (tarjeta con controles debajo de la foto).
+
+### Enmienda 35 — 2026-10-22 — sin ADR — tarjeta limpia con círculos de color y panel de tallas al pasar el cursor (CA-122)
+
+**Origen:** el usuario quiere el estado normal de la tarjeta limpio (sin tallas fijas ni «N colores») y las tallas y la cesta solo
+al pasar el cursor, sin tapar la foto. **Sustituye a lo que CA-121 decía de «siempre visibles»**; recupera el hover de CA-120
+pero con el panel fuera de la foto.
+
+**Qué cambia:**
+- **Estado normal (todos los anchos):** foto, **fila de círculos de color de 24 px** en lugar del texto «N colores», nombre y
+  precio. Una prenda de un solo color lleva un círculo. El color sale de la variante (tokens `bg-swatch-*`, ADR-007; sin token,
+  un círculo neutro). El número de colores sigue disponible para lectores de pantalla (`sr-only`).
+- **Desde `--bp-md` (768 px) los círculos son botones** (zona de 44 px, `aria-pressed`, nombre «Color Azul», el elegido con
+  anillo de acento): al elegir uno **cambia la foto principal** y las tallas del panel. Por debajo de 768 px son solo
+  decoración (`aria-hidden`).
+- **Panel al pasar el cursor (solo desde 768 px):** con `group-hover` o foco de teclado dentro de la tarjeta aparece, **colgando
+  debajo de la tarjeta** (sobre la fila siguiente, no sobre la foto), un panel con las tallas del color elegido (botones
+  cuadrados de 44 px; las agotadas, tachadas, con opacidad reducida y desactivadas) y «Añadir a la cesta» a ancho completo
+  (desactivado hasta elegir talla). La tarjeta con el cursor pasa por encima de las vecinas (`z-20`).
+- **Transición** suave de `opacity` y `translate-y`; con `prefers-reduced-motion` aparece sin movimiento ni transición. Sin
+  hover ni foco el panel no recibe pulsaciones (`pointer-events-none`), de modo que en una tableta táctil un toque va a la
+  ficha. **Esc** lo oculta hasta que puntero o foco salen de la tarjeta (WCAG 1.4.13).
+- **Móvil (< 768 px):** no hay panel ni botones; la tarjeta es foto, círculos, nombre y precio, y al tocarla entra en la ficha.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-122 | RF-01, RF-03 | El catálogo | Se mira una tarjeta sin hover y luego con el cursor encima (≥ 768 px) | Sin hover solo hay foto, fila de círculos de color de 24 px (uno por color, también si es uno solo; sin el texto «N colores» a la vista), nombre y precio: ni tallas ni botón visibles; con hover o foco aparece, **por debajo de la tarjeta y sin cubrir su foto**, un panel con las tallas del color elegido (cuadradas, 44 px; agotadas tachadas, con opacidad y desactivadas) y «Añadir a la cesta» a ancho completo, desactivado hasta elegir talla; elegir talla y pulsar añade esa variante al carrito (aviso `aria-live`); elegir un círculo cambia la foto y las tallas; la transición usa `opacity` y `translate-y` y con `prefers-reduced-motion` no hay transición; Esc oculta el panel; sin hover ni foco no recibe pulsaciones; pulsar la foto o el nombre lleva a la ficha; a 375 px solo hay foto, círculos decorativos, nombre y precio; una prenda agotada no lleva panel; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test e2e `catalog-quick-add` (Chromium), test:a11y y unitarios |
+
+**Nuevas tareas derivadas:** T-082 (tarjeta limpia con hover bajo la tarjeta).
