@@ -141,7 +141,9 @@ test.describe('orden y precio', () => {
     // precios mostrados y no qué producto va primero.
     const prices = await page.locator('article').evaluateAll((cards) =>
       cards.map((card) => {
-        const found = [...(card.textContent ?? '').matchAll(/(\d+),(\d{2})\s*€/g)].pop();
+        // El precio actual es el primero de la zona de precio: con rebaja (T-076) va seguido del anterior tachado.
+        const text = card.querySelector('[data-testid="card-price"]')?.textContent ?? '';
+        const found = /(\d+),(\d{2})\s*€/.exec(text);
         return found ? Number(found[1]) * 100 + Number(found[2]) : -1;
       }),
     );

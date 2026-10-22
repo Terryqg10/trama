@@ -1,12 +1,13 @@
 import Image from 'next/image';
 import { isPhotoPath } from '@/lib/catalog/image-path';
 import Link from 'next/link';
+import { cardDiscount } from '@/lib/catalog/discount';
 import { formatEuros } from '@/lib/domain/shop';
 import type { CatalogProduct } from '@/lib/catalog/product';
 
 /**
- * Tarjeta de producto del listado. Enlaza a su ficha (T-005b); sin botón de compra hasta
- * el carrito (T-018). Las insignias son texto, no solo color (WCAG AA).
+ * Tarjeta de producto del listado. Enlaza a su ficha (T-005b). Las insignias son texto, no solo color (WCAG AA). Con
+ * rebaja (`compare_at_cents`, T-075) lleva la insignia «-N%» y el precio anterior tachado junto al actual (CA-119, T-076).
  */
 export function ProductCard({
   product,
@@ -23,6 +24,7 @@ export function ProductCard({
       ? `Desde ${formatEuros(product.fromPriceCents)}`
       : formatEuros(product.fromPriceCents);
   const colorCount = product.colors.length;
+  const discount = cardDiscount(product);
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface shadow-card has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-accent">
@@ -59,6 +61,14 @@ export function ProductCard({
               Agotado
             </span>
           ) : null}
+          {discount ? (
+            <span
+              data-testid="discount-badge"
+              className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-fg"
+            >
+              <span className="sr-only">Descuento </span>-{discount.percent}%
+            </span>
+          ) : null}
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
@@ -74,7 +84,20 @@ export function ProductCard({
         <p className="text-sm text-fg-muted">
           {colorCount} {colorCount === 1 ? 'color' : 'colores'}
         </p>
-        <p className="mt-auto pt-2 text-base font-bold text-fg">{priceLabel}</p>
+        {discount ? (
+          <p data-testid="card-price" className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-2">
+            <span className="sr-only">Ahora </span>
+            <span className="text-base font-bold text-fg">{priceLabel}</span>
+            <span className="sr-only">, antes </span>
+            <del data-testid="card-price-before" className="text-sm text-fg-muted line-through">
+              {formatEuros(discount.compareAtCents)}
+            </del>
+          </p>
+        ) : (
+          <p data-testid="card-price" className="mt-auto pt-2 text-base font-bold text-fg">
+            {priceLabel}
+          </p>
+        )}
       </div>
     </article>
   );

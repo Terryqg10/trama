@@ -84,3 +84,72 @@ describe('ProductCard', () => {
     expect(screen.getByText('Sin imagen')).toBeInTheDocument();
   });
 });
+
+// CA-119 (T-076): rebaja con insignia y precio anterior tachado.
+describe('ProductCard con rebaja (CA-119)', () => {
+  const rebajado = () =>
+    product({
+      product_variants: [
+        { id: 'v1', size: 'M', color: 'azul', price_cents: 8000, compare_at_cents: 10000, stock: 5 },
+        { id: 'v2', size: 'L', color: 'azul', price_cents: 8000, compare_at_cents: 10000, stock: 0 },
+      ],
+    });
+
+  it('muestra la insignia «-20%» calculada del precio anterior', () => {
+    render(<ProductCard product={rebajado()} />);
+    expect(screen.getByTestId('discount-badge').textContent).toContain('-20%');
+    expect(screen.getByTestId('discount-badge').className).toContain('rounded-full');
+    expect(screen.getByTestId('discount-badge').className).toContain('bg-accent');
+    expect(screen.getByTestId('discount-badge').className).toContain('text-accent-fg');
+  });
+
+  it('muestra el precio actual en negrita y el anterior tachado con text-fg-muted', () => {
+    render(<ProductCard product={rebajado()} />);
+    const before = screen.getByTestId('card-price-before');
+    expect(before.tagName).toBe('DEL');
+    expect(before.className).toContain('line-through');
+    expect(before.className).toContain('text-fg-muted');
+    expect(normalize(before.textContent)).toBe('100,00 €');
+    const now = screen.getByText(/80,00/, { selector: 'span.font-bold' });
+    expect(now.className).toContain('text-fg');
+  });
+
+  it('el texto accesible del precio dice «Ahora … antes …»', () => {
+    render(<ProductCard product={rebajado()} />);
+    expect(normalize(screen.getByTestId('card-price').textContent)).toBe('Ahora 80,00 €, antes 100,00 €');
+  });
+
+  it('sin precio anterior no hay insignia ni precio tachado', () => {
+    render(<ProductCard product={product()} />);
+    expect(screen.queryByTestId('discount-badge')).toBeNull();
+    expect(screen.queryByTestId('card-price-before')).toBeNull();
+  });
+
+  it('convive con «Nuevo» y «Agotado» sin sustituirlos', () => {
+    render(
+      <ProductCard
+        product={product({
+          is_new: true,
+          product_variants: [{ id: 'v1', size: 'M', color: 'azul', price_cents: 8000, compare_at_cents: 10000, stock: 0 }],
+        })}
+      />,
+    );
+    expect(screen.getByText('Nuevo')).toBeInTheDocument();
+    expect(screen.getByText('Agotado')).toBeInTheDocument();
+    expect(screen.getByTestId('discount-badge')).toBeInTheDocument();
+  });
+
+  it('con varios precios pone «Desde» antes del actual y tacha el anterior de la variante más barata', () => {
+    render(
+      <ProductCard
+        product={product({
+          product_variants: [
+            { id: 'v1', size: 'M', color: 'azul', price_cents: 8000, compare_at_cents: 10000, stock: 5 },
+            { id: 'v2', size: 'L', color: 'azul', price_cents: 9000, compare_at_cents: null, stock: 5 },
+          ],
+        })}
+      />,
+    );
+    expect(normalize(screen.getByTestId('card-price').textContent)).toBe('Ahora Desde 80,00 €, antes 100,00 €');
+  });
+});
