@@ -114,7 +114,7 @@ test.describe('CA-11: entrar con #filtros-movil abre el drawer (con JS)', () => 
 
   test('«Aplicar filtros» desde un drawer abierto por hash lo cierra', async ({ page }) => {
     await open(page, '/mujer#filtros-movil');
-    await drawer(page).locator('input[name="max"]').fill('45');
+    await drawer(page).getByTestId('price-max').fill('45');
     await drawer(page).getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/max=45/);
     await expect(drawer(page)).toBeHidden();
@@ -236,7 +236,7 @@ test.describe('contenido del drawer (RF-05 y T-008)', () => {
   test('«Aplicar filtros» aplica el precio y cierra el drawer', async ({ page }) => {
     await open(page, '/mujer');
     await trigger(page).click();
-    await drawer(page).locator('input[name="max"]').fill('45');
+    await drawer(page).getByTestId('price-max').fill('45');
     await drawer(page).getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/max=45/);
     await expect(drawer(page)).toBeHidden();

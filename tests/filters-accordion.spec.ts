@@ -72,7 +72,7 @@ test.describe('acordeones nativos (CA-13)', () => {
     await item.locator('summary').click();
     await expect(item).toHaveJSProperty('open', false);
     // Con la sección plegada, aplicar el precio conserva la categoría.
-    await form.locator('input[name="max"]').fill('90');
+    await form.getByTestId('price-max').fill('90');
     await form.getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/categoria=blusas/);
     await expect(page).toHaveURL(/max=90/);
@@ -106,6 +106,8 @@ test.describe('precio Mín. y Máx. (CA-13)', () => {
     test(`a ${width} px: dos campos en una fila con guion y «€», sin salirse del panel`, async ({ page }) => {
       await open(page, '/mujer', width);
       const form = await panel(page, width);
+      // Espera a que el intervalo sustituya a los campos de antes de hidratar.
+      await expect(form.getByTestId('price-range')).toBeVisible();
       const min = form.getByLabel('Precio mínimo (€)');
       const max = form.getByLabel('Precio máximo (€)');
       await expect(min).toHaveAttribute('placeholder', 'Mín.');
@@ -130,26 +132,29 @@ test.describe('precio Mín. y Máx. (CA-13)', () => {
     });
   }
 
-  test('se aplican con «Aplicar filtros» y con Intro, no al escribir', async ({ page }) => {
+  test('se aplican con Intro, al salir del campo y con «Aplicar filtros», no al escribir', async ({ page }) => {
     await open(page, '/mujer');
     const form = page.getByTestId('filters-panel');
     await form.getByLabel('Precio mínimo (€)').fill('30');
-    await form.getByLabel('Precio máximo (€)').fill('60');
+    // Escribir no filtra: no hay petición por cada tecla (Enmienda 6).
     await page.waitForTimeout(600);
     expect(page.url()).not.toContain('min=');
-    await form.getByRole('button', { name: 'Aplicar filtros' }).click();
+    await form.getByLabel('Precio máximo (€)').fill('60');
     await expect(page).toHaveURL(/min=30/);
+    await form.getByLabel('Precio máximo (€)').press('Enter');
     await expect(page).toHaveURL(/max=60/);
     // Tras aplicar, los campos conservan el valor.
     await expect(form.getByLabel('Precio mínimo (€)')).toHaveValue('30');
     await expect(form.getByLabel('Precio máximo (€)')).toHaveValue('60');
     await form.getByLabel('Precio máximo (€)').fill('45');
-    await page.keyboard.press('Enter');
+    await form.getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/max=45/);
   });
 
   test('los campos no muestran flechas del navegador (no tapan el «€»)', async ({ page }) => {
     await open(page, '/mujer');
+    // Espera a que el intervalo sustituya a los campos de antes de hidratar.
+    await expect(page.getByTestId('filters-panel').getByTestId('price-range')).toBeVisible();
     const appearance = await page
       .getByTestId('filters-panel')
       .getByLabel('Precio mínimo (€)')

@@ -67,7 +67,7 @@ describe('deriveFacets', () => {
   });
 
   it('un ámbito vacío no devuelve opciones', () => {
-    expect(deriveFacets([])).toEqual({ categories: [], sizes: [], colors: [] });
+    expect(deriveFacets([])).toEqual({ categories: [], sizes: [], colors: [], priceRange: null });
   });
 });
 
@@ -96,5 +96,25 @@ describe('deriveFacets: once categorías (CA-79)', () => {
     expect(facets.categories).toEqual([
       'polos', 'camisas', 'blusas', 'pantalones', 'camisetas', 'sudaderas', 'chaquetas', 'abrigos', 'jerseis', 'faldas', 'tops',
     ]);
+  });
+});
+
+// CA-15 (T-079): límites del intervalo de precio.
+describe('deriveFacets: priceRange', () => {
+  const priced = (...cents: number[]) =>
+    product({ product_variants: cents.map((price_cents, i) => ({ id: `v${i}`, size: 'M', color: 'azul', price_cents, stock: 5 })) });
+
+  it('es el precio más bajo y el más alto en euros enteros, redondeando hacia fuera', () => {
+    expect(deriveFacets([priced(2990, 5495), priced(1999)]).priceRange).toEqual({ min: 19, max: 55 });
+  });
+
+  it('es null si no hay productos o si todos cuestan lo mismo (no hay intervalo)', () => {
+    expect(deriveFacets([]).priceRange).toBeNull();
+    expect(deriveFacets([priced(3000), priced(3000)]).priceRange).toBeNull();
+  });
+
+  it('cuenta también las variantes sin stock', () => {
+    const agotada = product({ product_variants: [{ id: 'a', size: 'M', color: 'azul', price_cents: 1000, stock: 0 }] });
+    expect(deriveFacets([agotada, priced(5000)]).priceRange).toEqual({ min: 10, max: 50 });
   });
 });

@@ -222,7 +222,7 @@ test.describe('formulario y listado renderizados en el servidor', () => {
   test('«Aplicar filtros» envía el formulario con los parámetros en la URL', async ({ page }) => {
     await open(page, '/mujer');
     await openFilters(page);
-    await page.locator('form:visible input[name="max"]').fill('45');
+    await page.locator('form:visible [data-testid="price-max"]').fill('45');
     await page.getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/\/mujer\?.*max=45/);
     await expect(page.getByRole('status')).toHaveCount(0);

@@ -13,6 +13,7 @@ import {
 import { FILTERS_SIDEBAR_ID } from './CatalogLayout';
 import { FilterChips } from './FilterChips';
 import { FiltersDrawer } from './FiltersDrawer';
+import { PriceRange } from './PriceRange';
 
 interface Option {
   readonly value: string;
@@ -109,12 +110,6 @@ function OptionList({
     </details>
   );
 }
-
-/** Campo de precio: sin las flechas del navegador, que taparían el «€» (se escribe el importe). */
-const priceFieldClass =
-  'min-h-11 w-full min-w-0 rounded-control border border-border-strong bg-surface ps-3 pe-8 text-sm text-fg ' +
-  '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
-
 
 function activeCount(filters: Filters, hasGenderFilter: boolean): number {
   return [
@@ -229,51 +224,13 @@ function FilterForm({
         swatches
       />
 
-      {/* Precio (CA-13): dos campos pequeños en una fila, «Mín.» y «Máx.», con un guion entre ellos y «€» dentro. Se
-          aplican con «Aplicar filtros» (RF-04). Las etiquetas visibles son los marcadores; las accesibles, el texto
-          `sr-only`. */}
-      <fieldset className="min-w-0">
-        <legend className="mb-2 text-sm font-semibold text-fg">Precio</legend>
-        <div className="flex items-center gap-2">
-          <label className="relative block min-w-0 flex-1">
-            <span className="sr-only">Precio mínimo (€)</span>
-            <input
-              type="number"
-              name="min"
-              inputMode="numeric"
-              placeholder="Mín."
-              min={0}
-              max={99999}
-              step={1}
-              defaultValue={filters.minPriceCents === undefined ? '' : filters.minPriceCents / 100}
-              className={priceFieldClass}
-            />
-            <span aria-hidden="true" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-fg-muted">
-              €
-            </span>
-          </label>
-          <span aria-hidden="true" className="text-fg-muted">
-            –
-          </span>
-          <label className="relative block min-w-0 flex-1">
-            <span className="sr-only">Precio máximo (€)</span>
-            <input
-              type="number"
-              name="max"
-              inputMode="numeric"
-              placeholder="Máx."
-              min={0}
-              max={99999}
-              step={1}
-              defaultValue={filters.maxPriceCents === undefined ? '' : filters.maxPriceCents / 100}
-              className={priceFieldClass}
-            />
-            <span aria-hidden="true" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-fg-muted">
-              €
-            </span>
-          </label>
-        </div>
-      </fieldset>
+      {/* Precio (CA-13 y CA-15): intervalo con dos tiradores y campos «Mín.»/«Máx.» con JavaScript; sin él, dos campos
+          que se aplican con «Aplicar filtros» (RF-04). */}
+      <PriceRange
+        bounds={facets.priceRange}
+        min={filters.minPriceCents === undefined ? undefined : filters.minPriceCents / 100}
+        max={filters.maxPriceCents === undefined ? undefined : filters.maxPriceCents / 100}
+      />
 
       <div
         className={

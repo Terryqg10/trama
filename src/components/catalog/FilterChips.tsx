@@ -9,7 +9,8 @@ import { useEffect, useRef, useTransition, type FormEvent, type ReactNode } from
  * pinta el servidor y funciona sin JavaScript. Con JavaScript:
  * - un chip (radio) se aplica al instante, sin recargar el documento (RF-03); «Ordenar por»
  *   tiene su propio formulario (`CatalogSort`, T-073);
- * - los campos de precio solo se aplican con «Aplicar filtros» o Enter (RF-04);
+ * - el precio lo gestiona `PriceRange` (T-079): intervalo que filtra al soltar; sin JavaScript, dos campos que se aplican
+ *   con «Aplicar filtros» (RF-04);
  * - los controles se sincronizan con la URL tras cada navegación («Limpiar», «Atrás»).
  */
 export function FilterChips({
@@ -66,8 +67,6 @@ export function FilterChips({
       if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLSelectElement)) continue;
       if (element instanceof HTMLInputElement && element.type === 'radio') {
         groups.set(element.name, [...(groups.get(element.name) ?? []), element]);
-      } else if (element instanceof HTMLInputElement && element.type === 'number') {
-        element.value = params.get(element.name) ?? '';
       } else if (element instanceof HTMLSelectElement) {
         const wanted = params.get(element.name);
         element.value = wanted !== null && Array.from(element.options).some((o) => o.value === wanted)

@@ -139,7 +139,7 @@ test.describe('CA-52: controles alineados a 320, 375, 768 y 1280 px', () => {
     for (const width of [320, 375, 768]) {
       await openFilters(page, width);
       // Como antes de T-073 (cuando el último campo era «Ordenar por»): se lleva el final del formulario a la vista.
-      await page.locator('[data-testid="filters-drawer"] input[name="max"]').evaluate((el) => {
+      await page.locator('[data-testid="filters-drawer"] [data-testid="price-max"]').evaluate((el) => {
         el.scrollIntoView({ block: 'center' });
       });
       const footer = page.locator('[data-testid="filters-drawer"]').getByRole('button', {

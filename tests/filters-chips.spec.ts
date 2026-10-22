@@ -96,24 +96,23 @@ test.describe('CA-10: «Ordenar por» se aplica al cambiar, sin recargar', () =>
   });
 });
 
-test.describe('CA-04: el precio no se aplica hasta pulsar «Aplicar»', () => {
-  test('escribir y salir del campo no cambia la URL; Enter sí la aplica', async ({ page }) => {
+// CA-04 (Enmienda 6, T-079): el precio no se aplica al escribir; se aplica con Intro, al salir del campo o con «Aplicar».
+test.describe('CA-04: el precio no se aplica al escribir', () => {
+  test('escribir no cambia la URL; Intro sí la aplica', async ({ page }) => {
     await open(page, '/mujer');
-    const max = panel(page).locator('input[name="max"]');
+    const max = panel(page).getByTestId('price-max');
     await max.fill('50');
-    await max.blur();
     // No hay evento que esperar: se deja pasar un margen para detectar una navegación indebida.
     await page.waitForTimeout(600);
     expect(page.url()).not.toContain('max=');
 
-    await max.focus();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/max=50/);
   });
 
   test('el botón «Aplicar filtros» aplica el precio', async ({ page }) => {
     await open(page, '/mujer');
-    await panel(page).locator('input[name="min"]').fill('20');
+    await panel(page).getByTestId('price-min').fill('20');
     await panel(page).getByRole('button', { name: 'Aplicar filtros' }).click();
     await expect(page).toHaveURL(/min=20/);
   });
