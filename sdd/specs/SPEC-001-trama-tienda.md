@@ -908,3 +908,30 @@ cursor, las tallas y un botón de «Añadir a la cesta», como las grandes tiend
 | CA-120 | RF-01, RF-03 | El catálogo a 1280 px con puntero fino | Se pasa el cursor o se tabula hasta una tarjeta con stock | Aparece un panel sobre la parte baja de la imagen con las tallas del primer color con stock y «Añadir a la cesta»; elegir una talla y pulsar el botón añade esa variante al carrito (contador de la cabecera y aviso `aria-live`); pulsar el resto de la tarjeta lleva a la ficha; el panel y sus botones se alcanzan con teclado (≥ 44 px), Esc lo cierra y con reduced-motion no hay deslizamiento; a 375 y 768 px no existe y la tarjeta enlaza a la ficha; una tarjeta agotada no lo muestra | test e2e `catalog-quick-add` (Chromium) y unitario |
 
 **Nuevas tareas derivadas:** T-075 (datos: `compare_at_cents`), T-076 (insignia y precio tachado) y T-077 (compra rápida).
+
+### Enmienda 33 — 2026-10-22 — sin ADR — precisiones de la tarjeta con descuento y compra rápida (CA-119 y CA-120)
+
+**Origen:** el usuario concreta el diseño de la tarjeta de producto (insignia, precio tachado y panel de hover). Cambia
+algunos detalles de la Enmienda 32; el dato (`compare_at_cents`, T-075) ya existe, así que **no se simula ningún descuento**.
+
+**Qué cambia respecto a la Enmienda 32:**
+- **Insignia:** texto «-N%» (sin espacio ni signo menos tipográfico), píldora (`rounded-full`, `text-xs font-bold`) con `bg-accent`
+  y `text-accent-fg`, arriba a la izquierda junto a «Nuevo» y «Agotado». Sin rebaja no hay insignia.
+- **Precios:** el precio actual en negrita (`text-base font-bold text-fg`) y el anterior al lado, más pequeño y tachado
+  (`text-sm text-fg-muted line-through`, un `<del>`). El nombre accesible lo dice en voz alta («Ahora …, antes …»).
+- **Umbral del panel de compra rápida: desde `--bp-md` (768 px)**, no desde `--bp-lg`; por debajo no existe (`hidden md:block`).
+  Solo se muestra con **hover real** (`group-hover`, que Tailwind limita a `@media (hover: hover)`) o con **foco de teclado
+  dentro de la tarjeta** (`group-focus-within`); sin hover ni foco es invisible **y no recibe pulsaciones**
+  (`pointer-events-none`), de modo que en una tableta táctil un toque en la imagen sigue yendo a la ficha.
+- **Tallas:** se muestran **todas las tallas del primer color con stock** en una cuadrícula de **4 columnas**; las agotadas
+  van tachadas (`line-through`), con `opacity-40`, `cursor-not-allowed` y desactivadas. Sin talla elegida, «Añadir a la cesta»
+  está **desactivado**. Con más de un color se avisa «+N colores».
+- Panel semitransparente `bg-surface/95` con `backdrop-blur-sm`, aparece con `transition-opacity duration-300` y con
+  `motion-reduce` sin transición.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-119 | RF-01, RF-02 | Una tarjeta con y sin rebaja | Se muestra en el listado | Con rebaja: insignia «-N%» (N = (anterior − actual) / anterior, redondeado) arriba a la izquierda, precio actual en negrita y anterior tachado en `text-fg-muted`, contraste AA, y el texto accesible dice «Ahora …, antes …»; sin rebaja: igual que hoy; «Nuevo», «Agotado» y la rebaja conviven sin solaparse; sin scroll horizontal de 320 a 1280 px | test e2e `catalog-discount` (Chromium) y unitario |
+| CA-120 | RF-01, RF-03 | El catálogo a 768 px o más con puntero con hover | Se pasa el cursor o se tabula hasta una tarjeta con stock | Aparece un panel sobre la parte baja de la imagen con las tallas del primer color con stock en 4 columnas (las agotadas tachadas y desactivadas) y «Añadir a la cesta», desactivado hasta elegir talla; elegir una talla y pulsar el botón añade esa variante al carrito (aviso `aria-live` y contador de la cabecera); pulsar el resto de la tarjeta lleva a la ficha; sin hover ni foco el panel no recibe pulsaciones; se alcanza con teclado (botones ≥ 44 px) y con `prefers-reduced-motion` no hay transición; a 375 px no existe; una tarjeta agotada no lo muestra | test e2e `catalog-quick-add` (Chromium) y unitario |
+
+**Nuevas tareas derivadas:** ninguna (ajusta T-076 y T-077).

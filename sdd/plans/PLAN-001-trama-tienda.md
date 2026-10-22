@@ -644,3 +644,16 @@ Las tareas nuevas siguen desde T-080.
 - **T-076 y T-077 siguen pendientes.**
 
 Las tareas nuevas siguen desde T-081.
+
+### Enmienda 26 — 2026-10-22 — sin ADR — precisiones de la tarjeta con descuento
+
+**Origen:** Enmienda 33 de SPEC-001 (CA-119 y CA-120). Se mantiene `v1-soft-commerce@0.3.0`. Ajusta T-076 y T-077.
+
+**Decisiones de UI:**
+- **Umbral `md` (768 px) para la compra rápida**, por petición del usuario, en lugar de `lg`; el hover real se limita con
+  `group-hover` (`@media (hover: hover)`) y `pointer-events-none` mientras no hay hover ni foco, para no capturar toques en tabletas.
+- **Todas las tallas del primer color**, con las agotadas tachadas: informa de lo que existe sin ocultar el hueco. El resto de
+  colores solo se avisa («+N colores»); se elige en la ficha.
+- **Insignia con el color de acento** (`bg-accent`) y no con `bg-danger`: coincide con la identidad de la tienda y
+  se distingue de «Nuevo» (`accent-soft`); contraste AA con `accent-fg`.
+- **Reutiliza `AddToCartButton`** (carrito de invitado y de cuenta); un `fullWidth` opcional para el panel.
