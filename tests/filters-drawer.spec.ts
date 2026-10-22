@@ -129,7 +129,8 @@ test.describe('CA-11: entrar con #filtros-movil abre el drawer (con JS)', () => 
 
 test.describe('pie del drawer: Limpiar a la izquierda y Aplicar a la derecha', () => {
   test('el orden visual coincide con el del DOM y la tabulación', async ({ page }) => {
-    await open(page, '/mujer');
+    // «Limpiar» solo aparece con filtros activos (CA-14).
+    await open(page, '/mujer?categoria=blusas');
     await trigger(page).click();
     const clear = drawer(page).getByRole('link', { name: 'Limpiar' });
     const apply = drawer(page).getByRole('button', { name: 'Aplicar filtros' });
@@ -155,7 +156,7 @@ test.describe('pie del drawer: Limpiar a la izquierda y Aplicar a la derecha', (
 
   test('en la columna de escritorio se mantiene Aplicar y luego Limpiar', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto('/mujer');
+    await page.goto('/mujer?categoria=blusas');
     await expect(page.locator('article').first()).toBeVisible();
     const panel = page.locator('[data-testid="filters-panel"]');
     const applyBox = await panel.getByRole('button', { name: 'Aplicar filtros' }).boundingBox();
@@ -250,7 +251,7 @@ test.describe('contenido del drawer (RF-05 y T-008)', () => {
   });
 
   test('«Aplicar filtros» y «Limpiar» quedan visibles sin desplazar', async ({ page }) => {
-    await open(page, '/mujer');
+    await open(page, '/mujer?categoria=blusas');
     await trigger(page).click();
     await expect(drawer(page).getByRole('button', { name: 'Aplicar filtros' })).toBeInViewport();
     await expect(drawer(page).getByRole('link', { name: 'Limpiar' })).toBeInViewport();

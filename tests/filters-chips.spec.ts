@@ -39,13 +39,14 @@ test.describe('CA-03: el chip se aplica al clic, sin recargar', () => {
   });
 
   test('con teclado: mover el radio con las flechas aplica el filtro', async ({ page }) => {
+    // Sin «Todas» (CA-14) ninguna categoría está marcada: la flecha desde la primera elige la siguiente.
     await open(page, '/mujer');
-    await panel(page).getByRole('radio', { name: 'Todas' }).first().focus();
-    await page.keyboard.press('ArrowRight');
+    await panel(page).getByRole('radio', { name: 'Polos' }).focus();
+    await page.keyboard.press('ArrowDown');
     await expect(page).toHaveURL(/categoria=/);
   });
 
-  test('«Limpiar» deja los chips en «Todas» sin recargar', async ({ page }) => {
+  test('«Limpiar» deja los filtros sin marcar sin recargar', async ({ page }) => {
     await open(page, '/mujer?categoria=blusas&ocasion=vestir');
     await panel(page).getByRole('link', { name: 'Limpiar' }).click();
     await expect(page).toHaveURL(/\/mujer$/);

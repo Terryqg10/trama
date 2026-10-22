@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { Check, ChevronDown } from 'lucide-react';
 import { capitalize, type CatalogFacets } from '@/lib/catalog/facets';
+import { swatchClass } from '@/lib/catalog/swatches';
 import {
   GENDERS,
   OCCASIONS,
@@ -27,30 +28,30 @@ const SORT_LABELS: Record<(typeof SORTS)[number], string> = {
 /** Opciones de «Ordenar por», que vive en la barra sobre el listado (CA-12, T-073). */
 export const SORT_OPTIONS: readonly Option[] = SORTS.map((sort) => ({ value: sort, label: SORT_LABELS[sort] }));
 
-const chipBase =
-  'inline-flex min-h-11 items-center rounded-control border border-border-strong bg-surface px-4 text-sm text-fg ' +
-  'peer-checked:border-accent peer-checked:bg-accent peer-checked:pl-9 peer-checked:font-semibold peer-checked:text-accent-fg ' +
-  'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent';
-
 /**
- * Sección plegable de chips de una sola opción (CA-13, T-074). Es un `<details open>` nativo: abierto por defecto, se
- * pliega con teclado (Intro/Espacio) y funciona sin JavaScript. Los radios son nativos: plegar la sección no pierde el
- * filtro marcado (el contenido sigue en el formulario). El `<summary>` mide 44 px y muestra si la sección tiene un
- * filtro activo; el chip seleccionado lleva una marca (icono) además del color (WCAG AA). La leyenda del `<fieldset>`
- * solo la leen los lectores de pantalla: la visible es el `<summary>`.
+ * Sección plegable con una lista vertical de opciones (CA-13 y CA-14, T-074 y T-078). Es un `<details open>` nativo:
+ * abierto por defecto, se pliega con teclado (Intro/Espacio) y funciona sin JavaScript. Cada opción es una fila de 44 px
+ * con una casilla cuadrada con marca de verificación y el nombre al lado. Son **radios nativos** (selección única, sin
+ * «Todas»): se elige una opción, se aplica al instante y se quita con «Limpiar». Plegar la sección no pierde el filtro
+ * marcado (el contenido sigue en el formulario). La marca es un icono, no solo color (WCAG 1.4.1). La leyenda del
+ * `<fieldset>` solo la leen los lectores de pantalla: la visible es el `<summary>`. Con `grid` las opciones cortas (las
+ * tallas) van en dos columnas; con `swatches`, el color lleva su círculo de muestra (decorativo) junto al nombre.
  */
-function ChipGroup({
+function OptionList({
   legend,
   name,
   options,
   selected,
+  grid = false,
+  swatches = false,
 }: {
   readonly legend: string;
   readonly name: string;
   readonly options: readonly Option[];
   readonly selected: string | undefined;
+  readonly grid?: boolean;
+  readonly swatches?: boolean;
 }) {
-  const all: readonly Option[] = [{ value: '', label: 'Todas' }, ...options];
   const active = selected ? 1 : 0;
   return (
     <details open data-testid="filters-section" className="group min-w-0 border-b border-border pb-4">
@@ -67,25 +68,42 @@ function ChipGroup({
           className="size-4 shrink-0 text-fg motion-safe:transition-transform group-open:rotate-180"
         />
       </summary>
-      <fieldset className="mt-2 min-w-0">
+      <fieldset className="mt-1 min-w-0">
         <legend className="sr-only">{legend}</legend>
-        <div className="flex flex-wrap gap-2">
-          {all.map((option) => (
-            <label key={option.value || 'todas'} className="relative inline-flex">
-              <input
-                type="radio"
-                name={name}
-                value={option.value}
-                defaultChecked={(selected ?? '') === option.value}
-                className="peer sr-only"
-              />
-              <Check
-                aria-hidden="true"
-                className="absolute left-3 top-1/2 hidden size-4 -translate-y-1/2 text-accent-fg peer-checked:block"
-              />
-              <span className={chipBase}>{option.label}</span>
-            </label>
-          ))}
+        <div
+          data-testid="filters-options"
+          className={grid ? 'grid grid-cols-2 gap-x-4 gap-y-1' : 'flex flex-col gap-1'}
+        >
+          {options.map((option) => {
+            const swatch = swatches ? swatchClass(option.value) : null;
+            return (
+              <label key={option.value} className="relative flex min-h-11 cursor-pointer items-center gap-3 text-sm text-fg">
+                <input
+                  type="radio"
+                  name={name}
+                  value={option.value}
+                  defaultChecked={selected === option.value}
+                  className="peer sr-only"
+                />
+                <span
+                  aria-hidden="true"
+                  className="size-5 shrink-0 rounded-control border border-border-strong bg-surface peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
+                />
+                <Check
+                  aria-hidden="true"
+                  className="absolute left-0.5 top-1/2 hidden size-4 -translate-y-1/2 text-accent-fg peer-checked:block"
+                />
+                {swatch ? (
+                  <span
+                    aria-hidden="true"
+                    data-testid="filters-swatch"
+                    className={`size-5 shrink-0 rounded-full border border-border-strong ${swatch}`}
+                  />
+                ) : null}
+                <span className="min-w-0 peer-checked:font-semibold">{option.label}</span>
+              </label>
+            );
+          })}
         </div>
       </fieldset>
     </details>
@@ -150,6 +168,7 @@ function FilterForm({
   footerSticky = false,
 }: CatalogFiltersProps & { readonly testId: string; readonly footerSticky?: boolean }) {
   const genderOptions: Option[] = GENDERS.map((g: Gender) => ({ value: g, label: capitalize(g) }));
+  const hasActive = activeCount(filters, showGender) > 0;
 
   const buttonLayout = footerSticky ? ' flex-1 justify-center whitespace-nowrap' : '';
   const applyButton = (
@@ -180,32 +199,34 @@ function FilterForm({
       }
     >
       {showGender ? (
-        <ChipGroup legend="Género" name="genero" options={genderOptions} selected={filters.gender} />
+        <OptionList legend="Género" name="genero" options={genderOptions} selected={filters.gender} />
       ) : null}
 
-      <ChipGroup
+      <OptionList
         legend="Categoría"
         name="categoria"
         options={facets.categories.map((c) => ({ value: c, label: capitalize(c) }))}
         selected={filters.category}
       />
-      <ChipGroup
+      <OptionList
         legend="Ocasión"
         name="ocasion"
         options={OCCASIONS.map((o) => ({ value: o, label: capitalize(o) }))}
         selected={filters.occasion}
       />
-      <ChipGroup
+      <OptionList
         legend="Talla"
         name="talla"
         options={facets.sizes.map((s) => ({ value: s, label: s }))}
         selected={filters.size}
+        grid
       />
-      <ChipGroup
+      <OptionList
         legend="Color"
         name="color"
         options={facets.colors.map((c) => ({ value: c, label: capitalize(c) }))}
         selected={filters.color}
+        swatches
       />
 
       {/* Precio (CA-13): dos campos pequeños en una fila, «Mín.» y «Máx.», con un guion entre ellos y «€» dentro. Se
@@ -262,9 +283,10 @@ function FilterForm({
         }
       >
         {/* Pie del drawer (estilo v1): Limpiar a la izquierda y Aplicar a la derecha. El orden del
-            DOM es el visual, así que la tabulación coincide con lo que se ve. */}
-        {footerSticky ? clearLink : applyButton}
-        {footerSticky ? applyButton : clearLink}
+            DOM es el visual, así que la tabulación coincide con lo que se ve. «Limpiar» solo aparece con
+            filtros activos (CA-14). */}
+        {footerSticky ? (hasActive ? clearLink : null) : applyButton}
+        {footerSticky ? applyButton : hasActive ? clearLink : null}
       </div>
     </FilterChips>
   );
