@@ -989,3 +989,28 @@ pero con el panel fuera de la foto.
 | CA-122 | RF-01, RF-03 | El catálogo | Se mira una tarjeta sin hover y luego con el cursor encima (≥ 768 px) | Sin hover solo hay foto, fila de círculos de color de 24 px (uno por color, también si es uno solo; sin el texto «N colores» a la vista), nombre y precio: ni tallas ni botón visibles; con hover o foco aparece, **por debajo de la tarjeta y sin cubrir su foto**, un panel con las tallas del color elegido (cuadradas, 44 px; agotadas tachadas, con opacidad y desactivadas) y «Añadir a la cesta» a ancho completo, desactivado hasta elegir talla; elegir talla y pulsar añade esa variante al carrito (aviso `aria-live`); elegir un círculo cambia la foto y las tallas; la transición usa `opacity` y `translate-y` y con `prefers-reduced-motion` no hay transición; Esc oculta el panel; sin hover ni foco no recibe pulsaciones; pulsar la foto o el nombre lleva a la ficha; a 375 px solo hay foto, círculos decorativos, nombre y precio; una prenda agotada no lleva panel; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test e2e `catalog-quick-add` (Chromium), test:a11y y unitarios |
 
 **Nuevas tareas derivadas:** T-082 (tarjeta limpia con hover bajo la tarjeta).
+
+### Enmienda 36 — 2026-10-22 — sin ADR — el panel de la tarjeta se desliza sobre la parte baja de la foto y el grid gana aire (CA-122 y CA-123)
+
+**Origen:** con el panel colgando debajo de la tarjeta (Enmienda 35) el usuario ve que «empuja» el contenido y rompe la rejilla
+(tapa la fila siguiente). Pide que se deslice **por encima de la foto**, con el texto siempre visible debajo, y más espacio
+entre tarjetas. **Sustituye a lo que CA-122 decía de dónde está el panel**; el resto de la Enmienda 35 se mantiene.
+
+**Qué cambia respecto a la Enmienda 35:**
+- **Panel sobre la foto:** vive **dentro del contenedor de la imagen**, `absolute inset-x-0 bottom-0`, con `bg-surface/95` y
+  `backdrop-blur-sm`, y **sube desde el borde inferior de la foto** (`translate-y-full` → 0, recortado por `overflow-hidden`) con
+  `opacity`, solo con hover (`group-hover`) o foco dentro de la tarjeta, desde 768 px. **No mueve nada**: el texto (nombre,
+  círculos y precio) queda siempre visible debajo de la imagen y la tarjeta no cambia de tamaño ni invade las vecinas. Cubre la
+  parte baja de la foto mientras dura el hover (la contrapartida que ya aceptó CA-120). La tarjeta vuelve a recortar
+  (`overflow-hidden`) y se retira lo de subir de capa.
+- **Círculos de color:** a la izquierda, de **20 px** (`size-5`, antes 24 px) con **anillo** (`ring-2 ring-offset-2`) en el elegido;
+  desde 768 px siguen siendo botones de 44 px (el círculo alineado con el borde izquierdo del texto).
+- **Espaciado del listado:** el grid de productos del catálogo pasa de `gap-4` a **`gap-6`** (24 px), con 2 columnas en móvil, 3 desde
+  768 px y 4 con los filtros ocultos.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-122 | RF-01, RF-03 | El catálogo | Se mira una tarjeta sin hover y luego con el cursor encima (≥ 768 px) | Sin hover solo hay foto, fila de círculos de color de 20 px alineados a la izquierda (uno por color, también si es uno solo; sin el texto «N colores» a la vista), nombre y precio: ni tallas ni botón visibles; con hover o foco aparece **dentro de la foto, pegado a su borde inferior**, un panel con las tallas del color elegido (cuadradas, 44 px; agotadas tachadas, con opacidad y desactivadas) y «Añadir a la cesta» a ancho completo, desactivado hasta elegir talla; **el texto de debajo no se mueve ni se tapa y la tarjeta no cambia de tamaño**; elegir talla y pulsar añade esa variante al carrito (aviso `aria-live`); elegir un círculo cambia la foto y las tallas y el elegido lleva anillo; la transición usa `opacity` y `translate` y con `prefers-reduced-motion` no hay transición; Esc oculta el panel; sin hover ni foco no recibe pulsaciones; pulsar la foto o el nombre lleva a la ficha; a 375 px solo hay foto, círculos decorativos, nombre y precio; una prenda agotada no lleva panel; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test e2e `catalog-quick-add` (Chromium), test:a11y y unitarios |
+| CA-123 | RF-01 | El listado del catálogo | Se abre de 320 a 1280 px | Las tarjetas están separadas por 24 px (`gap-6`) en horizontal y en vertical, con 2 columnas por debajo de 768 px, 3 desde 768 px y 4 si se ocultan los filtros; sin scroll horizontal ni tarjetas cortadas | test e2e `catalog-grid` (Chromium) |
+
+**Nuevas tareas derivadas:** T-083 (espaciado del grid); T-082 se rehace con esta enmienda.

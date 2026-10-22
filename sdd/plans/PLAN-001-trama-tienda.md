@@ -698,3 +698,23 @@ Las tareas nuevas siguen desde T-082.
 - **Se retiran** las tallas y el botón fijos de T-081; los círculos de color y el cambio de foto se conservan.
 
 Las tareas nuevas siguen desde T-083.
+
+### Enmienda 29 — 2026-10-22 — sin ADR — panel sobre la foto y grid con más aire
+
+**Origen:** Enmienda 36 de SPEC-001 (CA-122 y CA-123). Se mantiene `v1-soft-commerce@0.3.0`. Rehace T-082 (aún sin cerrar).
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-082** | (rehecha) Panel de tallas y cesta dentro de la foto, pegado abajo y deslizándose desde su borde inferior; círculos de 20 px con anillo | CA-122 | T-081 |
+| **T-083** | `gap-6` entre tarjetas del catálogo | CA-123 | T-073 |
+
+**Decisiones de UI:**
+- **El panel vuelve a la foto** (Enmiendas 32/33 lo tenían; la 35 lo sacó): colgando debajo cubría la fila siguiente y el usuario lo
+  vio como un salto de layout. Dentro de la foto no mueve nada. **Deslizamiento:** sube desde abajo (`translate-y-full`, recortado por la
+  foto) y no baja desde arriba como decía el encargo (`-translate-y-full`): desde arriba el panel aparecería sobre el centro de la foto
+  antes de caer y se vería un parpadeo; subir desde el borde es el gesto esperado. Reversible con una clase.
+- **Círculos de 20 px**: el encargo pedía `w-4`/`w-5`; se usa 20 px (`size-5`), con zona táctil de 44 px desde 768 px.
+- **`gap-6`** y no `gap-8`: con 3 columnas y la columna de filtros, `gap-8` estrecha demasiado la tarjeta (los controles de la tarjeta
+  caben justo); 24 px dan aire sin perder anchura. Solo el listado del catálogo; la portada y la búsqueda no cambian.
+
+Las tareas nuevas siguen desde T-084.
