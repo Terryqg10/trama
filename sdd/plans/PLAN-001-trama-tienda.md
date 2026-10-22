@@ -718,3 +718,27 @@ Las tareas nuevas siguen desde T-083.
   caben justo); 24 px dan aire sin perder anchura. Solo el listado del catálogo; la portada y la búsqueda no cambian.
 
 Las tareas nuevas siguen desde T-084.
+
+### Enmienda 30 — 2026-10-22 — sin ADR — carrito lateral
+
+**Origen:** Enmienda 37 de SPEC-001 (CA-124 a CA-126). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-084** | `compareAtCents` en las líneas del carrito, función de ahorro y hook compartido `useCart` (sin cambios en `/carrito`) | CA-126 | T-075 |
+| **T-085** | Contexto `isCartOpen`/`openCart`/`closeCart`, `CartDrawer` accesible, icono de la cabecera y apertura al añadir | CA-124, CA-125 | T-084 |
+
+**Decisiones de UI:**
+- **Convención del sector:** mini-carrito lateral que se abre al añadir, con total y «Tramitar compra» (Sprinter, Zalando, ASOS); sin desvío.
+- **`/carrito` se mantiene** y el icono sigue siendo un enlace a ella: sin JavaScript funciona, y estando ya en `/carrito` no abre un
+  drawer encima de la misma lista. «Ver carrito» en el pie del drawer lleva a la página.
+- **El layout no lee la sesión** (`getCurrentUser` volvería dinámica la portada, que es estática con `revalidate`): el drawer pregunta al
+  servidor al abrirse (acción nueva `getAccountCartAction`) y decide si usa el carrito de la cuenta o el del navegador. Se vuelve a
+  preguntar en cada apertura, así no hay estado de cuenta rancio.
+- **Hook compartido `useCart`** extraído de `CartView` para que la página y el drawer no dupliquen la carga de líneas, los topes de stock y el
+  guardado en cuenta en serie; `CartView` queda igual hacia fuera (sus tests lo vigilan).
+- **Por encima de la cabecera:** la cabecera es `z-50`; el drawer usa `z-60` (fondo) y `z-70` (panel) en lugar de los `z-40`/`z-50` del encargo.
+- **Fondo `bg-fg/50`** (token) y no `bg-black/50` (la regla de estilo prohíbe colores fuera de los tokens).
+- **Foco y scroll a mano:** un hook propio (el de `useHashOverlay` es de paneles con hash) con trampa de foco, Esc, bloqueo del scroll y retorno del foco.
+
+Las tareas nuevas siguen desde T-086.

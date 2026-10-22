@@ -1014,3 +1014,36 @@ entre tarjetas. **Sustituye a lo que CA-122 decía de dónde está el panel**; e
 | CA-123 | RF-01 | El listado del catálogo | Se abre de 320 a 1280 px | Las tarjetas están separadas por 24 px (`gap-6`) en horizontal y en vertical, con 2 columnas por debajo de 768 px, 3 desde 768 px y 4 si se ocultan los filtros; sin scroll horizontal ni tarjetas cortadas | test e2e `catalog-grid` (Chromium) |
 
 **Nuevas tareas derivadas:** T-083 (espaciado del grid); T-082 se rehace con esta enmienda.
+
+### Enmienda 37 — 2026-10-22 — sin ADR — carrito lateral (mini-carrito) que se abre al añadir (CA-124 a CA-126)
+
+**Origen:** el usuario pide un «Cart Drawer» como el de Sprinter: al añadir una prenda se abre un panel lateral con la cesta, y
+el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la página `/carrito` se mantiene.
+
+**Qué cambia:**
+- **Apertura:** el drawer se abre **al añadir con éxito** una prenda (ficha, barra fija móvil y compra rápida de la tarjeta) y
+  al pulsar el **icono de la cesta** de la cabecera. El icono sigue siendo un enlace a `/carrito` (sin JavaScript navega); con
+  JavaScript abre el drawer, salvo estando ya en `/carrito`, donde navega. El aviso en línea de «añadido al carrito» se mantiene.
+  El estado `isCartOpen` y `openCart()`/`closeCart()` viven en un contexto del layout; fuera de él (tests de componentes) no hacen nada.
+- **Aspecto:** panel fijo a la derecha (`max-w-md`, ancho completo en móvil) con fondo oscuro de token (`bg-fg/50`), **por encima de
+  la cabecera** (que es `z-50`); entra deslizándose desde la derecha (`translate-x-full` → 0) con `transform` y `opacity`, y con
+  `prefers-reduced-motion` aparece sin transición. Cabecera «Mi cesta» con una X; cuerpo con scroll propio; pie fijo.
+- **Cada línea:** miniatura, nombre (enlace a la ficha con su color y talla), talla y color, precio unitario, controles
+  «−  n  +» y «Quitar» (≥ 44 px) y el **total de la línea**, con el precio sin rebajar tachado si hay rebaja. Las cantidades se
+  limitan al stock con aviso, como en `/carrito`; una línea agotada o no disponible no cuenta.
+- **Pie fijo:** «Ahorras X €» (solo si hay rebaja, calculado de `compare_at_cents`, T-075), el **total** (con el envío, como
+  `/carrito`) y el aviso de envío gratis, **«Tramitar compra»** (primario: `/checkout` con sesión y `/acceso` sin ella, como
+  `/carrito`), **«Seguir comprando»** (cierra) y un enlace «Ver carrito» a la página.
+- **Accesibilidad:** `role="dialog"`, `aria-modal="true"` y nombre «Mi cesta»; cierra con Esc, con la X y con un clic en el
+  fondo; el foco entra al abrir, queda atrapado y vuelve al elemento que lo abrió; el `body` no hace scroll mientras está abierto.
+- **Carrito de invitado y de cuenta:** con sesión el drawer lee y guarda en la cuenta (acciones de servidor existentes); sin
+  ella, en el navegador. El layout **no lee la sesión** (la portada sigue siendo estática): el drawer lo averigua al abrirse.
+- **Datos:** las líneas del carrito traen el precio anterior (`compareAtCents`) y una función pura calcula el ahorro (T-084).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-124 | RF-03 | Cualquier página de la tienda | Se añade una prenda con éxito (ficha, barra fija o compra rápida) o se pulsa el icono de la cesta | Se abre el drawer «Mi cesta» (`role="dialog"`, `aria-modal`) con fondo oscuro, por encima de la cabecera y deslizándose desde la derecha (`transform` y `opacity`; sin transición con `prefers-reduced-motion`); el foco entra y queda atrapado (Tab y Mayús+Tab no salen), el `body` no hace scroll; se cierra con Esc, con la X, con un clic en el fondo y con «Seguir comprando», y el foco vuelve a donde estaba; sin JavaScript el icono navega a `/carrito`, y estando en `/carrito` también; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test e2e `cart-drawer` (Chromium), test:a11y y unitarios |
+| CA-125 | RF-03 | El drawer abierto con prendas en la cesta | Se usa | Lista con scroll con miniatura, nombre (enlace a la ficha), talla y color, precio unitario, «−», cantidad, «+», «Quitar» (≥ 44 px) y total de la línea (con el precio sin rebajar tachado si hay rebaja); cambiar la cantidad o quitar actualiza el total y se guarda (navegador o cuenta); la cantidad se limita al stock con aviso; el pie fijo muestra «Ahorras X €» solo con rebaja, el total, el aviso de envío gratis, «Tramitar compra» (a `/checkout` con sesión y a `/acceso` sin ella) y «Seguir comprando»; sin prendas, «Tu cesta está vacía»; funciona con carrito de invitado y de cuenta | test e2e `cart-drawer` (Chromium) y unitarios |
+| CA-126 | RF-03 | Las líneas del carrito | Se piden al servidor | Cada línea trae `compareAtCents` (el precio anterior de su variante o `null`); el ahorro es la suma de (anterior − actual) × cantidad solo de las líneas con rebaja y disponibles; `/carrito` se comporta igual que antes | test unitario, de integración `cart-lines` (BD real) y `cart` e2e |
+
+**Nuevas tareas derivadas:** T-084 (datos y lógica del carrito: precio anterior y ahorro) y T-085 (carrito lateral: contexto, drawer e integración).
