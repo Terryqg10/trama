@@ -244,7 +244,7 @@ test.describe('interfaz del listado', () => {
     await expect(page.getByRole('radio', { name: 'Blusas' })).toBeChecked();
   });
 
-  test('cada tarjeta tiene un único enlace a su ficha y ningún botón (T-005b)', async ({ page }) => {
+  test('cada tarjeta tiene un único enlace a su ficha y ningún botón fuera de la compra rápida (T-005b, T-077)', async ({ page }) => {
     await open(page, '/mujer');
     const cards = page.locator('article');
     const count = await cards.count();
@@ -254,7 +254,8 @@ test.describe('interfaz del listado', () => {
       await expect(links).toHaveCount(1);
       expect(await links.first().getAttribute('href')).toMatch(/^\/producto\/[a-z0-9-]+$/);
     }
-    await expect(page.locator('article button')).toHaveCount(0);
+    // Enmienda 32 (T-077): los únicos botones de una tarjeta son los de su panel de compra rápida.
+    await expect(page.locator('article button:not([data-testid^="quick-add"])')).toHaveCount(0);
   });
 
   test('todas las imágenes tienen texto alternativo', async ({ page }) => {

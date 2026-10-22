@@ -20,6 +20,8 @@ export function AddToCartButton({
   signedIn,
   testId = 'add-to-cart',
   hideHint = false,
+  fullWidth = false,
+  label = 'Añadir al carrito',
 }: {
   readonly variantId: string | null;
   readonly stock: number;
@@ -29,6 +31,10 @@ export function AddToCartButton({
   readonly testId?: string;
   /** No repite «Elige una talla…»: la barra fija de la ficha (T-039) convive con el botón original, que ya lo dice. */
   readonly hideHint?: boolean;
+  /** Ocupa todo el ancho también desde `sm` (el panel de compra rápida de la tarjeta, T-077). */
+  readonly fullWidth?: boolean;
+  /** Texto del botón. */
+  readonly label?: string;
 }) {
   const hydrated = useHydrated();
   const [busy, setBusy] = useState(false);
@@ -79,9 +85,9 @@ export function AddToCartButton({
         onClick={() => void add()}
         disabled={disabled}
         data-testid={testId}
-        className="inline-flex min-h-12 w-full items-center justify-center rounded-control bg-accent px-6 text-base font-semibold text-accent-fg hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-fg-muted sm:w-auto"
+        className={`inline-flex min-h-12 w-full items-center justify-center rounded-control bg-accent px-6 text-base font-semibold text-accent-fg hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-fg-muted${fullWidth ? '' : ' sm:w-auto'}`}
       >
-        Añadir al carrito
+        {label}
       </button>
       {variantId === null && !hideHint ? <p className="text-sm text-fg-muted">Elige una talla para añadirla al carrito.</p> : null}
       <div aria-live="polite" className="text-sm font-medium text-fg">

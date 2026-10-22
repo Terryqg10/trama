@@ -2,8 +2,10 @@ import Image from 'next/image';
 import { isPhotoPath } from '@/lib/catalog/image-path';
 import Link from 'next/link';
 import { cardDiscount } from '@/lib/catalog/discount';
+import { quickAddData } from '@/lib/catalog/quick-add';
 import { formatEuros } from '@/lib/domain/shop';
 import type { CatalogProduct } from '@/lib/catalog/product';
+import { QuickAdd } from './QuickAdd';
 
 /**
  * Tarjeta de producto del listado. Enlaza a su ficha (T-005b). Las insignias son texto, no solo color (WCAG AA). Con
@@ -12,8 +14,11 @@ import type { CatalogProduct } from '@/lib/catalog/product';
 export function ProductCard({
   product,
   priority = false,
+  quickAdd,
 }: {
   readonly product: CatalogProduct;
+  /** Activa el panel de compra rápida al pasar el cursor (solo el catálogo, CA-120, T-077). */
+  readonly quickAdd?: { readonly signedIn: boolean };
   /** Solo la imagen que será LCP (la primera del listado): carga con prioridad, sin `lazy`. */
   readonly priority?: boolean;
 }) {
@@ -25,6 +30,7 @@ export function ProductCard({
       : formatEuros(product.fromPriceCents);
   const colorCount = product.colors.length;
   const discount = cardDiscount(product);
+  const quick = quickAdd ? quickAddData(product) : null;
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface shadow-card has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-accent">
@@ -70,6 +76,9 @@ export function ProductCard({
             </span>
           ) : null}
         </div>
+        {quickAdd && quick ? (
+          <QuickAdd productName={product.name} sizes={quick.sizes} moreColors={quick.moreColors} signedIn={quickAdd.signedIn} />
+        ) : null}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         <h2 className="text-base font-semibold text-fg">

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
+import { getCurrentUser } from '@/lib/auth/session';
 import { deriveFacets } from '@/lib/catalog/facets';
 import {
   parseCatalogParams,
@@ -77,6 +78,8 @@ export async function CatalogView({
   if (filters.color && !facets.colors.includes(filters.color)) delete filters.color;
 
   const products = await listProducts(filters);
+  // La compra rápida de la tarjeta (CA-120) necesita saber si hay sesión: con ella el carrito va a la cuenta.
+  const { user } = await getCurrentUser();
 
   const filterProps = { basePath, facets, filters, showGender: scope.gender === undefined };
 
@@ -126,7 +129,7 @@ export async function CatalogView({
               <ProductGrid>
                 {products.map((product, index) => (
                   <li key={product.id}>
-                    <ProductCard product={product} priority={index === 0} />
+                    <ProductCard product={product} priority={index === 0} quickAdd={{ signedIn: user !== null }} />
                   </li>
                 ))}
               </ProductGrid>
