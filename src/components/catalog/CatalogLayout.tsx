@@ -72,7 +72,7 @@ export function ProductGrid({ children }: { readonly children: ReactNode }) {
   return (
     <ul
       data-testid="product-grid"
-      className={`mt-4 grid grid-cols-2 gap-4 md:grid-cols-3${hidden ? ' lg:grid-cols-4' : ''}`}
+      className={`mt-4 grid grid-cols-2 gap-6 md:grid-cols-3${hidden ? ' lg:grid-cols-4' : ''}`}
     >
       {children}
     </ul>

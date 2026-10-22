@@ -82,3 +82,56 @@ test.describe('las tarjetas a 3 columnas no se desbordan', () => {
     expect(overflow).toBe(false);
   });
 });
+
+// CA-123 (T-083, Enmienda 36): más aire entre las tarjetas del listado (gap-6 = 24 px).
+test.describe('CA-123: tarjetas separadas por 24 px', () => {
+  for (const [width, columnsExpected] of [
+    [320, 2],
+    [375, 2],
+    [767, 2],
+    [768, 3],
+    [1023, 3],
+    [1280, 3],
+  ] as const) {
+    test(`a ${width} px: ${columnsExpected} columnas con 24 px de hueco en horizontal y en vertical`, async ({ page }) => {
+      await open(page, '/mujer', width);
+      const boxes = await page.locator('article').evaluateAll((cards) =>
+        cards.map((card) => {
+          const r = card.getBoundingClientRect();
+          return { left: r.left, right: r.right, top: r.top + window.scrollY, bottom: r.bottom + window.scrollY };
+        }),
+      );
+      expect(new Set(boxes.filter((b) => Math.abs(b.top - (boxes[0]?.top ?? 0)) <= 2).map((b) => Math.round(b.left))).size).toBe(columnsExpected);
+      const row = boxes.filter((b) => Math.abs(b.top - (boxes[0]?.top ?? 0)) <= 2).sort((a, b) => a.left - b.left);
+      for (let i = 1; i < row.length; i++) {
+        expect((row[i]?.left ?? 0) - (row[i - 1]?.right ?? 0), `hueco horizontal ${i}`).toBeCloseTo(24, 0);
+      }
+      const secondRowTop = Math.min(...boxes.filter((b) => b.top > (boxes[0]?.bottom ?? 0) - 2).map((b) => b.top));
+      const firstRowBottom = Math.max(...boxes.filter((b) => Math.abs(b.top - (boxes[0]?.top ?? 0)) <= 2).map((b) => b.bottom));
+      expect(secondRowTop - firstRowBottom, 'hueco vertical').toBeCloseTo(24, 0);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+    });
+  }
+
+  test('con los filtros ocultos son 4 columnas con el mismo hueco', async ({ page }) => {
+    await open(page, '/mujer', 1280);
+    await page.getByTestId('filters-toggle').click();
+    await expect(page.getByTestId('filters-sidebar')).toBeHidden();
+    const lefts = await page.locator('article').evaluateAll((cards) => {
+      const top = cards[0]?.getBoundingClientRect().top ?? 0;
+      return cards
+        .filter((c) => Math.abs(c.getBoundingClientRect().top - top) <= 2)
+        .map((c) => ({ left: c.getBoundingClientRect().left, right: c.getBoundingClientRect().right }));
+    });
+    expect(lefts).toHaveLength(4);
+    for (let i = 1; i < lefts.length; i++) expect((lefts[i]?.left ?? 0) - (lefts[i - 1]?.right ?? 0)).toBeCloseTo(24, 0);
+  });
+
+  test('la rejilla de la portada no cambia (16 px)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/');
+    const gap = await page.getByTestId('new-arrivals').locator('ul').evaluate((el) => getComputedStyle(el).columnGap);
+    expect(gap).toBe('16px');
+  });
+});
