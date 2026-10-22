@@ -3,10 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { catalogRowSchema, toCatalogProduct } from '@/lib/catalog/product';
 import type { QuickAddColor } from '@/lib/catalog/quick-add';
 import { ProductCard } from './ProductCard';
-import { CardColorProvider, CardImage, QuickAdd } from './QuickAdd';
+import { CardColorProvider, CardImage, ColorDots, QuickAdd } from './QuickAdd';
 
-// CA-121 (T-081, nivel de componente): miniaturas de color, tallas cuadradas, imagen por color y botón «Elige talla». El
-// carrito real, el umbral por ancho y el aspecto los comprueba el e2e `catalog-quick-add`.
+// CA-122 (T-082, nivel de componente): círculos de color, panel de tallas sobre la parte baja de la foto, imagen por color y Esc. El hover
+// real, el carrito y el umbral por ancho los comprueba el e2e `catalog-quick-add`.
 
 vi.mock('@/components/cart/AddToCartButton', () => ({
   AddToCartButton: ({
@@ -46,43 +46,83 @@ const images = [
   { path: '/products/negro.svg', alt: 'Polo demo, color negro' },
 ];
 
-function card(list: readonly QuickAddColor[] = colors, defaultColor = 'azul') {
+function card(list: readonly QuickAddColor[] = colors) {
   return render(
-    <CardColorProvider defaultColor={defaultColor}>
-      <CardImage images={images} priority={false} />
-      <QuickAdd productName="Polo demo" colors={list} signedIn={false} />
-    </CardColorProvider>,
+    <article className="group">
+      <CardColorProvider defaultColor="azul">
+        <CardImage images={images} priority={false} />
+        <ColorDots productName="Polo demo" colors={list} />
+        <QuickAdd productName="Polo demo" colors={list} signedIn={false} />
+      </CardColorProvider>
+    </article>,
   );
 }
 
-describe('QuickAdd', () => {
-  it('va debajo de la foto, no encima: sin posición absoluta, oculto por debajo de md y al fondo de la tarjeta', () => {
+describe('ColorDots', () => {
+  it('un botón por color, solo desde md, alineado a la izquierda, con el elegido con anillo (ring-2 ring-offset-2) y zona de 44 px', () => {
+    card();
+    expect(screen.getByTestId('color-dots').className).toContain('hidden');
+    expect(screen.getByTestId('color-dots').className).toContain('md:flex');
+    const dots = screen.getAllByTestId('quick-add-color');
+    expect(dots.map((d) => d.getAttribute('aria-label'))).toEqual(['Color Azul', 'Color Negro']);
+    expect(dots[0]).toHaveAttribute('aria-pressed', 'true');
+    expect(dots[1]).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('color-dots').className).toContain('-ml-3');
+    expect(dots[0]?.querySelector('span')?.className).toContain('ring-2');
+    expect(dots[0]?.querySelector('span')?.className).toContain('ring-offset-2');
+    expect(dots[0]?.querySelector('span')?.className).toContain('ring-accent');
+    expect(dots[1]?.querySelector('span')?.className).not.toContain('ring-2');
+    expect(dots[0]?.className).toContain('size-11');
+    expect(dots[0]?.querySelector('span')?.className).toContain('size-5');
+  });
+
+  it('elegir otro color cambia las tallas, borra la talla elegida y cambia la imagen principal', () => {
+    card();
+    expect(screen.getByTestId('card-image')).toHaveAttribute('src', expect.stringContaining('azul.svg'));
+    fireEvent.click(screen.getAllByTestId('quick-add-size')[1] as HTMLElement);
+    expect(screen.getByTestId('quick-add-button')).toBeEnabled();
+    fireEvent.click(screen.getAllByTestId('quick-add-color')[1] as HTMLElement);
+    expect(screen.getAllByTestId('quick-add-color')[1]).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getAllByTestId('quick-add-size').map((b) => b.textContent)).toEqual(['40']);
+    expect(screen.getByTestId('quick-add-button')).toBeDisabled();
+    expect(screen.getByTestId('card-image')).toHaveAttribute('src', expect.stringContaining('negro.svg'));
+    expect(screen.getByTestId('card-image')).toHaveAttribute('alt', 'Polo demo, color negro');
+  });
+});
+
+describe('QuickAdd (panel sobre la parte baja de la foto)', () => {
+  it('va pegado al borde inferior de la foto: absoluto, inset-x-0 y bottom-0, con fondo translúcido y desenfoque', () => {
     card();
     const root = screen.getByTestId('quick-add');
-    // `relative z-10`: por encima del enlace extendido de la tarjeta, para que los controles reciban las pulsaciones.
-    for (const cls of ['hidden', 'md:block', 'mt-auto', 'relative', 'z-10']) expect(root.className, cls).toContain(cls);
-    for (const cls of ['absolute', 'inset-x-0', 'bottom-0', 'opacity-0', 'group-hover:opacity-100', 'backdrop-blur']) {
-      expect(root.className, cls).not.toContain(cls);
+    for (const cls of ['absolute', 'inset-x-0', 'bottom-0', 'z-10', 'hidden', 'md:block', 'bg-surface/95', 'backdrop-blur-sm', 'p-4']) {
+      expect(root.className, cls).toContain(cls);
+    }
+    for (const cls of ['top-full', 'rounded-b-card', 'inset-0', 'inset-y-0']) expect(root.className, cls).not.toContain(cls);
+  });
+
+  it('sube desde el borde inferior con opacity y translate (hover o foco), no recibe pulsaciones mientras no se ve y no se mueve con reduced-motion', () => {
+    card();
+    const cls = screen.getByTestId('quick-add').className;
+    for (const expected of [
+      'opacity-0',
+      'translate-y-full',
+      'pointer-events-none',
+      'group-hover:opacity-100',
+      'group-hover:translate-y-0',
+      'group-hover:pointer-events-auto',
+      'group-focus-within:opacity-100',
+      'group-focus-within:translate-y-0',
+      'group-focus-within:pointer-events-auto',
+      'transition',
+      'duration-300',
+      'motion-reduce:transition-none',
+      'motion-reduce:translate-y-0',
+    ]) {
+      expect(cls, expected).toContain(expected);
     }
   });
 
-  it('muestra una miniatura por color, con la del color inicial marcada con el borde de acento', () => {
-    card();
-    const thumbs = screen.getAllByTestId('quick-add-color');
-    expect(thumbs.map((t) => t.getAttribute('aria-label'))).toEqual(['Color Azul', 'Color Negro']);
-    expect(thumbs[0]).toHaveAttribute('aria-pressed', 'true');
-    expect(thumbs[1]).toHaveAttribute('aria-pressed', 'false');
-    expect(thumbs[0]?.querySelector('span')?.className).toContain('ring-accent');
-    expect(thumbs[1]?.querySelector('span')?.className).not.toContain('ring-accent');
-    expect(thumbs[0]?.className).toContain('size-11');
-  });
-
-  it('con un solo color no hay miniaturas', () => {
-    card([colors[0] as QuickAddColor]);
-    expect(screen.queryAllByTestId('quick-add-color')).toHaveLength(0);
-  });
-
-  it('las tallas son botones cuadrados; las agotadas, desactivadas, tachadas y con opacidad reducida', () => {
+  it('muestra todas las tallas como botones cuadrados; las agotadas, desactivadas, tachadas y con opacidad', () => {
     card();
     const buttons = screen.getAllByTestId('quick-add-size');
     expect(buttons.map((b) => b.textContent)).toEqual(['S', 'M', 'L', 'XL']);
@@ -113,28 +153,22 @@ describe('QuickAdd', () => {
     expect(xl).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('el botón ocupa todo el ancho, dice «Elige talla» y está desactivado hasta elegir; luego «Añadir a la cesta»', () => {
+  it('el botón «Añadir a la cesta» ocupa todo el ancho y está desactivado hasta elegir talla', () => {
     card();
     const button = screen.getByTestId('quick-add-button');
-    expect(button.textContent).toBe('Elige talla');
+    expect(button.textContent).toBe('Añadir a la cesta');
     expect(button).toBeDisabled();
     expect(button.getAttribute('data-full')).toBe('true');
     fireEvent.click(screen.getAllByTestId('quick-add-size')[1] as HTMLElement);
-    expect(screen.getByTestId('quick-add-button').textContent).toBe('Añadir a la cesta');
     expect(screen.getByTestId('quick-add-button')).toBeEnabled();
   });
 
-  it('elegir otro color cambia las tallas, marca la miniatura, borra la talla elegida y cambia la imagen principal', () => {
+  it('Esc lo oculta (data-dismissed)', () => {
     card();
-    expect(screen.getByTestId('card-image')).toHaveAttribute('src', expect.stringContaining('azul.svg'));
-    fireEvent.click(screen.getAllByTestId('quick-add-size')[1] as HTMLElement);
-    fireEvent.click(screen.getAllByTestId('quick-add-color')[1] as HTMLElement);
-    expect(screen.getAllByTestId('quick-add-color')[1]).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getAllByTestId('quick-add-color')[0]).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getAllByTestId('quick-add-size').map((b) => b.textContent)).toEqual(['40']);
-    expect(screen.getByTestId('quick-add-button').textContent).toBe('Elige talla');
-    expect(screen.getByTestId('card-image')).toHaveAttribute('src', expect.stringContaining('negro.svg'));
-    expect(screen.getByTestId('card-image')).toHaveAttribute('alt', 'Polo demo, color negro');
+    const root = screen.getByTestId('quick-add');
+    expect(root.getAttribute('data-dismissed')).toBe('false');
+    fireEvent.keyDown(screen.getAllByTestId('quick-add-size')[1] as HTMLElement, { key: 'Escape' });
+    expect(root.getAttribute('data-dismissed')).toBe('true');
   });
 });
 
@@ -155,25 +189,76 @@ function product(variants: { id: string; size: string; color: string; stock: num
   );
 }
 
-describe('ProductCard y los controles de compra (CA-121)', () => {
-  it('sin la propiedad quickAdd (portada, búsqueda) no hay controles ni miniaturas', () => {
+const two = [
+  { id: 'v1', size: 'M', color: 'azul', stock: 5 },
+  { id: 'v2', size: 'M', color: 'negro', stock: 5 },
+];
+
+describe('ProductCard: estado normal limpio (CA-122)', () => {
+  it('un círculo de 20 px por color en lugar del texto «N colores», que queda solo para lectores de pantalla', () => {
+    render(<ProductCard product={product(two)} />);
+    const dots = screen.getByTestId('card-colors');
+    expect(dots.getAttribute('aria-hidden')).toBe('true');
+    expect(dots.querySelectorAll('span')).toHaveLength(2);
+    for (const dot of dots.querySelectorAll('span')) {
+      expect(dot.className).toContain('size-5');
+      expect(dot.className).toContain('rounded-full');
+    }
+    const text = screen.getByText('2 colores');
+    expect(text.className).toContain('sr-only');
+  });
+
+  it('una prenda de un solo color lleva un círculo', () => {
     render(<ProductCard product={product([{ id: 'v1', size: 'M', color: 'azul', stock: 5 }])} />);
+    expect(screen.getByTestId('card-colors').querySelectorAll('span')).toHaveLength(1);
+    expect(screen.getByText('1 color').className).toContain('sr-only');
+  });
+
+  it('un color sin muestra definida usa un círculo neutro', () => {
+    render(<ProductCard product={product([{ id: 'v1', size: 'M', color: 'turquesa', stock: 5 }])} />);
+    expect(screen.getByTestId('card-colors').querySelector('span')?.className).toContain('bg-surface-muted');
+  });
+
+  it('en la portada y la búsqueda (sin quickAdd) los círculos se ven en todos los anchos y no hay panel', () => {
+    render(<ProductCard product={product(two)} />);
+    expect(screen.getByTestId('card-colors').className).not.toContain('md:hidden');
     expect(screen.queryByTestId('quick-add')).toBeNull();
-    expect(screen.queryByTestId('card-image')).toBeNull();
+    expect(screen.queryByTestId('color-dots')).toBeNull();
   });
 
-  it('con quickAdd y stock lleva los controles debajo del precio, no dentro de la imagen', () => {
-    render(<ProductCard product={product([{ id: 'v1', size: 'M', color: 'azul', stock: 5 }])} quickAdd={{ signedIn: false }} />);
-    const controls = screen.getByTestId('quick-add');
-    const media = screen.getByTestId('card-image').parentElement as HTMLElement;
-    expect(media.contains(controls)).toBe(false);
-    expect(screen.getByTestId('card-price').compareDocumentPosition(controls) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  it('en el catálogo con varios colores los círculos estáticos solo se ven en móvil y desde md son botones', () => {
+    render(<ProductCard product={product(two)} quickAdd={{ signedIn: false }} />);
+    expect(screen.getByTestId('card-colors').className).toContain('md:hidden');
+    expect(screen.getAllByTestId('quick-add-color')).toHaveLength(2);
   });
 
-  it('una prenda de un solo color no lleva miniaturas y una agotada no lleva controles', () => {
+  it('en el catálogo con un solo color el círculo se ve siempre y no hay botones de color', () => {
     render(<ProductCard product={product([{ id: 'v1', size: 'M', color: 'azul', stock: 5 }])} quickAdd={{ signedIn: false }} />);
+    expect(screen.getByTestId('card-colors').className).not.toContain('md:hidden');
     expect(screen.queryAllByTestId('quick-add-color')).toHaveLength(0);
-    cleanup();
+    expect(screen.getByTestId('quick-add')).toBeInTheDocument();
+  });
+
+  it('el panel está dentro del contenedor de la foto (que recorta sin permitir scroll) y la tarjeta recorta como siempre', () => {
+    const { container } = render(<ProductCard product={product(two)} quickAdd={{ signedIn: false }} />);
+    const media = screen.getByTestId('card-image').parentElement as HTMLElement;
+    expect(media.contains(screen.getByTestId('quick-add'))).toBe(true);
+    expect(media.className).toContain('overflow-clip');
+    expect(media.className).toContain('relative');
+    const article = container.querySelector('article') as HTMLElement;
+    expect(article.className).toContain('overflow-hidden');
+    expect(article.className).not.toContain('hover:z-20');
+  });
+
+  it('el texto (nombre, círculos y precio) no está dentro del panel ni se mueve con él: va en un bloque aparte', () => {
+    render(<ProductCard product={product(two)} quickAdd={{ signedIn: false }} />);
+    const panel = screen.getByTestId('quick-add');
+    for (const node of [screen.getByRole('heading', { name: 'Polo demo' }), screen.getByTestId('card-price'), screen.getByTestId('card-colors')]) {
+      expect(panel.contains(node)).toBe(false);
+    }
+  });
+
+  it('una prenda agotada no lleva panel', () => {
     render(<ProductCard product={product([{ id: 'v1', size: 'M', color: 'azul', stock: 0 }])} quickAdd={{ signedIn: false }} />);
     expect(screen.queryByTestId('quick-add')).toBeNull();
   });

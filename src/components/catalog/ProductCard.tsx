@@ -3,15 +3,17 @@ import { isPhotoPath } from '@/lib/catalog/image-path';
 import Link from 'next/link';
 import { cardDiscount } from '@/lib/catalog/discount';
 import { quickAddData } from '@/lib/catalog/quick-add';
+import { swatchClass } from '@/lib/catalog/swatches';
 import { formatEuros } from '@/lib/domain/shop';
 import type { CatalogProduct } from '@/lib/catalog/product';
-import { CardColorProvider, CardImage, QuickAdd } from './QuickAdd';
+import { CardColorProvider, CardImage, ColorDots, QuickAdd } from './QuickAdd';
 
 /**
  * Tarjeta de producto del listado. Enlaza a su ficha (T-005b). Las insignias son texto, no solo color (WCAG AA). Con
  * rebaja (`compare_at_cents`, T-075) lleva la insignia «-N%» y el precio anterior tachado junto al actual (CA-119, T-076).
- * En el catálogo (`quickAdd`) lleva debajo del precio las miniaturas de color, las tallas y «Añadir a la cesta», siempre
- * visibles desde 768 px y sin tapar la foto; el color elegido cambia la imagen (CA-121, T-081).
+ * Estado normal limpio: foto, fila de círculos de color, nombre y precio (CA-122, T-082). En el catálogo (`quickAdd`) los
+ * círculos son botones desde 768 px (cambian la foto) y, al pasar el cursor, un panel con las tallas y «Añadir a la cesta»
+ * sube desde el borde inferior de la foto, dentro de ella: el texto de debajo no se mueve.
  */
 export function ProductCard({
   product,
@@ -19,7 +21,7 @@ export function ProductCard({
   quickAdd,
 }: {
   readonly product: CatalogProduct;
-  /** Activa los controles de compra bajo la foto (solo el catálogo, CA-121, T-081). */
+  /** Activa los círculos interactivos y el panel de compra al pasar el cursor (solo el catálogo, CA-122, T-082). */
   readonly quickAdd?: { readonly signedIn: boolean };
   /** Solo la imagen que será LCP (la primera del listado): carga con prioridad, sin `lazy`. */
   readonly priority?: boolean;
@@ -33,6 +35,8 @@ export function ProductCard({
   const colorCount = product.colors.length;
   const discount = cardDiscount(product);
   const quick = quickAdd ? quickAddData(product) : null;
+  // Con varios colores, desde 768 px los círculos son botones y la fila estática solo se ve en móvil.
+  const interactiveDots = quick !== null && quick.colors.length > 1;
 
   const staticImage = image ? (
     <Image
@@ -58,7 +62,7 @@ export function ProductCard({
 
   const inner = (
     <>
-      <div className="relative aspect-3/4 overflow-hidden bg-surface-muted">
+      <div className="relative aspect-3/4 overflow-clip bg-surface-muted">
         {quick ? <CardImage images={product.images} priority={priority} /> : staticImage}
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           {product.isNew ? (
@@ -80,6 +84,7 @@ export function ProductCard({
             </span>
           ) : null}
         </div>
+        {quickAdd && quick ? <QuickAdd productName={product.name} colors={quick.colors} signedIn={quickAdd.signedIn} /> : null}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         <h2 className="text-base font-semibold text-fg">
@@ -91,9 +96,23 @@ export function ProductCard({
             {product.name}
           </Link>
         </h2>
-        <p className="text-sm text-fg-muted">
+        {/* El número de colores sigue ahí para lectores de pantalla; a la vista, los círculos de color. */}
+        <p className="sr-only">
           {colorCount} {colorCount === 1 ? 'color' : 'colores'}
         </p>
+        <div
+          aria-hidden="true"
+          data-testid="card-colors"
+          className={`flex flex-wrap gap-2 py-1${interactiveDots ? ' md:hidden' : ''}`}
+        >
+          {product.colors.map((color) => (
+            <span
+              key={color}
+              className={`size-5 rounded-full border border-border-strong ${swatchClass(color) ?? 'bg-surface-muted'}`}
+            />
+          ))}
+        </div>
+        {quick && quick.colors.length > 1 ? <ColorDots productName={product.name} colors={quick.colors} /> : null}
         {discount ? (
           <p data-testid="card-price" className={`${quick ? '' : 'mt-auto '}flex flex-wrap items-baseline gap-x-2 pt-2`}>
             <span className="sr-only">Ahora </span>
@@ -108,7 +127,6 @@ export function ProductCard({
             {priceLabel}
           </p>
         )}
-        {quickAdd && quick ? <QuickAdd productName={product.name} colors={quick.colors} signedIn={quickAdd.signedIn} /> : null}
       </div>
     </>
   );
