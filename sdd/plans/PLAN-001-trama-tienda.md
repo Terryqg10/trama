@@ -623,3 +623,24 @@ Las tareas nuevas siguen desde T-079.
 - **T-076 y T-077 siguen pendientes.**
 
 Las tareas nuevas siguen desde T-080.
+
+### Enmienda 25 — 2026-10-22 — sin ADR — filtros activos con quitar individual
+
+**Origen:** Enmienda 7 de SPEC-002 (CA-16). Se mantiene `v1-soft-commerce@0.3.0`.
+
+| Tarea | Resumen | CA | Depende de |
+|---|---|---|---|
+| **T-080** | Lista de filtros activos con X por filtro (enlaces) y drawer que no se cierra con los filtrados en vivo | CA-16, CA-15 | T-079 |
+
+**Decisiones de UI:**
+- **Convención del sector:** chips de filtros activos con X sobre las opciones (Zalando, ASOS, H&M); sin desvío.
+- **Enlaces, no botones:** cada X es un `<Link>` a la URL sin ese filtro. Funciona sin JavaScript, se puede abrir en otra
+  pestaña y reutiliza la navegación blanda; los radios se sincronizan con la URL como con «Limpiar».
+- **Un solo chip de precio** para `min` y `max`: el usuario los ve como un intervalo.
+- **«Limpiar» se mantiene** en el pie, para quitar todos de golpe.
+- **Drawer:** deja de cerrarse con cualquier `submit`; solo con el envío que hace un botón («Aplicar filtros»). El envío
+  programático del intervalo (`requestSubmit()` sin botón) no lo cierra. En navegadores sin `SubmitEvent` se conserva el
+  comportamiento anterior (cierra).
+- **T-076 y T-077 siguen pendientes.**
+
+Las tareas nuevas siguen desde T-081.

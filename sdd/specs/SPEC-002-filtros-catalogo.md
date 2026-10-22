@@ -232,3 +232,28 @@ que quedaba fuera de alcance.
 | CA-15 | RF-04 | El panel de filtros con JavaScript | Se arrastra un tirador del precio | Hay dos tiradores y una barra con el tramo elegido, con límites del catálogo; «Mín.» y «Máx.» cambian en tiempo real mientras se arrastra, sin tocar la URL; al soltar el listado se filtra sin recargar y la URL lleva `min`/`max`; un extremo en su límite no se filtra; los tiradores no se cruzan; con teclado (flechas, Inicio, Fin) también funciona; escribir en los campos y pulsar Intro mueve los tiradores y filtra; «Limpiar» y «Atrás» devuelven los tiradores y los números a la URL; tiradores de 44 px con foco visible y nombre accesible; sin scroll horizontal de 320 a 1280 px; sin JavaScript siguen los dos campos con «Aplicar filtros»; axe sin violaciones graves | test e2e `filters-price` (Chromium), test:a11y y unitarios |
 
 **Nuevas tareas derivadas:** T-079 (intervalo de precio).
+
+### Enmienda 7 — 2026-10-22 — sin ADR — filtros activos con quitar individual y drawer que no se cierra al soltar el intervalo (CA-16)
+
+**Origen:** el usuario pide (1) que al soltar el tirador del precio no desaparezcan «Mín.» y «Máx.» y el panel se quede como
+lo dejó el intervalo, y (2) ver en «Filtros» la lista de filtros activos con una X por cada uno, para quitar uno sin borrar
+todos.
+
+**Qué cambia:**
+- **Corrección de CA-15 (drawer):** con la ventana por debajo de `--bp-lg`, el drawer se cerraba con cualquier envío del
+  formulario, también con el que hace el intervalo al soltar el tirador, y con él desaparecían «Mín.» y «Máx.». Ahora el
+  drawer **solo se cierra** con «Aplicar filtros» (o Intro en un campo con botón por defecto), no con los filtrados en vivo
+  (chips, precio al soltar). El panel y los valores se quedan como los dejó el usuario.
+- **Lista de filtros activos (CA-16):** bajo la cabecera «Filtros» —en la columna lateral y en el drawer— aparece, solo si hay
+  filtros activos, una lista de **chips quitables**: «Categoría: Blusas», «Ocasión: Vestir», «Talla: M», «Color: Negro»,
+  «Género: …» (solo en Novedades) y «Precio: 25–70 €» (un solo chip para el precio, que quita los dos extremos). Cada chip
+  es un **enlace** con una X y nombre accesible «Quitar filtro …» a la misma página sin ese filtro y **conservando el resto
+  y el orden**: funciona sin JavaScript y con navegación blanda, sin recargar. La fila mide al menos 44 px.
+- «Limpiar» (que quita todos) **se mantiene** en el pie; esta enmienda **retira** la contrapartida de la Enmienda 5
+  («quitar el filtro de una sola sección no se ofrece»).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-16 | RF-05, RF-06 | El catálogo con filtros activos (categoría, talla, color, ocasión y precio) | Se mira el panel y se pulsa la X de uno | Bajo «Filtros» hay un chip por filtro activo con su nombre y valor y una X de ≥ 44 px con nombre accesible «Quitar filtro …»; pulsarlo quita solo ese filtro (la URL conserva los demás y el orden), sin recargar el documento, y el chip desaparece y la opción vuelve a quedar sin marcar; el chip del precio quita `min` y `max` y devuelve el intervalo a sus límites; sin filtros activos no hay lista; funciona igual en el drawer y sin JavaScript (son enlaces); sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves. Además (corrección de CA-15): en el drawer, soltar el tirador del precio filtra sin cerrar el drawer y «Mín.» y «Máx.» siguen a la vista con el valor elegido | test e2e `filters-active` y `filters-price` (Chromium), test:a11y y unitario |
+
+**Nuevas tareas derivadas:** T-080 (filtros activos con quitar individual y corrección del drawer).
