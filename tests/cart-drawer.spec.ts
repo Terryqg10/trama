@@ -267,8 +267,9 @@ test.describe('contenido y controles (CA-125)', () => {
     await expect(line.getByTestId('drawer-line-total')).toContainText('29,90');
     for (const id of ['drawer-minus', 'drawer-plus', 'drawer-remove']) {
       const box = await line.getByTestId(id).boundingBox();
-      expect(box?.height ?? 0, id).toBeGreaterThanOrEqual(44);
-      expect(box?.width ?? 0, id).toBeGreaterThanOrEqual(44);
+      // 44 px con tolerancia de coma flotante: WebKit mide 43,999996 en una caja de 44 px (min-h-11 / min-w-11).
+      expect(box?.height ?? 0, id).toBeGreaterThanOrEqual(43.9);
+      expect(box?.width ?? 0, id).toBeGreaterThanOrEqual(43.9);
     }
     // Sin rebaja: ni precio tachado ni ahorro.
     await expect(line.getByTestId('drawer-line-before')).toHaveCount(0);

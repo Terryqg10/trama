@@ -135,6 +135,8 @@ test.describe('precio Mín. y Máx. (CA-13)', () => {
   test('se aplican con Intro, al salir del campo y con «Aplicar filtros», no al escribir', async ({ page }) => {
     await open(page, '/mujer');
     const form = page.getByTestId('filters-panel');
+    // Espera a que el intervalo sustituya a los campos de antes de hidratar: lo escrito antes se pierde y el test fallaba a veces.
+    await expect(form.getByTestId('price-range')).toBeVisible();
     await form.getByLabel('Precio mínimo (€)').fill('30');
     // Escribir no filtra: no hay petición por cada tecla (Enmienda 6).
     await page.waitForTimeout(600);
