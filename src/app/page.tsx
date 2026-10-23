@@ -6,6 +6,7 @@ import { ExploreSection } from '@/components/home/ExploreSection';
 import { HERO_SLIDES } from '@/components/home/hero-slides';
 import { NewArrivals } from '@/components/home/NewArrivals';
 import { NewsletterSection } from '@/components/home/NewsletterSection';
+import { PromoModal } from '@/components/home/PromoModal';
 import { ShippingBanner } from '@/components/home/ShippingBanner';
 import { TrustSection } from '@/components/home/TrustSection';
 import { HeroSlider } from '@/components/layout/HeroSlider';
@@ -25,6 +26,7 @@ const BOXED = 'mx-auto max-w-(--layout-container) px-(--layout-gutter) py-16';
 export default function Home() {
   return (
     <>
+      <PromoModal />
       <HeroSlider slides={HERO_SLIDES} />
       <section className={BOXED}>
         <AnimatedSection>

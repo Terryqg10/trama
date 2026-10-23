@@ -99,3 +99,20 @@
   outline: 2px solid var(--color-accent);
   outline-offset: -0.25rem;
 }
+
+/* Entrada del modal promocional (T-089). Con prefers-reduced-motion aparece sin animación. */
+@media (prefers-reduced-motion: no-preference) {
+  .promo-enter {
+    animation: promo-enter 0.3s ease-out;
+  }
+}
+@keyframes promo-enter {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

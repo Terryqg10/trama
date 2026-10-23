@@ -1047,3 +1047,40 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-126 | RF-03 | Las líneas del carrito | Se piden al servidor | Cada línea trae `compareAtCents` (el precio anterior de su variante o `null`); el ahorro es la suma de (anterior − actual) × cantidad solo de las líneas con rebaja y disponibles; `/carrito` se comporta igual que antes | test unitario, de integración `cart-lines` (BD real) y `cart` e2e |
 
 **Nuevas tareas derivadas:** T-084 (datos y lógica del carrito: precio anterior y ahorro) y T-085 (carrito lateral: contexto, drawer e integración).
+
+### Enmienda 38 — 2026-10-23 — sin ADR — modal promocional de la portada con suscripción a la newsletter (CA-127 a CA-131)
+
+**Origen:** el usuario pide un modal promocional al estilo Sprinter en la portada: captar el email con la promesa de un 10 % en la primera compra.
+**Amplía RF-26** (newsletter); reutiliza la acción `subscribeAction` y el formulario de la portada, sin tocar CA-99 a CA-101.
+
+**Qué cambia:**
+- **Aparición:** solo en la portada (`/`). A los **3 segundos** de cargarla se abre un diálogo modal, si el navegador no tiene guardado
+  `promo_seen` en `localStorage`. Al abrirse se guarda `promo_seen = 1`, así que **no vuelve a salir** en ese navegador aunque se recargue o
+  se cierre sin suscribirse. No se abre si en ese momento está abierto el carrito lateral (CA-124). Si `localStorage` no se puede leer
+  (modo privado, bloqueado) **no se abre**: sin poder recordarlo saldría en cada visita.
+- **Contenido:** rejilla de 2 columnas desde 768 px: **texto a la izquierda** y **foto a la derecha** (`/images/products/promo-regalo.webp`, decorativa,
+  al 100 % de su columna). Por debajo de 768 px solo el texto, a ancho completo. Título en **serif** («Suscríbete y consigue un 10 % en tu primera compra»),
+  subtítulo («Te enviaremos el código de descuento por email.»), campo de email, casilla de privacidad (enlace a `/privacidad`, obligatoria,
+  sin marcar) y el botón de suscripción. **El texto indica que el descuento se enviará por email.**
+- **Suscripción:** el mismo formulario y la misma acción de servidor que la portada (`NewsletterForm` y `subscribeAction`): validación con Zod,
+  errores por campo y mensajes en una región `aria-live`.
+- **Accesibilidad:** `role="dialog"`, `aria-modal`, nombre y descripción; se cierra con Esc, con la X (≥ 44 px) y con un clic en el fondo; el foco entra
+  en el diálogo (no en el campo, para no abrir el teclado del móvil), queda atrapado (el recorrido de Tab lo hace el componente, como en el carrito, T-088)
+  y vuelve al cerrar; el `body` no hace scroll mientras está abierto (con compensación de la barra de desplazamiento). Con `prefers-reduced-motion` aparece sin animación.
+- **Botón de prueba:** un botón flotante «Probar promo» que abre el modal **solo si `process.env.NODE_ENV === 'development'`**; no existe en producción.
+- **Decisión de UI (estilo):** v1-soft-commerce@0.3.0 no define una fuente serif. El título usa la utilidad `font-serif` (pila serif del sistema) en
+  lugar de crear una versión nueva del estilo; es reversible (se cambia en un solo sitio) y se revisará si se añade una fuente serif al estilo.
+- **Datos y privacidad (sección 9):** el modal guarda en el navegador solo un indicador técnico (`promo_seen`), sin datos personales. El email y el consentimiento
+  se tratan igual que en la portada (CA-99 a CA-101).
+- **Fuera de alcance:** el cupón del 10 % (generarlo, validarlo en el pago y **enviarlo por email**) y el proveedor de correo (T-061). **Riesgo:** mientras no
+  existan, el modal promete un descuento que no se entrega. **No debe ir a producción hasta que el cupón y el envío del email estén hechos.**
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-127 | RF-26 | Un navegador sin `promo_seen` en `localStorage` | Se abre la portada y pasan 3 s | Se abre el modal; se guarda `promo_seen`; al recargar no vuelve a salir; no sale en otras páginas, ni antes de los 3 s, ni con el carrito lateral abierto, ni si `localStorage` no se puede leer | test unitario `PromoModal` y e2e `promo-modal` |
+| CA-128 | RF-26 | El modal abierto | Se usa el teclado, el ratón o un lector de pantalla | `role="dialog"` y `aria-modal` con nombre y descripción; el foco entra y queda atrapado (Tab y Mayús+Tab no salen, aunque el navegador no tabule los enlaces) y vuelve al cerrar; se cierra con Esc, con la X (≥ 44 px) y con un clic en el fondo; el `body` no hace scroll; sin animación con `prefers-reduced-motion`; sin scroll horizontal de 320 a 1280 px; axe sin violaciones graves | test unitario y e2e `promo-modal` (Chromium y móvil) |
+| CA-129 | RF-26 | El modal abierto | Se mira a 1280 y a 375 px | Desde 768 px, 2 columnas: texto a la izquierda y la foto `/images/products/promo-regalo.webp` a la derecha ocupando toda su columna; por debajo, solo el texto; título serif con «10 %» y «primera compra», subtítulo que dice que el descuento se enviará por email, campo de email, casilla de privacidad con enlace a `/privacidad` y botón de suscripción | test unitario y e2e `promo-modal` |
+| CA-130 | RF-26 | El formulario del modal | Se envía con un email válido y el consentimiento, o sin ellos | Con ambos: éxito anunciado en una región `aria-live`; sin consentimiento o con un email mal formado: errores por campo; usa la misma acción y la misma validación Zod que la portada (CA-100) | test unitario y e2e `promo-modal` |
+| CA-131 | RF-26 | La build de producción | Se abre la portada | No existe el botón flotante «Probar promo»; en desarrollo sí existe y abre el modal | test unitario (`NODE_ENV`) y e2e `promo-modal` (build de producción) |
+
+**Nuevas tareas derivadas:** T-089 (modal promocional de la portada).

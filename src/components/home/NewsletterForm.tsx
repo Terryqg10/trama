@@ -11,7 +11,7 @@ import { FormMessage, SubmitButton, TextField, useFormFocus } from '@/components
  * región `aria-live="polite"` que existe desde el principio, para que los lectores de pantalla anuncien el cambio.
  * La casilla de consentimiento es obligatoria y empieza sin marcar.
  */
-export function NewsletterForm() {
+export function NewsletterForm({ className = 'mx-auto mt-6 w-full max-w-xl space-y-4 text-left' }: { readonly className?: string }) {
   const [state, action] = useActionState(subscribeAction, initialFormState);
   const formRef = useFormFocus(state);
   const consentId = useId();
@@ -19,7 +19,7 @@ export function NewsletterForm() {
   const consentError = state.fieldErrors?.consent;
 
   return (
-    <form ref={formRef} action={action} noValidate className="mx-auto mt-6 w-full max-w-xl space-y-4 text-left">
+    <form ref={formRef} action={action} noValidate className={className}>
       <TextField
         name="email"
         label="Email"

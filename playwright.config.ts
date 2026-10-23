@@ -23,6 +23,9 @@ export default defineConfig({
     : [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: BASE_URL,
+    // El modal promocional de la portada (T-089) sale a los 3 s y taparía al resto de tests: parten de `promo_seen` ya guardado.
+    // `promo-modal.spec.ts` vacía este estado.
+    storageState: { cookies: [], origins: [{ origin: BASE_URL, localStorage: [{ name: 'promo_seen', value: '1' }] }] },
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
