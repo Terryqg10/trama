@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { useActionState } from 'react';
+import { DemoNotice } from '@/components/DemoNotice';
 import { FormMessage, SubmitButton, useFormFocus } from '@/components/forms/fields';
 import { initialFormState } from '@/lib/auth/form-state';
 import { startCheckoutAction } from '@/lib/checkout/actions';
+import { DEMO_TEST_CARD } from '@/lib/demo';
 
 export interface CheckoutAddress {
   readonly id: string;
@@ -88,6 +90,13 @@ export function CheckoutForm({ addresses, disabled }: { readonly addresses: read
       ) : (
         <SubmitButton pendingLabel="Preparando el pago…">Pagar con tarjeta</SubmitButton>
       )}
+      <DemoNotice title="Pagar en la tienda de demostración" copy={{ value: DEMO_TEST_CARD, label: 'Copiar número' }} testId="demo-notice-checkout">
+        Usa la tarjeta de prueba{' '}
+        <code data-testid="demo-card-number" className="select-all whitespace-nowrap rounded-control bg-surface px-2 py-1 font-semibold text-fg">
+          {DEMO_TEST_CARD}
+        </code>{' '}
+        con cualquier fecha futura y cualquier CVC.
+      </DemoNotice>
       <p className="text-sm text-fg-muted">
         Pagarás en la página segura de Stripe, en modo de prueba: no se cobra nada.
       </p>
