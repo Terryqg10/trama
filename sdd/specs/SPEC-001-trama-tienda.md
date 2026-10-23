@@ -1116,3 +1116,44 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-133 | RF-26 | El modal abierto | Se mira por debajo de 768 px (320 a 767) y desde 768 px | Por debajo: la foto `/images/products/promo-regalo.webp` está arriba, a ancho completo y en 4:3, y el formulario debajo, sin scroll horizontal; desde 768 px, la foto está a la derecha y el texto a la izquierda; en cada ancho hay una sola foto visible | test unitario `PromoModal` y e2e `promo-modal` (Chromium y móvil) |
 
 **Nuevas tareas derivadas:** T-090 (foto del modal promocional arriba en móvil).
+
+### Enmienda 41 — 2026-10-23 — sin ADR — cupón de bienvenida del 10 % que se muestra en pantalla y aviso de demostración (RF-27, RF-28, CA-134 a CA-140)
+
+**Origen:** Trama es una demo de portfolio sin correo propio, y el modal promocional (Enmiendas 38 a 40) promete un 10 % «por email» que no existe. En lugar de apagarlo para siempre, el cupón se **cumple de verdad sin correo**: al suscribirse se **muestra el código en pantalla** y el checkout lo canjea. Además, el visitante necesita saber cómo pagar en una tienda de prueba. **Amplía RF-26 y RF-06/RF-07.**
+
+**Sustituye:** de la Enmienda 38, la frase «el descuento se enviará por email» (subtítulo del modal y CA-129): pasa a «Te mostraremos tu código de descuento al suscribirte.». El resto de las Enmiendas 38 a 40 se mantiene, incluida la bandera `NEXT_PUBLIC_PROMO_ENABLED` (Enmienda 39).
+
+**Nuevos requisitos**
+- **RF-27 (nuevo): cupón de bienvenida.** Quien se suscribe a la newsletter (modal o portada) recibe en pantalla un código de un solo uso, del 10 % sobre la primera compra, válido 30 días. El checkout lo valida y lo aplica en el servidor; se consume cuando el pedido pasa a `pagado`.
+- **RF-28 (nuevo): aviso de demostración.** Las pantallas donde un visitante puede quedarse atascado explican cómo probar la tienda: la tarjeta de prueba en el checkout y que no hace falta confirmar el email al registrarse.
+
+**Qué cambia**
+- **Datos:** tabla `welcome_coupons` (código único, email, `percent_off`, `expires_at`, `redeemed_at`, `redeemed_order_id`) con RLS **sin ninguna política**: ni la clave pública ni un cliente con sesión pueden leerla, insertar, cambiarla ni borrarla; solo el servidor con la clave de servicio. `orders` gana `discount_cents` (por defecto 0) y `coupon_id`, con un índice único parcial: un cupón solo puede estar en un pedido no cancelado.
+- **Código:** `TRAMA-` + 8 caracteres aleatorios (generados con `crypto`, alfabeto sin 0/O/1/I/L) en dos grupos de 4. Un email ya suscrito recibe **el mismo código** mientras no haya caducado ni se haya canjeado; si caducó o se canjeó, se le dice, sin generar otro.
+- **Pantalla tras suscribirse:** el mensaje de éxito incluye «Tu código de bienvenida: TRAMA-XXXX-XXXX», con botón de copiar y el texto «Código de demostración: se canjea en el pago.» dentro de la región `aria-live` existente. No se promete ningún email.
+- **Checkout:** campo «Código de descuento» con «Aplicar». El servidor valida y calcula; el navegador solo manda el texto del código (validado con Zod). El resumen muestra una línea «Descuento −X €» y el total nuevo. **Primera compra:** se rechaza si el cliente ya tiene algún pedido pagado.
+- **Importes:** descuento = 10 % del **subtotal** (sin envío), redondeado hacia abajo al céntimo. El envío gratis se decide con el subtotal **antes** del descuento. Total = subtotal − descuento + envío. Stripe cobra exactamente ese total con un cupón de Stripe de importe fijo (`amount_off`, un solo uso) creado para esa sesión. El pedido guarda `discount_cents` y `coupon_id`.
+- **Canje:** al confirmarse el pago (webhook, idempotente) el cupón queda `redeemed_at` con su pedido. Un pedido pendiente o cancelado no lo consume. Un segundo pedido con el mismo código se rechaza.
+- **Aviso de demostración:** en `/checkout`, junto al botón de pago, la tarjeta de prueba `4242 4242 4242 4242` (cualquier fecha futura y cualquier CVC), con botón de copiar el número; en `/registro`, «Demo: puedes registrarte con cualquier email, no hace falta confirmarlo.» **Este último texto solo es cierto mientras «Confirm email» esté desactivado en Supabase**: es un ajuste del proyecto, no de código.
+
+**Datos y privacidad (sección 9):** `welcome_coupons` guarda el email del suscriptor junto a su código (dato personal, igual que `newsletter_subscribers`); sin datos de pago. Se borra con el resto de datos de demostración.
+
+**Riesgos y decisiones aceptadas (sección 8):**
+- **Sin verificar el email, cualquiera puede obtener un código** escribiendo cualquier dirección. Se acepta porque es una demo con Stripe en modo test y el cupón no vale dinero real. **Si la tienda pasara a vender de verdad, esto no vale:** habría que verificar el email, limitar los códigos por IP y revisar las condiciones de la promoción (VERIFICAR con asesoría legal).
+- **Un código por email, no por persona:** un visitante puede pedir varios con distintos emails. Se acepta por la misma razón.
+- El descuento se aplica en el servidor: el navegador no puede cambiarlo (misma garantía que CA-10).
+- Mientras `welcome_coupons` y la migración no estén aplicadas en el proyecto de Supabase compartido, **no se debe encender la bandera** en Vercel.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-134 | RF-27 | La tabla `welcome_coupons` y las columnas nuevas de `orders` | Un visitante, un cliente con sesión y un admin intentan insertar, leer, cambiar y borrar con la clave pública | Todo se rechaza o devuelve vacío; solo la clave de servicio accede; el código es único; un cupón no puede estar en dos pedidos no cancelados | test de integración `coupons-rls` |
+| CA-135 | RF-27 | Un email y su consentimiento válidos | Se suscribe (modal o portada) | El servidor crea un código `TRAMA-XXXX-XXXX` único, aleatorio y con caducidad de 30 días; el mismo email recibe el mismo código mientras sea válido; un código caducado o canjeado se dice y no se regenera; las condiciones de CA-100 siguen igual | test unitario y de integración `coupons-generate` |
+| CA-136 | RF-27 | La suscripción ha tenido éxito | Se ve la respuesta en el modal o en la portada | Aparece «Tu código de bienvenida: …» con botón de copiar y el aviso «Código de demostración: se canjea en el pago.», anunciado en la región `aria-live`; el subtítulo del modal dice «Te mostraremos tu código de descuento al suscribirte.»; no se menciona ningún email | test unitario `PromoModal`/`NewsletterForm` y e2e `promo-modal` |
+| CA-137 | RF-27 | Un cliente con sesión y carrito en `/checkout` | Introduce un código y pulsa «Aplicar» | El servidor lo valida (existe, no caducado, no canjeado, y el cliente no tiene pedidos pagados); si vale, el resumen muestra «Descuento −X €» y el total nuevo; si no, un mensaje de error concreto; la entrada se valida con Zod y el cliente no puede aportar importes | test unitario, de integración `checkout-coupon` y e2e `checkout-coupon` |
+| CA-138 | RF-27 | Un carrito con un código válido | Se paga | El descuento es el 10 % del subtotal, redondeado hacia abajo al céntimo; el envío gratis se calcula sobre el subtotal sin descuento; el pedido guarda `discount_cents` y `coupon_id`; la sesión de Stripe cobra exactamente `subtotal − descuento + envío` con un cupón de importe fijo de un solo uso | test de integración `checkout-coupon-amounts` (con Stripe simulado) |
+| CA-139 | RF-27 | Un pedido con cupón | Llega el webhook de pago, una o varias veces | El pedido pasa a `pagado` y el cupón queda canjeado una sola vez con ese pedido; un pedido pendiente o cancelado no lo consume; un segundo pedido con el mismo código se rechaza; un cliente con un pedido pagado no puede usar ninguno | test de integración `coupon-redeem` |
+| CA-140 | RF-28 | Un visitante en `/checkout` o `/registro` | Mira la página | En `/checkout` se ve la tarjeta de prueba `4242 4242 4242 4242` con su botón de copiar y la indicación de fecha y CVC cualquiera; en `/registro`, el aviso de que no hace falta confirmar el email; ambos como `role="note"`, legibles de 320 a 1280 px y sin scroll horizontal; axe sin violaciones graves | test unitario y e2e `demo-notice` |
+
+**Nuevas tareas derivadas:** T-091 (aviso de demostración, CA-140), T-092 (datos y RLS del cupón, CA-134), T-093 (lógica de servidor: generar, validar, cobrar y canjear, CA-135, CA-137 a CA-139) y T-094 (pantallas: mostrar el código y el campo del checkout, CA-136 y CA-137).
+
+**Orden y dependencias:** T-091 puede ir ya, sin dependencias. T-092 → T-093 → T-094. **T-092 necesita aplicar una migración al proyecto de Supabase** (a mano, como en ADR-002); los tests de integración del resto dependen de ello.
