@@ -89,7 +89,10 @@ test.describe('«Ordenar por» en la barra sobre el listado (CA-12)', () => {
   }
 });
 
+// La columna lateral es de escritorio: se prueba sin emulación táctil, también en el proyecto mobile.
 test.describe('«Ocultar filtros» (CA-12)', () => {
+  test.use({ hasTouch: false, isMobile: false });
+
   test('oculta la columna lateral, el listado pasa a 4 columnas y «Mostrar filtros» lo deshace', async ({ page }) => {
     await open(page, '/mujer');
     await expect(sidebar(page)).toBeVisible();
@@ -98,7 +101,9 @@ test.describe('«Ocultar filtros» (CA-12)', () => {
     await expect(toggle(page)).toHaveText('Ocultar filtros');
     expect(await columns(page)).toBe(3);
 
-    await toggle(page).click();
+    // WebKit no da foco a un botón al pulsarlo con el ratón: se activa con el teclado (foco + Intro) para comprobar el foco.
+    await toggle(page).focus();
+    await toggle(page).press('Enter');
     await expect(sidebar(page)).toBeHidden();
     await expect(toggle(page)).toHaveAttribute('aria-expanded', 'false');
     await expect(toggle(page)).toHaveText('Mostrar filtros');

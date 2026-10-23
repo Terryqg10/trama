@@ -9,6 +9,9 @@ const COAT = 'Abrigo de paño gris';
 const POLO = 'Polo piqué básico';
 const CART_KEY = 'trama.cart.v1';
 
+// El panel es de escritorio (hover desde 768 px): se prueba con ratón y sin emulación táctil, también en el proyecto mobile.
+test.use({ hasTouch: false, isMobile: false });
+
 async function open(page: Page, path = '/hombre', width = 1280): Promise<void> {
   await page.setViewportSize({ width, height: 900 });
   await page.goto(path);
@@ -193,7 +196,9 @@ test.describe('panel al pasar el cursor (CA-122)', () => {
     await hoverPhoto(page, COAT);
     expect(await savedCart(page)).toEqual([]);
     await panel(page, COAT).getByTestId('quick-add-size').nth(2).click();
-    await panel(page, COAT).getByTestId('quick-add-button').click();
+    // WebKit no da foco a un botón al pulsarlo con el ratón: se activa con el teclado (foco + Intro) para comprobar el foco.
+    await panel(page, COAT).getByTestId('quick-add-button').focus();
+    await panel(page, COAT).getByTestId('quick-add-button').press('Enter');
     await expect(panel(page, COAT).getByText('Abrigo de paño gris añadido al carrito.')).toBeVisible();
     await expect(panel(page, COAT).locator('[aria-live="polite"]')).toHaveCount(1);
     await expect(panel(page, COAT).getByRole('link', { name: 'Ver carrito' })).toHaveAttribute('href', '/carrito');
@@ -205,7 +210,7 @@ test.describe('panel al pasar el cursor (CA-122)', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('cart-drawer')).toBeHidden();
     await expect(panel(page, COAT).getByTestId('quick-add-button')).toBeFocused();
-    await panel(page, COAT).getByTestId('quick-add-button').click();
+    await panel(page, COAT).getByTestId('quick-add-button').press('Enter');
     await expect.poll(async () => (await savedCart(page))[0]?.qty).toBe(2);
     await expect(page.getByTestId('drawer-qty')).toHaveText('2');
     await page.goto('/carrito');

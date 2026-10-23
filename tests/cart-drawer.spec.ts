@@ -22,14 +22,17 @@ const savedCart = (page: Page) =>
 async function addFromProduct(page: Page, url: string): Promise<void> {
   await page.goto(url);
   await expect(page.getByTestId('add-to-cart')).toBeEnabled();
-  await page.getByTestId('add-to-cart').click();
+  // WebKit no da foco a un botón al pulsarlo con el ratón: se activa con el teclado (foco + Intro) para comprobar el foco.
+  await page.getByTestId('add-to-cart').focus();
+  await page.getByTestId('add-to-cart').press('Enter');
   await expect(dialog(page)).toBeVisible();
   // El contenido se carga al abrir (¿hay sesión?, datos de las líneas): se espera a que esté para no teclear sobre «Cargando…».
   await expect(page.getByTestId('drawer-line')).toHaveCount(1);
 }
 
 async function openFromHeader(page: Page): Promise<void> {
-  await page.getByTestId('cart-open').click();
+  await page.getByTestId('cart-open').focus();
+  await page.getByTestId('cart-open').press('Enter');
   await expect(dialog(page)).toBeVisible();
 }
 
