@@ -1,4 +1,5 @@
 import { handleStripeEvent } from '@/lib/checkout/webhook';
+import { redeemCouponForOrder } from '@/lib/coupons/store';
 import { createStripeClient } from '@/lib/stripe/client';
 import { verifyWebhookEvent } from '@/lib/stripe/webhook';
 import { createServiceClient } from '@/lib/supabase/service';
@@ -25,7 +26,11 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const outcome = await handleStripeEvent(createServiceClient(), event);
+    const service = createServiceClient();
+    // Tras confirmar el pago se canjea el cupón del pedido, si lo tiene (CA-139). Idempotente: un evento repetido no lo toca.
+    const outcome = await handleStripeEvent(service, event, {
+      redeemCoupon: (orderId) => redeemCouponForOrder(service, orderId).then(() => undefined),
+    });
     if (outcome.kind === 'lateOrUnknown') {
       // Un pago recibido para un pedido que no está pendiente o no existe: hay que revisarlo a mano.
       console.error('Webhook de Stripe: pago sin pedido pendiente', { eventId: event.id, reason: outcome.reason });

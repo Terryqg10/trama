@@ -3,6 +3,9 @@ import type Stripe from 'stripe';
 import { z } from 'zod';
 import { loadAccountCart } from '@/lib/cart/account';
 import { fetchCartLines } from '@/lib/cart/lines';
+import { withDiscount, type DiscountedTotals } from '@/lib/coupons/amounts';
+import type { CouponFailure } from '@/lib/coupons/messages';
+import { checkCouponForUser } from '@/lib/coupons/store';
 import type { PublicSupabaseClient } from '@/lib/supabase/server';
 import { CHECKOUT_SESSION_MINUTES, releaseOrderReservations, reserveStock } from './reservation';
 import { buildCheckoutSummary, type CheckoutIssue } from './summary';
@@ -12,10 +15,19 @@ import { buildCheckoutSummary, type CheckoutIssue } from './summary';
  * cantidades y totales salen de la BD y del carrito de la cuenta. Orden de las operaciones:
  * pedido pendiente → reserva de stock → sesión de pago. Si algo falla después de crear el pedido,
  * se libera la reserva y el pedido queda cancelado (falla cerrado, sin cobrar).
+ *
+ * Cupón de bienvenida (RF-27, CA-137, CA-138, T-093): el navegador solo aporta el TEXTO del código; el servidor lo valida,
+ * calcula el descuento sobre el subtotal de la BD y crea un cupón de Stripe de importe fijo y de un solo uso para esa sesión.
  */
 
 /** Entrada del formulario. Cualquier otro campo (precio, total, cantidades…) se descarta. */
-export const checkoutInputSchema = z.object({ addressId: z.string().uuid() });
+export const checkoutInputSchema = z.object({
+  addressId: z.string().uuid(),
+  couponCode: z.string().trim().max(40).optional(),
+});
+
+/** Código de PostgreSQL de «violación de unicidad»: el cupón ya está en otro pedido no cancelado. */
+const UNIQUE_VIOLATION = '23505';
 
 const addressRowSchema = z.object({
   id: z.string(),
@@ -44,6 +56,8 @@ export interface CheckoutRequest {
   readonly userId: string;
   readonly email: string | null;
   readonly addressId: string;
+  /** Texto del código de descuento tal como lo escribió el cliente; vacío o ausente, sin cupón. */
+  readonly couponCode?: string | undefined;
   /** Origen público de la web (para las URL de retorno). */
   readonly origin: string;
 }
@@ -52,6 +66,7 @@ export type CheckoutResult =
   | { readonly status: 'redirect'; readonly url: string; readonly orderId: string }
   | { readonly status: 'empty' }
   | { readonly status: 'invalidAddress' }
+  | { readonly status: 'invalidCoupon'; readonly reason: CouponFailure }
   | { readonly status: 'blocked'; readonly issues: readonly CheckoutIssue[] }
   | { readonly status: 'error' };
 
@@ -92,6 +107,33 @@ export async function createCheckout(deps: CheckoutDeps, request: CheckoutReques
   if (summary.issues.length > 0) return { status: 'blocked', issues: summary.issues };
   if (summary.lines.length === 0) return { status: 'empty' };
 
+  // 1b. Cupón de bienvenida, si el cliente escribió un código: lo valida el servidor y los importes salen de la BD.
+  let coupon: { readonly id: string; readonly code: string; readonly percentOff: number } | null = null;
+  let totals: DiscountedTotals = withDiscount(summary.totals, 0);
+  const couponText = request.couponCode?.trim();
+  if (couponText) {
+    try {
+      const check = await checkCouponForUser(serviceClient, request.userId, couponText, now());
+      if (!check.ok) return { status: 'invalidCoupon', reason: check.reason };
+      // Si otro cliente ya lo tiene en un pago en curso, se rechaza AHORA, antes de liberar los pedidos pendientes de este
+      // cliente en el paso 2: un código en uso no puede dejarle sin su pedido pendiente (podría estar pagándolo en Stripe).
+      const holder = await serviceClient
+        .from('orders')
+        .select('id')
+        .eq('coupon_id', check.coupon.id)
+        .neq('status', 'cancelado')
+        .neq('user_id', request.userId)
+        .limit(1);
+      if (holder.error) throw new Error(holder.error.message);
+      if ((holder.data ?? []).length > 0) return { status: 'invalidCoupon', reason: 'inUse' };
+      coupon = check.coupon;
+      totals = withDiscount(summary.totals, coupon.percentOff);
+    } catch (error) {
+      logFailure('la validación del cupón', error);
+      return { status: 'error' };
+    }
+  }
+
   // 2. Un nuevo intento sustituye a los pedidos pendientes anteriores del cliente: así no se acumulan
   // reservas de stock ni sesiones de pago abiertas por repetir el checkout.
   try {
@@ -114,8 +156,10 @@ export async function createCheckout(deps: CheckoutDeps, request: CheckoutReques
     .from('orders')
     .insert({
       user_id: request.userId,
-      total_cents: summary.totals.totalCents,
-      shipping_cents: summary.totals.shippingCents,
+      total_cents: totals.totalCents,
+      shipping_cents: totals.shippingCents,
+      discount_cents: totals.discountCents,
+      coupon_id: coupon?.id ?? null,
       shipping_address: {
         recipient_name: address.recipient_name,
         line1: address.line1,
@@ -129,6 +173,8 @@ export async function createCheckout(deps: CheckoutDeps, request: CheckoutReques
     .select('id')
     .single();
   if (orderResult.error) {
+    // El índice único del cupón: otro cliente tiene ese código en un pedido que aún no se ha cancelado.
+    if (coupon && orderResult.error.code === UNIQUE_VIOLATION) return { status: 'invalidCoupon', reason: 'inUse' };
     logFailure('la creación del pedido', orderResult.error);
     return { status: 'error' };
   }
@@ -181,6 +227,21 @@ export async function createCheckout(deps: CheckoutDeps, request: CheckoutReques
 
   // 5. Sesión de pago de Stripe con los importes del servidor.
   try {
+    // Cupón de Stripe de importe fijo y de un solo uso: Stripe cobra exactamente subtotal − descuento + envío (CA-138).
+    const discountCoupon =
+      totals.discountCents > 0
+        ? await stripe.coupons.create(
+            {
+              amount_off: totals.discountCents,
+              currency: 'eur',
+              duration: 'once',
+              max_redemptions: 1,
+              name: 'Cupón de bienvenida',
+              metadata: { order_id: orderId },
+            },
+            { idempotencyKey: `coupon-${orderId}` },
+          )
+        : null;
     const session = await stripe.checkout.sessions.create(
       {
         mode: 'payment',
@@ -195,14 +256,15 @@ export async function createCheckout(deps: CheckoutDeps, request: CheckoutReques
             product_data: { name: `${line.productName} · talla ${line.size} · ${line.color}` },
           },
         })),
-        ...(summary.totals.shippingCents > 0
+        ...(discountCoupon ? { discounts: [{ coupon: discountCoupon.id }] } : {}),
+        ...(totals.shippingCents > 0
           ? {
               shipping_options: [
                 {
                   shipping_rate_data: {
                     type: 'fixed_amount' as const,
                     display_name: 'Envío a domicilio',
-                    fixed_amount: { amount: summary.totals.shippingCents, currency: 'eur' },
+                    fixed_amount: { amount: totals.shippingCents, currency: 'eur' },
                   },
                 },
               ],

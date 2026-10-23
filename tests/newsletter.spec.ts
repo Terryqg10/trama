@@ -23,7 +23,11 @@ const newEmail = (): string => {
 };
 
 test.afterAll(async () => {
-  if (testEmails.length > 0) await adminClient().from('newsletter_subscribers').delete().in('email', testEmails);
+  if (testEmails.length > 0) {
+    // Suscribirse también crea el cupón de bienvenida del email (T-093): se borra con él.
+    await adminClient().from('welcome_coupons').delete().in('email', testEmails);
+    await adminClient().from('newsletter_subscribers').delete().in('email', testEmails);
+  }
 });
 
 test.describe('sin propuestas de valor sobre el newsletter (CA-101, CA-111)', () => {

@@ -28,7 +28,11 @@ async function openModal(page: Page, width = 1280): Promise<void> {
 
 const testEmails: string[] = [];
 test.afterAll(async () => {
-  if (testEmails.length > 0) await adminClient().from('newsletter_subscribers').delete().in('email', testEmails);
+  if (testEmails.length > 0) {
+    // Suscribirse también crea el cupón de bienvenida del email (T-093): se borra con él.
+    await adminClient().from('welcome_coupons').delete().in('email', testEmails);
+    await adminClient().from('newsletter_subscribers').delete().in('email', testEmails);
+  }
 });
 
 test.describe('aparición (CA-127)', () => {

@@ -31,7 +31,19 @@ export function orderIdFromSession(
  * Aplica un evento verificado. Lanza si falla la base de datos (el webhook responde 500 y Stripe reintenta).
  * Los eventos que no interesan se ignoran con éxito para que Stripe no los reintente.
  */
-export async function handleStripeEvent(client: RpcClient, event: Stripe.Event): Promise<WebhookOutcome> {
+export interface WebhookOptions {
+  /**
+   * Se llama con el id del pedido cuando el pago queda confirmado (`paid`) o ya lo estaba (`duplicate`): así un
+   * reintento de Stripe tras un fallo vuelve a intentar el canje del cupón (CA-139). Si lanza, el webhook responde 500.
+   */
+  readonly redeemCoupon?: (orderId: string) => Promise<void>;
+}
+
+export async function handleStripeEvent(
+  client: RpcClient,
+  event: Stripe.Event,
+  options: WebhookOptions = {},
+): Promise<WebhookOutcome> {
   switch (event.type) {
     case 'checkout.session.completed':
     case 'checkout.session.async_payment_succeeded': {
@@ -47,7 +59,10 @@ export async function handleStripeEvent(client: RpcClient, event: Stripe.Event):
       });
       if (error) throw new Error(`No se pudo confirmar el pago: ${error.message}`);
       const response = confirmResponseSchema.parse(data);
-      if (response.result === 'paid' || response.result === 'duplicate') return { kind: response.result };
+      if (response.result === 'paid' || response.result === 'duplicate') {
+        await options.redeemCoupon?.(orderId);
+        return { kind: response.result };
+      }
       return { kind: 'lateOrUnknown', reason: response.result };
     }
 

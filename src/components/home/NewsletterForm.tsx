@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useActionState, useId } from 'react';
 import { subscribeAction } from '@/app/actions/newsletter';
-import { initialFormState } from '@/lib/auth/form-state';
+import { initialNewsletterState } from '@/lib/newsletter/state';
 import { FormMessage, SubmitButton, TextField, useFormFocus } from '@/components/forms/fields';
 
 /**
@@ -12,7 +12,7 @@ import { FormMessage, SubmitButton, TextField, useFormFocus } from '@/components
  * La casilla de consentimiento es obligatoria y empieza sin marcar.
  */
 export function NewsletterForm({ className = 'mx-auto mt-6 w-full max-w-xl space-y-4 text-left' }: { readonly className?: string }) {
-  const [state, action] = useActionState(subscribeAction, initialFormState);
+  const [state, action] = useActionState(subscribeAction, initialNewsletterState);
   const formRef = useFormFocus(state);
   const consentId = useId();
   const consentErrorId = `${consentId}-error`;

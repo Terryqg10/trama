@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { formDataToObject } from '@/lib/auth/schemas';
 import { getCurrentUser } from '@/lib/auth/session';
 import type { FormState } from '@/lib/auth/form-state';
+import { describeCouponFailure } from '@/lib/coupons/messages';
 import { requestOrigin } from '@/lib/http/origin';
 import { createStripeClient } from '@/lib/stripe/client';
 import { createServiceClient } from '@/lib/supabase/service';
@@ -12,7 +13,7 @@ import { describeIssue } from './summary';
 
 /**
  * Inicia el pago (RF-06): crea el pedido, reserva el stock y abre la sesión de Stripe. Del formulario
- * solo se lee `addressId`; cualquier otro dato se descarta (CA-10).
+ * solo se leen `addressId` y el texto del código de descuento (RF-27); cualquier otro dato se descarta (CA-10).
  */
 export async function startCheckoutAction(_previous: FormState, formData: FormData): Promise<FormState> {
   const parsed = checkoutInputSchema.safeParse(formDataToObject(formData));
@@ -31,7 +32,13 @@ export async function startCheckoutAction(_previous: FormState, formData: FormDa
   try {
     result = await createCheckout(
       { userClient: client, serviceClient: createServiceClient(), stripe: createStripeClient() },
-      { userId: user.id, email: user.email ?? null, addressId: parsed.data.addressId, origin: await requestOrigin() },
+      {
+        userId: user.id,
+        email: user.email ?? null,
+        addressId: parsed.data.addressId,
+        couponCode: parsed.data.couponCode,
+        origin: await requestOrigin(),
+      },
     );
   } catch (error) {
     console.error('startCheckoutAction falló', error instanceof Error ? error.message : 'error desconocido');
@@ -49,6 +56,10 @@ export async function startCheckoutAction(_previous: FormState, formData: FormDa
         fieldErrors: { addressId: 'Esa dirección no es válida. Elige otra.' },
         message: 'Esa dirección no es válida. Elige otra.',
       };
+    case 'invalidCoupon': {
+      const message = describeCouponFailure(result.reason);
+      return { status: 'error', fieldErrors: { couponCode: message }, message };
+    }
     case 'blocked':
       return { status: 'error', message: result.issues.map(describeIssue).join(' ') };
     case 'error':

@@ -103,3 +103,45 @@ describe('handleStripeEvent', () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 });
+
+describe('handleStripeEvent: canje del cupón (CA-139, T-093)', () => {
+  const paidEvent = (): Stripe.Event =>
+    sessionEvent('checkout.session.completed', { client_reference_id: ORDER, payment_status: 'paid' });
+
+  it('canjea el cupón del pedido cuando el pago se confirma', async () => {
+    const { client } = fakeClient({ data: { ok: true, result: 'paid' }, error: null });
+    const redeemCoupon = vi.fn().mockResolvedValue(undefined);
+    expect(await handleStripeEvent(client, paidEvent(), { redeemCoupon })).toEqual({ kind: 'paid' });
+    expect(redeemCoupon).toHaveBeenCalledExactlyOnceWith(ORDER);
+  });
+
+  it('también lo intenta en un evento repetido, para reintentar un canje que falló', async () => {
+    const { client } = fakeClient({ data: { ok: true, result: 'duplicate' }, error: null });
+    const redeemCoupon = vi.fn().mockResolvedValue(undefined);
+    expect(await handleStripeEvent(client, paidEvent(), { redeemCoupon })).toEqual({ kind: 'duplicate' });
+    expect(redeemCoupon).toHaveBeenCalledExactlyOnceWith(ORDER);
+  });
+
+  it.each(['not_pending', 'order_not_found'] as const)('no canjea nada si el pedido no estaba pendiente (%s)', async (result) => {
+    const { client } = fakeClient({ data: { ok: true, result }, error: null });
+    const redeemCoupon = vi.fn().mockResolvedValue(undefined);
+    await handleStripeEvent(client, paidEvent(), { redeemCoupon });
+    expect(redeemCoupon).not.toHaveBeenCalled();
+  });
+
+  it('no canjea nada con una sesión sin pagar, caducada, sin pedido válido ni con otro tipo de evento', async () => {
+    const { client } = fakeClient({ data: 1, error: null });
+    const redeemCoupon = vi.fn().mockResolvedValue(undefined);
+    await handleStripeEvent(client, sessionEvent('checkout.session.completed', { client_reference_id: ORDER, payment_status: 'unpaid' }), { redeemCoupon });
+    await handleStripeEvent(client, sessionEvent('checkout.session.expired', { client_reference_id: ORDER }), { redeemCoupon });
+    await handleStripeEvent(client, sessionEvent('checkout.session.completed', { client_reference_id: 'no-uuid', payment_status: 'paid' }), { redeemCoupon });
+    await handleStripeEvent(client, { id: 'evt_x', type: 'customer.created', data: { object: {} } } as Stripe.Event, { redeemCoupon });
+    expect(redeemCoupon).not.toHaveBeenCalled();
+  });
+
+  it('si el canje falla, lanza para que el webhook responda 500 y Stripe reintente', async () => {
+    const { client } = fakeClient({ data: { ok: true, result: 'paid' }, error: null });
+    const redeemCoupon = vi.fn().mockRejectedValue(new Error('BD caída'));
+    await expect(handleStripeEvent(client, paidEvent(), { redeemCoupon })).rejects.toThrow('BD caída');
+  });
+});
