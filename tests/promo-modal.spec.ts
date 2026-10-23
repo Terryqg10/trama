@@ -70,9 +70,23 @@ test.describe('contenido (CA-129)', () => {
     await expect(modal(page).getByRole('button', { name: 'Suscribirme' })).toBeVisible();
   });
 
-  test('a 375 px: solo el texto, a ancho completo y sin scroll horizontal', async ({ page }) => {
+  test('a 375 px (CA-133): la foto arriba a ancho completo en 4:3 y el formulario debajo, sin scroll horizontal', async ({ page }) => {
     await openModal(page, 375);
     await expect(page.getByTestId('promo-modal-image')).toBeHidden();
+    const top = page.getByTestId('promo-modal-image-mobile');
+    await expect(top.locator('img')).toBeVisible();
+    const photo = await top.boundingBox();
+    const dialog = await modal(page).boundingBox();
+    const title = await page.getByRole('heading', { name: 'Suscríbete y consigue un 10 % en tu primera compra' }).boundingBox();
+    const form = await modal(page).getByRole('button', { name: 'Suscribirme' }).boundingBox();
+    expect(photo && dialog && title && form).toBeTruthy();
+    if (!photo || !dialog || !title || !form) return;
+    expect(Math.abs(photo.x - dialog.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(photo.width - dialog.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(photo.width / photo.height - 4 / 3)).toBeLessThan(0.02);
+    expect(Math.abs(photo.y - dialog.y)).toBeLessThanOrEqual(1);
+    expect(photo.y + photo.height).toBeLessThanOrEqual(title.y + 1);
+    expect(title.y).toBeLessThan(form.y);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
   });
@@ -85,6 +99,9 @@ test.describe('contenido (CA-129)', () => {
       expect(overflow, `${width} px`).toBeLessThanOrEqual(1);
       const box = await modal(page).boundingBox();
       expect(box && box.x >= 0 && box.x + box.width <= width + 1, `${width} px`).toBe(true);
+      // En cada ancho se ve una sola foto: la de arriba por debajo de 768 px y la de la derecha desde 768 px.
+      await expect(page.getByTestId('promo-modal-image-mobile')).toBeVisible({ visible: width < 768 });
+      await expect(page.getByTestId('promo-modal-image')).toBeVisible({ visible: width >= 768 });
     }
   });
 });

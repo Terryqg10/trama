@@ -1100,3 +1100,19 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-132 | RF-26 | La portada, sin `promo_seen` y con la bandera sin definir, vacía o distinta de `true` | Pasan 3 s o más | No se abre el modal ni se guarda `promo_seen`; con la bandera en `true` se comporta como en CA-127; el botón de prueba de desarrollo funciona igual con la bandera apagada | test unitario `PromoModal` y e2e `promo-modal` (con la bandera encendida por la configuración de Playwright) |
 
 **Nuevas tareas derivadas:** ninguna; se añade el CA a T-089.
+
+### Enmienda 40 — 2026-10-23 — sin ADR — el modal promocional muestra la foto arriba en móvil (CA-133)
+
+**Origen:** en móvil el modal promocional se ve vacío, solo con texto. El usuario pide que la foto de la caja de regalo aparezca arriba, a ancho completo. **Sustituye la cláusula de móvil de CA-129** («por debajo de 768 px, solo el texto»); el resto de la Enmienda 38 se mantiene.
+
+**Qué cambia:**
+- **Por debajo de 768 px:** la foto va **primero (arriba)**, a ancho completo y con proporción 4:3 (`aspect-4/3`), y debajo el título, el subtítulo y el formulario.
+- **Desde 768 px:** sin cambios: dos columnas, texto a la izquierda y foto a la derecha ocupando su columna.
+- **Sin invertir con CSS:** la regla de UI prohíbe cambiar el orden visual con `order` o `flex-row-reverse`. Por eso hay **dos copias de la foto en el DOM**, cada una en su sitio: una antes del texto, solo en móvil (`md:hidden`), y otra después, solo desde 768 px (`hidden md:block`). La que está oculta no se descarga (carga diferida) y ninguna es enfocable, así que el orden de Tab no cambia.
+- La foto sigue siendo decorativa (`alt=""`); los textos y la lógica no cambian.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-133 | RF-26 | El modal abierto | Se mira por debajo de 768 px (320 a 767) y desde 768 px | Por debajo: la foto `/images/products/promo-regalo.webp` está arriba, a ancho completo y en 4:3, y el formulario debajo, sin scroll horizontal; desde 768 px, la foto está a la derecha y el texto a la izquierda; en cada ancho hay una sola foto visible | test unitario `PromoModal` y e2e `promo-modal` (Chromium y móvil) |
+
+**Nuevas tareas derivadas:** T-090 (foto del modal promocional arriba en móvil).

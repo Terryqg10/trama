@@ -163,7 +163,7 @@ describe('PromoModal: contenido (CA-129 y CA-130)', () => {
     expect(dialog.className).toContain('md:grid-cols-2');
   });
 
-  it('la foto es decorativa, está en la columna derecha (después del texto) y solo se muestra desde 768 px', async () => {
+  it('desde 768 px la foto es decorativa y está en la columna derecha: después del texto en el DOM, solo desde esa anchura', async () => {
     const dialog = await opened();
     const column = screen.getByTestId('promo-modal-image');
     expect(column.className).toContain('hidden');
@@ -173,6 +173,21 @@ describe('PromoModal: contenido (CA-129 y CA-130)', () => {
     expect(decodeURIComponent(image?.getAttribute('src') ?? '')).toContain(PROMO_IMAGE);
     const text = within(dialog).getByRole('heading', { level: 2 });
     expect(text.compareDocumentPosition(column) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('por debajo de 768 px la foto va arriba: antes del texto en el DOM, a ancho completo en 4:3 y solo en móvil (CA-133)', async () => {
+    const dialog = await opened();
+    const top = screen.getByTestId('promo-modal-image-mobile');
+    expect(top.className).toContain('aspect-4/3');
+    expect(top.className).toContain('md:hidden');
+    expect(top.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+    const image = top.querySelector('img');
+    expect(image?.getAttribute('alt')).toBe('');
+    expect(decodeURIComponent(image?.getAttribute('src') ?? '')).toContain(PROMO_IMAGE);
+    const text = within(dialog).getByRole('heading', { level: 2 });
+    expect(top.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Sin reordenar con CSS: ningún `order-*` ni `flex-row-reverse` en el diálogo (rules/ui-decisions.md).
+    expect(dialog.innerHTML).not.toMatch(/\border-\d|\border-first|\border-last|row-reverse|col-reverse/);
   });
 
   it('tiene email, casilla de privacidad sin marcar con enlace a /privacidad y botón de suscripción', async () => {

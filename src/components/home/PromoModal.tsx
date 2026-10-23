@@ -131,7 +131,11 @@ export function PromoModal() {
             >
               <X aria-hidden="true" className="size-5" />
             </button>
-            <div className="flex flex-col justify-center p-6 pt-14 md:p-10">
+            {/* Dos copias de la foto, cada una en su sitio del DOM, en vez de reordenar con CSS (rules/ui-decisions.md): arriba en móvil, a la derecha desde 768 px (CA-133). */}
+            <div className="relative aspect-4/3 md:hidden" data-testid="promo-modal-image-mobile">
+              <Image src={PROMO_IMAGE} alt="" fill sizes="100vw" className="object-cover" />
+            </div>
+            <div className="flex flex-col justify-center p-6 md:p-10">
               <h2 id={titleId} className="font-serif text-3xl font-bold leading-tight text-fg md:text-4xl">
                 Suscríbete y consigue un <span className="whitespace-nowrap">10 %</span> en tu primera compra
               </h2>
