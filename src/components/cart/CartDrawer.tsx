@@ -66,16 +66,16 @@ export function CartDrawer() {
         event.preventDefault();
         return;
       }
+      // El recorrido lo hacemos nosotros, no el navegador: WebKit/Safari no incluye los enlaces en el orden de Tab y, si el último
+      // elemento es un enlace, el foco se escapaba del diálogo al pulsar Tab desde el último botón (T-088).
+      event.preventDefault();
       const active = document.activeElement;
-      if (!(active instanceof Node) || !panel.contains(active)) {
-        event.preventDefault();
-        first.focus();
-      } else if (event.shiftKey && active === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
+      const index = active instanceof HTMLElement ? items.indexOf(active) : -1;
+      if (index === -1) {
+        (event.shiftKey ? last : first).focus();
+      } else {
+        const step = event.shiftKey ? -1 : 1;
+        items[(index + step + items.length) % items.length]?.focus();
       }
     }
     document.addEventListener('keydown', onKeyDown);

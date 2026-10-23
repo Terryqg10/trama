@@ -177,6 +177,23 @@ describe('CartDrawer: panel y accesibilidad (CA-124)', () => {
     fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
     expect(last).toHaveFocus();
   });
+
+  it('recorre el panel en orden con Tab y Mayús+Tab, enlaces incluidos (WebKit no los tabula, T-088)', async () => {
+    save([{ variantId: A, qty: 1 }]);
+    getCartLinesAction.mockResolvedValue({ status: 'ok', lines: [info(A)] });
+    open();
+    await screen.findByTestId('drawer-line');
+    const panel = screen.getByTestId('cart-drawer');
+    const items = Array.from(panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+    const continuar = screen.getByTestId('cart-drawer-continue');
+    const index = items.indexOf(continuar);
+    expect(items[index + 1]).toBe(screen.getByTestId('drawer-view-cart'));
+    continuar.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(items[index + 1]).toHaveFocus();
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(continuar).toHaveFocus();
+  });
 });
 
 describe('CartDrawer: contenido y pie (CA-125)', () => {
