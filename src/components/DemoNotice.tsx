@@ -4,8 +4,8 @@ import { Check, Copy } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 interface DemoNoticeProps {
-  /** Título breve; sin él, solo se muestra el texto. */
-  readonly title?: string;
+  /** Título breve (puede llevar un elemento, como un código); sin él, solo se muestra el texto. */
+  readonly title?: ReactNode;
   readonly children: ReactNode;
   /** Valor que copia el botón (por ejemplo, el número de la tarjeta de prueba). Sin él, no hay botón. */
   readonly copy?: { readonly value: string; readonly label: string };

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useActionState } from 'react';
+import { useCheckoutCoupon } from '@/components/checkout/CheckoutCouponContext';
 import { DemoNotice } from '@/components/DemoNotice';
 import { FormMessage, SubmitButton, useFormFocus } from '@/components/forms/fields';
 import { initialFormState } from '@/lib/auth/form-state';
@@ -25,6 +26,7 @@ export interface CheckoutAddress {
 export function CheckoutForm({ addresses, disabled }: { readonly addresses: readonly CheckoutAddress[]; readonly disabled: boolean }) {
   const [state, action] = useActionState(startCheckoutAction, initialFormState);
   const formRef = useFormFocus(state);
+  const { applied } = useCheckoutCoupon();
   const error = state.fieldErrors?.['addressId'];
 
   if (addresses.length === 0) {
@@ -44,6 +46,8 @@ export function CheckoutForm({ addresses, disabled }: { readonly addresses: read
 
   return (
     <form ref={formRef} action={action} noValidate className="space-y-6">
+      {/* Solo el TEXTO del código aplicado: el servidor lo vuelve a validar y calcula el descuento al pagar (RF-27). */}
+      <input type="hidden" name="couponCode" value={applied?.code ?? ''} />
       <FormMessage state={state} />
       <fieldset aria-describedby={error ? 'error-direccion' : undefined}>
         <legend className="text-lg font-semibold">Dirección de envío</legend>

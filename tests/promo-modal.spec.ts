@@ -69,7 +69,9 @@ test.describe('contenido (CA-129)', () => {
     expect(Math.abs(box.y - dialog.y)).toBeLessThanOrEqual(1);
     expect(Math.abs(box.y + box.height - (dialog.y + dialog.height))).toBeLessThanOrEqual(1);
     expect(await image.locator('img').getAttribute('src')).toContain('promo-regalo');
-    await expect(modal(page)).toContainText('Te enviaremos el código de descuento por email.');
+    // El subtítulo no promete ningún email (la etiqueta de consentimiento sí habla de recibir novedades por email).
+    const descriptionId = await modal(page).getAttribute('aria-describedby');
+    await expect(page.locator(`[id="${descriptionId}"]`)).toHaveText('Te mostraremos tu código de descuento al suscribirte.');
     await expect(modal(page).getByRole('link', { name: 'política de privacidad' })).toHaveAttribute('href', '/privacidad');
     await expect(modal(page).getByRole('button', { name: 'Suscribirme' })).toBeVisible();
   });
@@ -175,6 +177,24 @@ test.describe('suscripción (CA-130)', () => {
     await modal(page).getByRole('checkbox').check();
     await modal(page).getByRole('button', { name: 'Suscribirme' }).click();
     await expect(modal(page).getByTestId('newsletter-message')).toContainText('¡Gracias por suscribirte!');
+    // CA-136: dentro del propio modal sale el código de bienvenida, con el aviso de demostración y sin prometer ningún email.
+    await expect(modal(page).getByTestId('welcome-coupon-code')).toHaveText(/^TRAMA-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/);
+    await expect(modal(page).getByTestId('welcome-coupon')).toContainText('Código de demostración: se canjea en el pago.');
+  });
+});
+
+test.describe('el código se ve en un móvil (CA-136)', () => {
+  test('a 375 px, tras suscribirse, el código de bienvenida queda a la vista sin tener que desplazar el modal', async ({ page }) => {
+    const email = `t094-${randomUUID().slice(0, 8)}@example.com`;
+    testEmails.push(email);
+    await page.setViewportSize({ width: 375, height: 700 });
+    await page.goto('/');
+    await expect(modal(page)).toBeVisible(SHOWN);
+    await modal(page).getByLabel('Email', { exact: true }).fill(email);
+    await modal(page).getByRole('checkbox').check();
+    await modal(page).getByRole('button', { name: 'Suscribirme' }).click();
+    await expect(modal(page).getByTestId('welcome-coupon-code')).toBeVisible();
+    await expect(modal(page).getByTestId('welcome-coupon-code')).toBeInViewport();
   });
 });
 

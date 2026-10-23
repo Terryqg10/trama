@@ -5,6 +5,7 @@ import { useActionState, useId } from 'react';
 import { subscribeAction } from '@/app/actions/newsletter';
 import { initialNewsletterState } from '@/lib/newsletter/state';
 import { FormMessage, SubmitButton, TextField, useFormFocus } from '@/components/forms/fields';
+import { WelcomeCoupon } from './WelcomeCoupon';
 
 /**
  * Formulario de la newsletter (RF-26, CA-100 y CA-101, T-060). Los mensajes de éxito y de error van dentro de una
@@ -58,6 +59,11 @@ export function NewsletterForm({ className = 'mx-auto mt-6 w-full max-w-xl space
 
       <div aria-live="polite" data-testid="newsletter-message">
         <FormMessage state={state} />
+        {state.status === 'success' && state.coupon ? (
+          <div className="mt-3">
+            <WelcomeCoupon notice={state.coupon} />
+          </div>
+        ) : null}
       </div>
 
       <SubmitButton pendingLabel="Suscribiendo…">Suscribirme</SubmitButton>

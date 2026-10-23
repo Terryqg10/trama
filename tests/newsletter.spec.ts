@@ -114,7 +114,7 @@ test.describe('formulario de newsletter (CA-101)', () => {
     await newsletter(page).getByRole('textbox', { name: 'Email' }).fill(email);
     await newsletter(page).getByRole('checkbox').check();
     await newsletter(page).getByRole('button', { name: 'Suscribirme' }).click();
-    await expect(message(page).getByRole('status')).toContainText('¡Gracias por suscribirte!');
+    await expect(message(page).getByRole('status').filter({ hasText: '¡Gracias por suscribirte!' })).toBeVisible();
 
     const stored = await adminClient().from('newsletter_subscribers').select('email, consent').eq('email', email);
     expect(stored.data).toEqual([{ email, consent: true }]);
@@ -123,7 +123,7 @@ test.describe('formulario de newsletter (CA-101)', () => {
     await newsletter(page).getByRole('textbox', { name: 'Email' }).fill(email.toUpperCase());
     await newsletter(page).getByRole('checkbox').check();
     await newsletter(page).getByRole('button', { name: 'Suscribirme' }).click();
-    await expect(message(page).getByRole('status')).toContainText('¡Gracias por suscribirte!');
+    await expect(message(page).getByRole('status').filter({ hasText: '¡Gracias por suscribirte!' })).toBeVisible();
     const again = await adminClient().from('newsletter_subscribers').select('email').eq('email', email);
     expect(again.data).toHaveLength(1);
   });

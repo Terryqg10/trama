@@ -154,7 +154,9 @@ describe('PromoModal: contenido (CA-129 y CA-130)', () => {
     expect(within(dialog).getByRole('heading', { level: 2, name: 'Suscríbete y consigue un 10 % en tu primera compra' })).toBeTruthy();
     expect(dialog.getAttribute('aria-labelledby')).toBe(within(dialog).getByRole('heading', { level: 2 }).id);
     const description = document.getElementById(dialog.getAttribute('aria-describedby') ?? '');
-    expect(description?.textContent).toContain('por email');
+    // Enmienda 41: sin correo propio, el código se muestra al suscribirse; el modal ya no promete ningún email.
+    expect(description?.textContent).toBe('Te mostraremos tu código de descuento al suscribirte.');
+    expect(description?.textContent).not.toContain('email');
   });
 
   it('el título es serif y la rejilla tiene 2 columnas desde 768 px', async () => {

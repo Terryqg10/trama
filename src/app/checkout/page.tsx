@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { CheckoutCouponProvider } from '@/components/checkout/CheckoutCouponContext';
 import { CheckoutForm } from '@/components/checkout/CheckoutForm';
+import { CheckoutTotals } from '@/components/checkout/CheckoutTotals';
+import { CouponBox } from '@/components/checkout/CouponBox';
 import { GuestCartMerger } from '@/components/cart/GuestCartMerger';
 import { PageContainer } from '@/components/PageContainer';
 import { requireUser } from '@/lib/auth/session';
@@ -80,6 +83,7 @@ export default async function CheckoutPage({
         </div>
       ) : null}
 
+      <CheckoutCouponProvider>
       <div className="mt-8 grid gap-8 lg:grid-cols-3 lg:items-start">
         <div className="lg:col-span-2">
           <CheckoutForm addresses={addresses} disabled={summary.issues.length > 0 || summary.lines.length === 0} />
@@ -102,25 +106,20 @@ export default async function CheckoutPage({
               </li>
             ))}
           </ul>
-          <dl className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-fg-muted">Subtotal</dt>
-              <dd data-testid="checkout-subtotal" className="font-medium">{formatEuros(summary.totals.subtotalCents)}</dd>
+          {summary.lines.length > 0 && summary.issues.length === 0 ? (
+            <div className="mt-4 border-t border-border pt-4">
+              <CouponBox />
             </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-fg-muted">Envío</dt>
-              <dd data-testid="checkout-shipping" className="font-medium">
-                {summary.totals.shippingCents === 0 ? 'Gratis' : formatEuros(summary.totals.shippingCents)}
-              </dd>
-            </div>
-            <div className="flex justify-between gap-4 border-t border-border pt-3 text-base">
-              <dt className="font-semibold">Total</dt>
-              <dd data-testid="checkout-total" className="font-bold">{formatEuros(summary.totals.totalCents)}</dd>
-            </div>
-          </dl>
+          ) : null}
+          <CheckoutTotals
+            subtotalCents={summary.totals.subtotalCents}
+            shippingCents={summary.totals.shippingCents}
+            totalCents={summary.totals.totalCents}
+          />
           <p className="mt-4 text-sm text-fg-muted">IVA incluido.</p>
         </section>
       </div>
+      </CheckoutCouponProvider>
     </PageContainer>
   );
 }

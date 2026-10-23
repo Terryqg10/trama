@@ -140,7 +140,7 @@ export function PromoModal() {
                 Suscríbete y consigue un <span className="whitespace-nowrap">10 %</span> en tu primera compra
               </h2>
               <p id={descriptionId} className="mt-3 text-base text-fg-muted">
-                Te enviaremos el código de descuento por email.
+                Te mostraremos tu código de descuento al suscribirte.
               </p>
               <NewsletterForm className="mt-6 w-full space-y-4 text-left" />
             </div>
