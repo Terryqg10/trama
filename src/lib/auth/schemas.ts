@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { requiredString } from '@/lib/zod-helpers';
 
 /**
  * Esquemas de entrada de cuenta (RF-04, RF-05). Todo dato del formulario se valida aquí,
@@ -7,8 +8,7 @@ import { z } from 'zod';
 
 const REQUIRED = 'Este campo es obligatorio.';
 
-const email = z
-  .string({ required_error: REQUIRED, invalid_type_error: REQUIRED })
+const email = requiredString(REQUIRED)
   .trim()
   .toLowerCase()
   .min(1, REQUIRED)
@@ -16,14 +16,12 @@ const email = z
   .email('Introduce un email válido.');
 
 // 72 bytes es el límite de bcrypt, que usa Supabase Auth.
-const newPassword = z
-  .string({ required_error: REQUIRED, invalid_type_error: REQUIRED })
+const newPassword = requiredString(REQUIRED)
   .min(8, 'La contraseña debe tener al menos 8 caracteres.')
   .max(72, 'La contraseña no puede superar los 72 caracteres.');
 
 const text = (max: number) =>
-  z
-    .string({ required_error: REQUIRED, invalid_type_error: REQUIRED })
+  requiredString(REQUIRED)
     .trim()
     .min(1, REQUIRED)
     .max(max, `Máximo ${max} caracteres.`);
@@ -37,7 +35,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({
   email,
-  password: z.string({ required_error: REQUIRED, invalid_type_error: REQUIRED }).min(1, REQUIRED).max(72, 'Contraseña demasiado larga.'),
+  password: requiredString(REQUIRED).min(1, REQUIRED).max(72, 'Contraseña demasiado larga.'),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
@@ -47,7 +45,7 @@ export type RecoveryInput = z.infer<typeof recoverySchema>;
 export const resetPasswordSchema = z
   .object({
     password: newPassword,
-    confirm: z.string({ required_error: REQUIRED, invalid_type_error: REQUIRED }).min(1, REQUIRED),
+    confirm: requiredString(REQUIRED).min(1, REQUIRED),
   })
   .refine((value) => value.password === value.confirm, {
     path: ['confirm'],
@@ -71,8 +69,7 @@ export const addressSchema = z.object({
     .max(200, 'Máximo 200 caracteres.')
     .optional()
     .transform((value) => (value === undefined || value === '' ? null : value)),
-  postalCode: z
-    .string({ required_error: REQUIRED, invalid_type_error: REQUIRED })
+  postalCode: requiredString(REQUIRED)
     .trim()
     .regex(/^[0-9]{5}$/, 'El código postal debe tener 5 dígitos.'),
   city: text(100),

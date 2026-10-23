@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { requiredString } from '@/lib/zod-helpers';
 import { CATEGORIES, GENDERS, OCCASIONS } from '@/lib/catalog/filters';
 
 /**
@@ -9,8 +10,7 @@ import { CATEGORIES, GENDERS, OCCASIONS } from '@/lib/catalog/filters';
 const REQUIRED = 'Este campo es obligatorio.';
 
 const text = (max: number) =>
-  z
-    .string({ required_error: REQUIRED, invalid_type_error: REQUIRED })
+  requiredString(REQUIRED)
     .trim()
     .min(1, REQUIRED)
     .max(max, `Máximo ${max} caracteres.`);
@@ -50,8 +50,7 @@ const optionalInt = (min: number, max: number, label: string) =>
       return number;
     });
 
-export const slugSchema = z
-  .string({ required_error: REQUIRED, invalid_type_error: REQUIRED })
+export const slugSchema = requiredString(REQUIRED)
   .trim()
   .min(1, REQUIRED)
   .max(160, 'Máximo 160 caracteres.')
@@ -73,9 +72,9 @@ export const productSchema = z.object({
   name: text(160),
   slug: slugSchema,
   description: optionalText(4000),
-  gender: z.enum(GENDERS, { errorMap: () => ({ message: 'Elige un género.' }) }),
-  category: z.enum(CATEGORIES, { errorMap: () => ({ message: 'Elige una categoría.' }) }),
-  occasion: z.enum(OCCASIONS, { errorMap: () => ({ message: 'Elige una ocasión.' }) }),
+  gender: z.enum(GENDERS, { error: 'Elige un género.' }),
+  category: z.enum(CATEGORIES, { error: 'Elige una categoría.' }),
+  occasion: z.enum(OCCASIONS, { error: 'Elige una ocasión.' }),
   isNew: checkbox,
   composition: optionalText(500),
   care: optionalText(500),
@@ -98,8 +97,7 @@ export function eurosToCents(input: string): number | null {
   return euros * 100 + cents;
 }
 
-const priceField = z
-  .string({ required_error: REQUIRED, invalid_type_error: REQUIRED })
+const priceField = requiredString(REQUIRED)
   .trim()
   .min(1, REQUIRED)
   .transform((value, context) => {
@@ -115,8 +113,7 @@ const priceField = z
     return cents;
   });
 
-const stockField = z
-  .string({ required_error: REQUIRED, invalid_type_error: REQUIRED })
+const stockField = requiredString(REQUIRED)
   .trim()
   .min(1, REQUIRED)
   .transform((value, context) => {
