@@ -177,7 +177,9 @@ export type Database = {
       }
       orders: {
         Row: {
+          coupon_id: string | null
           created_at: string
+          discount_cents: number
           id: string
           shipping_address: Json
           shipping_cents: number
@@ -188,7 +190,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          coupon_id?: string | null
           created_at?: string
+          discount_cents?: number
           id?: string
           shipping_address: Json
           shipping_cents: number
@@ -199,7 +203,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          coupon_id?: string | null
           created_at?: string
+          discount_cents?: number
           id?: string
           shipping_address?: Json
           shipping_cents?: number
@@ -209,7 +215,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "welcome_coupons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_images: {
         Row: {
@@ -439,6 +453,47 @@ export type Database = {
           received_at?: string
         }
         Relationships: []
+      }
+      welcome_coupons: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          percent_off: number
+          redeemed_at: string | null
+          redeemed_order_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          percent_off?: number
+          redeemed_at?: string | null
+          redeemed_order_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          percent_off?: number
+          redeemed_at?: string | null
+          redeemed_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "welcome_coupons_redeemed_order_id_fkey"
+            columns: ["redeemed_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
