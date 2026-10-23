@@ -1,4 +1,4 @@
-// Puerta de audit con excepciones acotadas en el tiempo (ver ADR-001).
+// Puerta de audit con excepciones acotadas en el tiempo (ver ADR-001 y ADR-012).
 // Cross-platform: sin shell. Filtra el JSON de `pnpm audit` en lugar de
 // depender de flags que varían entre versiones de pnpm.
 import { spawnSync } from 'node:child_process';
@@ -9,6 +9,12 @@ const EXCEPTIONS = [
     package: 'braces',
     adr: 'ADR-001',
     expires: '2026-11-11',
+  },
+  {
+    id: 'GHSA-mrhx-c7xc-m3w5',
+    package: 'zod',
+    adr: 'ADR-012',
+    expires: '2026-11-23',
   },
 ];
 
