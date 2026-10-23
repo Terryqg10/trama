@@ -33,6 +33,8 @@ const wait = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
 beforeEach(() => {
   vi.useFakeTimers();
   window.localStorage.clear();
+  // Apagado por defecto (CA-132): los tests parten de encendido y los de la bandera lo cambian.
+  vi.stubEnv('NEXT_PUBLIC_PROMO_ENABLED', 'true');
 });
 
 afterEach(() => {
@@ -104,6 +106,37 @@ describe('PromoModal: aparición (CA-127)', () => {
     view.unmount();
     await wait(PROMO_DELAY_MS);
     expect(window.localStorage.getItem(PROMO_STORAGE_KEY)).toBeNull();
+  });
+});
+
+describe('PromoModal: bandera NEXT_PUBLIC_PROMO_ENABLED (CA-132)', () => {
+  it.each([
+    ['sin definir', undefined],
+    ['vacía', ''],
+    ['false', 'false'],
+    ['1', '1'],
+    ['TRUE', 'TRUE'],
+  ])('apagado si la bandera está %s: no se abre aunque pasen 3 s ni guarda promo_seen', async (_nombre, valor) => {
+    if (valor === undefined) vi.stubEnv('NEXT_PUBLIC_PROMO_ENABLED', undefined);
+    else vi.stubEnv('NEXT_PUBLIC_PROMO_ENABLED', valor);
+    renderPage();
+    await wait(PROMO_DELAY_MS * 2);
+    expect(modal()).toBeNull();
+    expect(window.localStorage.getItem(PROMO_STORAGE_KEY)).toBeNull();
+  });
+
+  it('con la bandera en «true» se abre a los 3 s', async () => {
+    renderPage();
+    await wait(PROMO_DELAY_MS);
+    expect(modal()).not.toBeNull();
+  });
+
+  it('el botón de prueba de desarrollo funciona aunque la bandera esté apagada', () => {
+    vi.stubEnv('NEXT_PUBLIC_PROMO_ENABLED', 'false');
+    vi.stubEnv('NODE_ENV', 'development');
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Probar promo' }));
+    expect(modal()).not.toBeNull();
   });
 });
 

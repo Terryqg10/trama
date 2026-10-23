@@ -1084,3 +1084,19 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-131 | RF-26 | La build de producción | Se abre la portada | No existe el botón flotante «Probar promo»; en desarrollo sí existe y abre el modal | test unitario (`NODE_ENV`) y e2e `promo-modal` (build de producción) |
 
 **Nuevas tareas derivadas:** T-089 (modal promocional de la portada).
+
+### Enmienda 39 — 2026-10-23 — sin ADR — el modal promocional queda apagado por defecto con una bandera (CA-132)
+
+**Origen:** la Enmienda 38 dice que el modal no debe ir a producción hasta que existan el cupón del 10 % y el envío del email, y T-089 está lista para subirse. Para poder subir el código sin publicar una promesa que aún no se cumple, **la apertura automática queda apagada salvo que se encienda expresamente**. **Matiza la Enmienda 38**: no cambia ningún CA de CA-127 a CA-131, solo añade una condición previa a la aparición.
+
+**Qué cambia:**
+- **Bandera:** `NEXT_PUBLIC_PROMO_ENABLED`. Solo el valor exacto `true` activa la aparición a los 3 s (CA-127); sin definir, vacía o con cualquier otro valor (`false`, `1`, `TRUE`…) **no se abre y no se guarda `promo_seen`**. Es pública por diseño (no es un secreto) y se fija **al compilar**: cambiarla en Vercel exige un nuevo despliegue.
+- **Botón de prueba:** no depende de la bandera; sigue existiendo solo en desarrollo (CA-131).
+- **Pruebas:** `playwright.config.ts` pasa `NEXT_PUBLIC_PROMO_ENABLED=true` al build y al servidor que arranca, para que `promo-modal.spec.ts` vea el modal; el resto de tests sigue partiendo de `promo_seen` guardado.
+- **Activación en producción:** variable de entorno en Vercel (`NEXT_PUBLIC_PROMO_ENABLED=true`) **solo cuando existan el cupón, su validación en el pago y el envío del email** (T-061). No se versiona ningún valor: el archivo `.env.example` debe listar el nombre sin valor (pendiente: este proyecto no permite al asistente editar `.env*`).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-132 | RF-26 | La portada, sin `promo_seen` y con la bandera sin definir, vacía o distinta de `true` | Pasan 3 s o más | No se abre el modal ni se guarda `promo_seen`; con la bandera en `true` se comporta como en CA-127; el botón de prueba de desarrollo funciona igual con la bandera apagada | test unitario `PromoModal` y e2e `promo-modal` (con la bandera encendida por la configuración de Playwright) |
+
+**Nuevas tareas derivadas:** ninguna; se añade el CA a T-089.

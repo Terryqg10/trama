@@ -34,7 +34,8 @@ function markSeen(): void {
  * Modal promocional de la portada (CA-127 a CA-131, T-089, Enmienda 38): a los 3 s ofrece un 10 % en la primera compra a cambio
  * de suscribirse a la newsletter. Se abre una sola vez por navegador (`promo_seen`) y no si el carrito lateral está abierto.
  * El foco entra en el diálogo, Tab lo recorre el componente (WebKit no tabula los enlaces, T-088), Esc, la X y el fondo lo cierran,
- * el `body` no hace scroll y el foco vuelve al cerrar. El botón «Probar promo» solo existe en desarrollo.
+ * el `body` no hace scroll y el foco vuelve al cerrar. El botón «Probar promo» solo existe en desarrollo. La apertura automática
+ * está apagada salvo que `NEXT_PUBLIC_PROMO_ENABLED` valga `true` (CA-132, Enmienda 39): el cupón y el email aún no existen.
  */
 export function PromoModal() {
   const [open, setOpen] = useState(false);
@@ -51,6 +52,8 @@ export function PromoModal() {
   const close = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
+    // Apagado por defecto: solo `NEXT_PUBLIC_PROMO_ENABLED=true` lo activa (Enmienda 39). Se lee aquí, con el nombre completo, para que Next lo sustituya al compilar.
+    if (process.env.NEXT_PUBLIC_PROMO_ENABLED !== 'true') return;
     if (!neverSeen()) return;
     const timer = window.setTimeout(() => {
       if (cartOpenRef.current) return;

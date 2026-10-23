@@ -20,6 +20,10 @@ async function openHome(page: Page, width = 1280): Promise<void> {
 async function openModal(page: Page, width = 1280): Promise<void> {
   await openHome(page, width);
   await expect(modal(page)).toBeVisible(SHOWN);
+  // Espera a que acabe la animación de entrada (0,3 s, con un desplazamiento vertical) antes de medir.
+  await expect
+    .poll(() => modal(page).evaluate((el) => getComputedStyle(el).transform))
+    .toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
 }
 
 const testEmails: string[] = [];
@@ -136,7 +140,7 @@ test.describe('cierre y accesibilidad (CA-128)', () => {
 test.describe('suscripción (CA-130)', () => {
   test('sin consentimiento y con un email mal formado muestra errores por campo', async ({ page }) => {
     await openModal(page);
-    await modal(page).getByLabel('Email').fill('no-es-un-email');
+    await modal(page).getByLabel('Email', { exact: true }).fill('no-es-un-email');
     await modal(page).getByRole('button', { name: 'Suscribirme' }).click();
     await expect(modal(page).getByText('Introduce un email válido.')).toBeVisible();
     await expect(modal(page).getByText('Debes aceptar la política de privacidad para suscribirte.')).toBeVisible();
@@ -146,7 +150,7 @@ test.describe('suscripción (CA-130)', () => {
     const email = `t089-${randomUUID().slice(0, 8)}@example.com`;
     testEmails.push(email);
     await openModal(page);
-    await modal(page).getByLabel('Email').fill(email);
+    await modal(page).getByLabel('Email', { exact: true }).fill(email);
     await modal(page).getByRole('checkbox').check();
     await modal(page).getByRole('button', { name: 'Suscribirme' }).click();
     await expect(modal(page).getByTestId('newsletter-message')).toContainText('¡Gracias por suscribirte!');

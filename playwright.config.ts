@@ -56,6 +56,8 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !usaProd && !isCI,
     timeout: usaProd ? 180_000 : 120_000,
+    // El modal promocional (T-089) está apagado por defecto; las pruebas lo encienden. Se aplica al build y al servidor que arranca esta orden.
+    env: { NEXT_PUBLIC_PROMO_ENABLED: 'true' },
     stdout: 'ignore',
     stderr: 'pipe',
   },
