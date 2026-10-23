@@ -42,7 +42,12 @@ export function CartDrawer() {
     if (!isCartOpen) return;
     const opener = openerRef.current;
     const previousOverflow = document.body.style.overflow;
+    const previousPadding = document.body.style.paddingRight;
+    // Al quitar el scroll del body desaparece la barra de desplazamiento y la página se ensancha de golpe (un salto): se
+    // compensa con un relleno del mismo ancho mientras el carrito está abierto.
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = 'hidden';
+    if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`;
     closeRef.current?.focus();
 
     function onKeyDown(event: KeyboardEvent): void {
@@ -77,6 +82,7 @@ export function CartDrawer() {
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPadding;
       if (opener?.isConnected) opener.focus();
     };
   }, [isCartOpen, closeCart, openerRef]);

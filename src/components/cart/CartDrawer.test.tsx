@@ -118,6 +118,34 @@ describe('CartDrawer: panel y accesibilidad (CA-124)', () => {
     expect(screen.getByTestId('opener')).toHaveFocus();
   });
 
+  it('al bloquear el scroll compensa el ancho de la barra de desplazamiento para que la página no dé un salto, y lo restaura al cerrar', async () => {
+    const innerWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
+    const clientWidth = vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(985);
+    try {
+      open();
+      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.body.style.paddingRight).toBe('15px');
+      fireEvent.click(screen.getByTestId('cart-drawer-close'));
+      await waitFor(() => expect(screen.getByTestId('cart-drawer-root').className).toContain('invisible'));
+      expect(document.body.style.paddingRight).toBe('');
+    } finally {
+      clientWidth.mockRestore();
+      if (innerWidth) Object.defineProperty(window, 'innerWidth', innerWidth);
+    }
+  });
+
+  it('sin barra de desplazamiento (móvil, scrollbars flotantes) no añade relleno', () => {
+    const clientWidth = vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(window.innerWidth);
+    try {
+      open();
+      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.body.style.paddingRight).toBe('');
+    } finally {
+      clientWidth.mockRestore();
+    }
+  });
+
   it('Esc y un clic en el fondo lo cierran; un clic dentro no', async () => {
     open();
     await waitFor(() => expect(screen.getByTestId('cart-drawer-empty')).toBeInTheDocument());

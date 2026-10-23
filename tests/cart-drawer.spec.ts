@@ -134,6 +134,34 @@ test.describe('apertura y cierre (CA-124)', () => {
     await expect(page.getByTestId('cart-drawer-close')).toBeFocused();
   });
 
+  test('al abrir no hay salto: el contenido de la página no se ensancha ni se mueve (se compensa la barra de scroll)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 500 });
+    await page.goto('/hombre');
+    await expect(page.locator('article').first()).toBeVisible();
+    const probe = () =>
+      page.evaluate(() => {
+        const main = document.querySelector('main')?.getBoundingClientRect();
+        const logo = document.querySelector('header a')?.getBoundingClientRect();
+        return { mainLeft: main?.left, mainWidth: main?.width, logoLeft: logo?.left, scrollbar: window.innerWidth - document.documentElement.clientWidth };
+      });
+    const before = await probe();
+    await page.getByTestId('cart-open').click();
+    await expect(dialog(page)).toBeVisible();
+    await settled(page);
+    const after = await probe();
+    expect(after.mainWidth).toBeCloseTo(before.mainWidth ?? 0, 0);
+    expect(after.mainLeft).toBeCloseTo(before.mainLeft ?? 0, 0);
+    expect(after.logoLeft).toBeCloseTo(before.logoLeft ?? 0, 0);
+    // Si hay barra de desplazamiento, se compensa con relleno; al cerrar se quita.
+    const padding = await page.evaluate(() => document.body.style.paddingRight);
+    expect(padding).toBe(before.scrollbar > 0 ? `${before.scrollbar}px` : '');
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('cart-drawer')).toBeHidden();
+    expect(await page.evaluate(() => document.body.style.paddingRight)).toBe('');
+    const closed = await probe();
+    expect(closed.mainWidth).toBeCloseTo(before.mainWidth ?? 0, 0);
+  });
+
   test('se cierra con Esc y el foco vuelve al botón que lo abrió; el scroll del body se recupera', async ({ page }) => {
     await addFromProduct(page, POLO);
     await page.keyboard.press('Escape');
