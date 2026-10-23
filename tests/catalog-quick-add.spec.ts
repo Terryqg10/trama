@@ -200,8 +200,14 @@ test.describe('panel al pasar el cursor (CA-122)', () => {
     const cart = await savedCart(page);
     expect(cart).toHaveLength(1);
     expect(cart[0]?.qty).toBe(1);
+    // Desde T-085 añadir abre el carrito lateral; se cierra con Esc (el foco vuelve al botón) y se vuelve a añadir.
+    await expect(page.getByTestId('cart-drawer')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('cart-drawer')).toBeHidden();
+    await expect(panel(page, COAT).getByTestId('quick-add-button')).toBeFocused();
     await panel(page, COAT).getByTestId('quick-add-button').click();
-    expect((await savedCart(page))[0]?.qty).toBe(2);
+    await expect.poll(async () => (await savedCart(page))[0]?.qty).toBe(2);
+    await expect(page.getByTestId('drawer-qty')).toHaveText('2');
     await page.goto('/carrito');
     await expect(page.getByText('Abrigo de paño gris').first()).toBeVisible();
   });
@@ -219,6 +225,8 @@ test.describe('panel al pasar el cursor (CA-122)', () => {
     await expect(add).toBeEnabled();
     await add.click();
     await expect(panel(page, POLO).getByText('añadido al carrito.')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('cart-drawer')).toBeHidden();
     const other = await dots.evaluateAll((items) => items.findIndex((i) => i.getAttribute('aria-pressed') === 'false'));
     await dots.nth(other).click();
     await expect(dots.nth(other)).toHaveAttribute('aria-pressed', 'true');
@@ -230,6 +238,7 @@ test.describe('panel al pasar el cursor (CA-122)', () => {
     await add.click();
     await expect.poll(async () => (await savedCart(page)).length).toBe(2);
     expect(new Set((await savedCart(page)).map((line) => line.variantId)).size).toBe(2);
+    await expect(page.getByTestId('drawer-line')).toHaveCount(2);
   });
 
   test('pulsar la foto o el nombre lleva a la ficha; pulsar un control no navega', async ({ page }) => {

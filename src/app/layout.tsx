@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import { CartDrawerProvider } from '@/components/cart/CartDrawerContext';
 import { ShopFrame } from '@/components/ShopFrame';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
@@ -24,9 +25,11 @@ export default function RootLayout({
         >
           Saltar al contenido
         </a>
-        <ShopFrame header={<SiteHeader />} footer={<SiteFooter />}>
-          {children}
-        </ShopFrame>
+        <CartDrawerProvider>
+          <ShopFrame header={<SiteHeader />} footer={<SiteFooter />}>
+            {children}
+          </ShopFrame>
+        </CartDrawerProvider>
       </body>
     </html>
   );

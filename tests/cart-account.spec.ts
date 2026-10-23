@@ -93,6 +93,13 @@ test.describe('carrito de la cuenta (CA-63, test cart-account-persist)', () => {
       for (let i = 0; i < 7; i += 1) {
         await expect(addButton).toBeEnabled();
         await addButton.click();
+        // Al añadir se abre el carrito lateral (T-085): se cierra con Esc para poder pulsar otra vez. Ya había 2 unidades: las 6
+        // primeras pulsaciones añaden (3 a 8) y abren el carrito; la séptima ya no añade nada y no lo abre.
+        if (i < 6) {
+          await expect(a.getByTestId('cart-drawer')).toBeVisible();
+          await a.keyboard.press('Escape');
+          await expect(a.getByTestId('cart-drawer')).toBeHidden();
+        }
       }
       await expect(a.getByText('Ya tienes en el carrito todas las unidades disponibles (8).')).toBeVisible();
       await a.goto('/carrito');

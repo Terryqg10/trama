@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { ACTION_NAV, MAIN_NAV } from '@/lib/domain/navigation';
+import { useCartDrawer } from './cart/CartDrawerContext';
 import { SearchBar } from './layout/SearchBar';
 import { Logo } from './Logo';
 import { useHashOverlay } from './useHashOverlay';
@@ -31,6 +32,7 @@ const overlayLinkBase =
  */
 export function SiteHeader() {
   const pathname = usePathname();
+  const { openCart } = useCartDrawer();
   const triggerRef = useRef<HTMLAnchorElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLAnchorElement>(null);
@@ -104,7 +106,20 @@ export function SiteHeader() {
           <Link href={ACTION_NAV.account.href} aria-label={ACTION_NAV.account.label} className={iconButton}>
             <User aria-hidden="true" />
           </Link>
-          <Link href={ACTION_NAV.cart.href} aria-label={ACTION_NAV.cart.label} className={iconButton}>
+          {/* Sigue siendo un enlace a /carrito (sin JavaScript navega); con JavaScript abre el carrito lateral (CA-124), salvo en
+              /carrito, donde ya está la lista completa. */}
+          <Link
+            href={ACTION_NAV.cart.href}
+            aria-label={ACTION_NAV.cart.label}
+            aria-haspopup="dialog"
+            data-testid="cart-open"
+            onClick={(event) => {
+              if (pathname === ACTION_NAV.cart.href || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+              event.preventDefault();
+              openCart();
+            }}
+            className={iconButton}
+          >
             <ShoppingBag aria-hidden="true" />
           </Link>
           <a

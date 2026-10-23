@@ -13,7 +13,15 @@ async function addPolo(page: Page): Promise<void> {
   const add = page.getByTestId('add-to-cart');
   await expect(add).toBeEnabled();
   await add.click();
-  await expect(page.getByText('Polo piqué básico añadido al carrito.')).toBeVisible();
+  await expect(page.getByText('Polo piqué básico añadido al carrito.').first()).toBeVisible();
+  // Desde T-085 al añadir se abre el carrito lateral: se cierra con Esc para seguir con la ficha.
+  await closeCartDrawer(page);
+}
+
+async function closeCartDrawer(page: Page): Promise<void> {
+  await expect(page.getByTestId('cart-drawer')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('cart-drawer')).toBeHidden();
 }
 
 async function savedCart(page: Page): Promise<Array<{ variantId: string; qty: number }>> {
@@ -101,8 +109,13 @@ test.describe('tope por stock (CA-05, test cart-qty-cap)', () => {
   test('el botón de la ficha no pasa del stock y lo avisa', async ({ page }) => {
     await page.goto(FICHA);
     await expect(page.getByTestId('add-to-cart')).toBeEnabled();
-    for (let i = 0; i < 9; i += 1) await page.getByTestId('add-to-cart').click();
+    for (let i = 0; i < 9; i += 1) {
+      await page.getByTestId('add-to-cart').click();
+      // Las 8 primeras abren el carrito lateral (se cierra con Esc); la novena no añade nada y no lo abre.
+      if (i < 8) await closeCartDrawer(page);
+    }
     await expect(page.getByText('Ya tienes en el carrito todas las unidades disponibles (8).')).toBeVisible();
+    await expect(page.getByTestId('cart-drawer')).toBeHidden();
     const [line] = await savedCart(page);
     expect(line?.qty).toBe(8);
   });

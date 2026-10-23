@@ -6,9 +6,10 @@ import { addToAccountCartAction } from '@/lib/cart/actions';
 import { addToCart } from '@/lib/cart/cart';
 import { readCart, useHydrated, writeCart } from '@/lib/cart/store';
 import { useGuestCartMerge } from '@/lib/cart/use-guest-merge';
+import { useCartDrawer } from './CartDrawerContext';
 
 /**
- * Botón «Añadir al carrito» de la ficha (RF-03, CA-60). Sin variante elegida (falta la talla) queda
+ * Botón «Añadir al carrito» de la ficha (RF-03, CA-60); al añadir con éxito abre el carrito lateral (CA-124, T-085). Sin variante elegida (falta la talla) queda
  * deshabilitado y lo explica. El aviso de resultado va en una región `aria-live`, no solo en color.
  * Necesita JavaScript. Sin sesión el carrito vive en el navegador; con sesión (`signedIn`) se guarda
  * en la cuenta (T-031) y las líneas que hubiera en el navegador se fusionan al llegar (CA-04).
@@ -37,6 +38,7 @@ export function AddToCartButton({
   readonly label?: string;
 }) {
   const hydrated = useHydrated();
+  const { openCart } = useCartDrawer();
   const [busy, setBusy] = useState(false);
   useGuestCartMerge(signedIn);
   const [notice, setNotice] = useState<{ readonly text: string; readonly added: boolean } | null>(null);
@@ -76,6 +78,8 @@ export function AddToCartButton({
       return;
     }
     setNotice({ text: `${productName} añadido al carrito.`, added: true });
+    // Se añadió algo: se abre el carrito lateral (CA-124, T-085).
+    openCart();
   }
 
   return (
