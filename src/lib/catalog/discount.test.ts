@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cardDiscount, discountPercent } from './discount';
+import { cardDiscount, discountPercent, isOffer, maxOfferPercent } from './discount';
 
 // CA-119 (T-076): porcentaje y rebaja de la tarjeta.
 
@@ -45,5 +45,21 @@ describe('cardDiscount', () => {
 
   it('ignora un precio anterior que no es mayor que el actual', () => {
     expect(cardDiscount({ fromPriceCents: 3000, variants: [variant(3000, 3000)] })).toBeNull();
+  });
+});
+
+describe('isOffer y maxOfferPercent (CA-01, CA-04)', () => {
+  it('es oferta si alguna variante tiene precio anterior mayor que el actual', () => {
+    expect(isOffer({ variants: [variant(3000, null), variant(4000, 6000)] })).toBe(true);
+    expect(isOffer({ variants: [variant(3000, null)] })).toBe(false);
+    expect(isOffer({ variants: [variant(3000, 3000)] })).toBe(false);
+    expect(isOffer({ variants: [] })).toBe(false);
+  });
+
+  it('el mayor porcentaje sale de todas las variantes; sin rebajas es null', () => {
+    const products = [{ variants: [variant(8990, 11990)] }, { variants: [variant(4490, 5990), variant(3000, 6000)] }];
+    expect(maxOfferPercent(products)).toBe(50);
+    expect(maxOfferPercent([{ variants: [variant(3000, null)] }])).toBeNull();
+    expect(maxOfferPercent([])).toBeNull();
   });
 });

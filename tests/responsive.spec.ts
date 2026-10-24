@@ -43,6 +43,20 @@ test.describe('responsive: pantallas de acceso (T-017)', () => {
   }
 });
 
+test.describe('responsive: /ofertas (T-100, CA-05)', () => {
+  for (const width of WIDTHS) {
+    test(`/ofertas no desborda a ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto('/ofertas');
+      await expect(page.locator('main')).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `scroll horizontal de ${overflow}px en /ofertas a ${width}px`).toBeLessThanOrEqual(1);
+      const banner = await page.getByTestId('offers-banner').boundingBox();
+      expect((banner?.x ?? 0) + (banner?.width ?? 0)).toBeLessThanOrEqual(width + 1);
+    });
+  }
+});
+
 test.describe('responsive', () => {
   for (const width of WIDTHS) {
     test(`sin desbordamiento ni contenido recortado a ${width}px`, async ({ page }) => {

@@ -30,3 +30,21 @@ export function cardDiscount(product: Pick<CatalogProduct, 'variants' | 'fromPri
   }
   return null;
 }
+
+/** ¿Está en oferta? Alguna variante tiene precio anterior mayor que el actual (`compare_at_cents`, SPEC-005 RF-10, T-099). */
+export function isOffer(product: Pick<CatalogProduct, 'variants'>): boolean {
+  return product.variants.some((variant) => variant.compareAtCents !== null && variant.compareAtCents > variant.priceCents);
+}
+
+/** Mayor porcentaje de rebaja entre todas las variantes de los productos; `null` si ninguno tiene (CA-04, T-100). */
+export function maxOfferPercent(products: readonly Pick<CatalogProduct, 'variants'>[]): number | null {
+  let max: number | null = null;
+  for (const product of products) {
+    for (const variant of product.variants) {
+      if (variant.compareAtCents === null || variant.compareAtCents <= variant.priceCents) continue;
+      const percent = discountPercent(variant.priceCents, variant.compareAtCents);
+      if (max === null || percent > max) max = percent;
+    }
+  }
+  return max;
+}

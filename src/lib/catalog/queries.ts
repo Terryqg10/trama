@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { createPublicClient, type PublicSupabaseClient } from '@/lib/supabase/server';
+import { isOffer } from './discount';
 import type { CatalogFilters } from './filters';
 import { containsPattern } from './search';
 import {
@@ -80,6 +81,20 @@ export async function searchProducts(
   if (error) throw new Error(`No se pudo buscar en el catálogo: ${error.message.slice(0, 200)}`);
   const rows = z.array(catalogRowSchema).parse(data);
   return sortProducts(rows.map(toCatalogProduct), 'novedades');
+}
+
+/**
+ * Productos activos en oferta: los que tienen alguna variante con `compare_at_cents` mayor que su precio (SPEC-005 RF-10,
+ * CA-01, T-099). Se piden con todas sus variantes (la tarjeta necesita todas las tallas) y se filtran aquí; el catálogo es
+ * pequeño. Sin ofertas, `[]`. Las políticas RLS ocultan los inactivos.
+ */
+export async function getOfferProducts(
+  client: PublicSupabaseClient = createPublicClient(),
+): Promise<CatalogProduct[]> {
+  const { data, error } = await client.from('products').select(LIST_SELECT).limit(MAX_PRODUCTS);
+  if (error) throw new Error(`No se pudieron cargar las ofertas: ${error.message.slice(0, 200)}`);
+  const rows = z.array(catalogRowSchema).parse(data);
+  return sortProducts(rows.map(toCatalogProduct).filter(isOffer), 'novedades');
 }
 
 /** Devuelve la ficha de un producto activo, o `null` si no existe o no es visible. */
