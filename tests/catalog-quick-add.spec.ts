@@ -340,15 +340,49 @@ test.describe('anchos y otras páginas (CA-122)', () => {
     await expect(page).toHaveURL(/\/producto\/polo-pique-basico/);
   });
 
-  test('la portada y la búsqueda llevan los círculos pero no el panel', async ({ page }) => {
+  test('la portada lleva los círculos pero no el panel', async ({ page }) => {
     await open(page, '/');
     await expect(page.getByTestId('quick-add')).toHaveCount(0);
     await expect(page.getByTestId('card-colors').first()).toBeVisible();
-    await page.goto('/buscar?q=abrigo');
-    await expect(page.locator('article').first()).toBeVisible();
-    await expect(page.getByTestId('quick-add')).toHaveCount(0);
-    await expect(page.getByTestId('card-colors').first()).toBeVisible();
   });
+
+  // CA-141 y CA-142 (T-098, Enmienda 42): la búsqueda usa la misma tarjeta que el catálogo.
+  test('la búsqueda tiene el panel de tallas al pasar el cursor y añade al carrito', async ({ page }) => {
+    await open(page, '/buscar?q=abrigo');
+    await hoverPhoto(page, COAT);
+    await expect(panel(page, COAT)).toHaveCSS('opacity', '1');
+    const sizes = panel(page, COAT).getByTestId('quick-add-size');
+    await expect(sizes).toHaveText(['S', 'M', 'L', 'XL']);
+    const button = panel(page, COAT).getByTestId('quick-add-button');
+    await expect(button).toBeDisabled();
+    await sizes.nth(1).click();
+    await expect(button).toBeEnabled();
+    expect(await savedCart(page)).toEqual([]);
+    await button.click();
+    await expect(panel(page, COAT).getByText('Abrigo de paño gris añadido al carrito.')).toBeVisible();
+    await expect(page.getByTestId('cart-drawer')).toBeVisible();
+    expect(await savedCart(page)).toHaveLength(1);
+  });
+
+  test('la búsqueda a 375 px solo lleva foto, círculos, nombre y precio', async ({ page }) => {
+    await open(page, '/buscar?q=abrigo', 375);
+    const target = card(page, COAT);
+    await expect(target.getByTestId('card-colors')).toBeVisible();
+    await expect(target.getByTestId('quick-add-button')).toBeHidden();
+    await expect(target.getByTestId('card-price')).toBeVisible();
+  });
+
+  for (const width of [320, 375, 480, 600, 768, 1024, 1280]) {
+    test(`la búsqueda no tiene scroll horizontal a ${width} px${width >= 768 ? ' con el panel abierto' : ''}`, async ({ page }) => {
+      await open(page, '/buscar?q=abrigo', width);
+      if (width >= 768) {
+        await hoverPhoto(page, COAT);
+        await expect(panel(page, COAT)).toHaveCSS('opacity', '1');
+      }
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+    });
+  }
 
   for (const width of [320, 375, 768, 1024, 1280]) {
     test(`sin scroll horizontal a ${width} px${width >= 768 ? ' con el panel abierto' : ''}`, async ({ page }) => {

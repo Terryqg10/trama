@@ -1157,3 +1157,20 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 **Nuevas tareas derivadas:** T-091 (aviso de demostración, CA-140), T-092 (datos y RLS del cupón, CA-134), T-093 (lógica de servidor: generar, validar, cobrar y canjear, CA-135, CA-137 a CA-139) y T-094 (pantallas: mostrar el código y el campo del checkout, CA-136 y CA-137).
 
 **Orden y dependencias:** T-091 puede ir ya, sin dependencias. T-092 → T-093 → T-094. **T-092 necesita aplicar una migración al proyecto de Supabase** (a mano, como en ADR-002); los tests de integración del resto dependen de ello.
+
+### Enmienda 42 — 2026-10-24 — sin ADR — la búsqueda usa la tarjeta completa del catálogo (RF-25, CA-141 y CA-142)
+
+**Origen:** el usuario (Fase 2) pide que `/buscar` use el mismo `ProductCard` que el catálogo, con hover, tallas y botón de añadir al carrito. Hoy `/buscar` ya importa `ProductCard` pero **sin la opción `quickAdd`**, así que solo muestra foto, círculos, nombre y precio. **Sustituye** lo que CA-122 y el test `catalog-quick-add` decían de «la portada y la búsqueda llevan los círculos pero no el panel»: pasa a valer solo para la **portada**. CA-93 (qué se lista) no cambia.
+
+**Qué cambia**
+- `/buscar` lee la sesión (`getCurrentUser`, como el catálogo) y pasa `quickAdd={{ signedIn }}` a cada tarjeta. El resto (consulta, estados vacíos, contador, rejilla) se mantiene.
+- La tarjeta de la búsqueda se comporta exactamente como la del catálogo (CA-122): círculos de color, panel de tallas con «Añadir a la cesta» al pasar el cursor o tabular (desde 768 px), foto con cambio de color, agotadas sin panel, sin controles a 375 px.
+- No hay componentes ni estilos nuevos: se reutilizan `ProductCard`, `QuickAdd` y sus tokens (estilo v1-soft-commerce@0.3.0).
+- **Efecto secundario aceptado:** `/buscar` ya lee cookies por `searchParams`, así que seguía siendo dinámica; leer la sesión no la hace menos estática. La portada no cambia.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-141 | RF-25 | `/buscar?q=…` con resultados en stock, a 768 px o más | Se pasa el cursor o se tabula hasta una tarjeta | Se comporta como CA-122: aparece el panel con las tallas del color elegido y «Añadir a la cesta» (desactivado hasta elegir talla); elegir talla y pulsar añade esa variante al carrito (aviso `aria-live`, drawer de CA-124); elegir un círculo cambia la foto y las tallas; una tarjeta agotada no lleva panel; a 375 px solo hay foto, círculos, nombre y precio | test e2e `catalog-quick-add` (Chromium) y unitario |
+| CA-142 | RF-25 | La portada y `/buscar` de 320 a 1280 px | Se abren | La portada sigue sin panel (solo círculos); `/buscar` no tiene scroll horizontal ni tarjetas cortadas con el panel abierto; axe sin violaciones graves | e2e `catalog-quick-add`, `responsive.spec.ts` y test:a11y |
+
+**Nuevas tareas derivadas:** T-098 (`/buscar` con `quickAdd`, CA-141 y CA-142).

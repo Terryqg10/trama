@@ -219,7 +219,7 @@ describe('ProductCard: estado normal limpio (CA-122)', () => {
     expect(screen.getByTestId('card-colors').querySelector('span')?.className).toContain('bg-surface-muted');
   });
 
-  it('en la portada y la búsqueda (sin quickAdd) los círculos se ven en todos los anchos y no hay panel', () => {
+  it('en la portada (sin quickAdd) los círculos se ven en todos los anchos y no hay panel', () => {
     render(<ProductCard product={product(two)} />);
     expect(screen.getByTestId('card-colors').className).not.toContain('md:hidden');
     expect(screen.queryByTestId('quick-add')).toBeNull();
