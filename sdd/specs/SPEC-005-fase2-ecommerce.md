@@ -1,15 +1,16 @@
 ---
 id: SPEC-005-fase2-ecommerce
 title: Fase 2 — área de usuario, ofertas y sección de app móvil
-status: borrador
+status: aprobada
 rigor_level: L
 created: 2026-10-24
 updated: 2026-10-24
+aprobada: 2026-10-24 (decisiones DP-1 a DP-10 del usuario, ver Decisiones adoptadas)
 ---
 
 # SPEC-005 — Fase 2: área de usuario, ofertas y «Trama en tu móvil»
 
-> **BORRADOR para revisión del usuario. No está aprobada: no se programa nada hasta que lo esté** (I1).
+> APROBADA el 2026-10-24 con las decisiones de la sección «Decisiones adoptadas» (al final), que prevalecen sobre cualquier opción abierta del texto.
 > Se numera 005 porque SPEC-004 ya existe (integración continua, aprobada) y SPEC-002 reserva el nombre SPEC-003. El «paso 1» del
 > usuario (`/buscar` con la tarjeta completa) no va aquí: se cubrió con la Enmienda 42 de SPEC-001 y la tarea T-098.
 > Todo lo marcado **VERIFICAR** o **DP-n** (decisión pendiente) está sin decidir; ninguna cifra ni texto legal está inventado.
@@ -53,21 +54,21 @@ updated: 2026-10-24
 
 | ID | Requisito |
 |---|---|
-| RF-01 | **Modal de acceso.** El icono de usuario de la cabecera abre un modal con pestañas «Iniciar sesión» / «Crear cuenta», con el mismo contenido y validación que `/acceso` y `/registro` (se reutilizan sus acciones de servidor). Sin JavaScript, el icono sigue siendo un enlace a `/acceso` (`rules/ui-decisions.md`: icono de acción como enlace con hash). Las páginas `/acceso` y `/registro` se mantienen (retornos de `?siguiente=`, enlaces externos). Estilo limpio de referencia «Fútbol Emotion» (**VERIFICAR**: no hay material en `sdd/explorations`; ver DP-1). |
-| RF-02 | **`/cuenta` con barra lateral** con cuatro entradas: «Mis datos», «Mis pedidos», «Mis favoritos», «Cerrar sesión». Escritorio: columna lateral persistente (convención SaaS/e-commerce). Móvil: navegación horizontal o selector declarado antes de cerrar (puerta 7). |
+| RF-01 | **Modal de acceso.** El icono de usuario de la cabecera abre un modal con pestañas «Iniciar sesión» / «Crear cuenta», con el mismo contenido y validación que `/acceso` y `/registro` (se reutilizan sus acciones de servidor). Sin JavaScript, el icono sigue siendo un enlace a `/acceso` (`rules/ui-decisions.md`: icono de acción como enlace con hash). Las páginas `/acceso` y `/registro` se mantienen (retornos de `?siguiente=`, enlaces externos). Diseño (DP-1, opción C): reglas de diseño premium del OS, sin referencia externa. Tarjeta centrada con imagen a la izquierda y formulario a la derecha desde 768 px; por debajo, solo el formulario. |
+| RF-02 | **`/cuenta` con barra lateral** con cuatro entradas: «Mis datos», «Mis pedidos», «Mis favoritos», «Cerrar sesión». Escritorio: columna lateral persistente (convención SaaS/e-commerce). Móvil: pestañas horizontales desplazables (DP-2, opción A). Entradas finales: «Mis datos», «Mis pedidos», «Mis favoritos», «Trama Club», «Recomienda y gana» y «Cerrar sesión». |
 | RF-03 | **Mis datos** (`/cuenta`): nombre (ya existe `ProfileForm`), cambio de contraseña (ya existe, aviso `?aviso=contrasena`) y **gestión de direcciones** con lo que ya hay (`addresses`). No hay nueva tabla ni nueva pantalla de direcciones; solo se integran en la barra. |
 | RF-04 | **Mis pedidos**: reutiliza `/cuenta/pedidos`. Solo se mueve bajo el layout con barra lateral. |
 | RF-05 | **Mis favoritos** (`/cuenta/favoritos`): se implementa lo ya aprobado en ADR-010 / RF-24 (T-041, T-042, T-043). Esta spec solo los **coloca** en la barra; no duplica sus CA. |
 | RF-06 | **Cerrar sesión**: acción existente (`logoutAction`), ahora en la barra lateral. |
-| RF-07 | **Trama Club (puntos)** — **BORRADOR sujeto a DP-4**. Cada cliente con sesión acumula puntos por pedido pagado y los ve en `/cuenta/club`. Qué da cada euro, qué se canjea, caducidad y si hay niveles: **sin decidir (VERIFICAR, no se inventan cifras)**. |
-| RF-08 | **Recomienda y gana (referidos)** — **BORRADOR sujeto a DP-5**. Cada cliente tiene un código/enlace personal; cuando un amigo se registra con él y paga su primer pedido, ambos obtienen una ventaja (**cuál: sin decidir**). Reglas antifraude en §8. |
+| RF-07 | **Trama Club**: pantalla `/cuenta/club` **solo informativa** («Próximamente», DP-4 opción B). Sin tablas, sin lógica, sin canje, sin cifras. Explica en una frase qué será y deja claro que aún no está disponible. |
+| RF-08 | **Recomienda y gana**: pantalla `/cuenta/recomienda` **solo informativa** («Próximamente», DP-5 opción B). Sin código de referido, sin tabla, sin lógica. |
 
 ### Paso 3 — Ofertas y novedades
 
 | ID | Requisito |
 |---|---|
-| RF-09 | **Más productos «nuevos».** Se amplía el seed con productos `is_new = true` (columna ya existente; **no se propone columna nueva**). Cuántos y cuáles: DP-6. |
-| RF-10 | **Campo `is_offer`.** Ver DP-3: ya existe `compare_at_cents` (precio anterior por variante), que **ya define una oferta** (tarjeta con «−N %»). La propuesta del usuario (`is_offer boolean` en `products` + descuento) duplicaría esa fuente de verdad. Opciones y recomendación en DP-3. |
+| RF-09 | **Más productos «nuevos».** Se marcan **8 productos que ya existen en el catálogo** con `is_new = true` en un seed idempotente (DP-6). Sin columna nueva ni productos nuevos. Aplicarlo a `trama-dev` (compartida) exige permiso expreso del usuario. |
+| RF-10 | **Oferta = variante con `compare_at_cents`** (DP-3 opción A). **No se crea `is_offer`** ni ninguna columna: una sola fuente de verdad. Un producto está en oferta si alguna de sus variantes activas tiene `compare_at_cents` no nulo. |
 | RF-11 | **`/ofertas` conectada:** lista las prendas ofertadas (misma `ProductCard` completa) con contador, filtros/orden del catálogo si aplica, y el estado vacío actual solo cuando no haya ninguna. |
 | RF-12 | **Banner en la página de Ofertas:** franja superior con titular, texto corto y, si procede, «hasta −N %» calculado de los datos reales (no un número fijo en el código). Imagen del banner como estático optimizado (ADR-009). |
 
@@ -77,8 +78,8 @@ updated: 2026-10-24
 |---|---|
 | RF-13 | **Sección al final de la portada**, antes del pie: titular «Trama en tu móvil», texto breve, mockup de un teléfono con la tienda y dos botones de tienda (App Store / Google Play). |
 | RF-14 | **Aviso explícito de demostración:** «Trama es un proyecto de demostración: no existe una app real.» visible en la propia sección (`role="note"`), no solo en un tooltip. |
-| RF-15 | **Qué hacen los botones** (la puerta 7 prohíbe enlaces muertos y `#`): ver DP-7. Propuesta: son botones que abren un pequeño diálogo accesible «App no disponible — esto es una demo» con enlace a `/novedades`; **nunca** enlazan a las tiendas reales ni a una URL inventada. |
-| RF-16 | **Mockup:** imagen del teléfono. Yo no puedo generar imágenes binarias aquí (**VERIFICAR** con el usuario, DP-8): alternativas en DP-8. |
+| RF-15 | **Qué hacen los botones** (la puerta 7 prohíbe enlaces muertos y `#`): ver DP-7. Decisión (DP-7, opción A): son botones que abren un pequeño diálogo accesible «App no disponible — esto es una demo» con enlace a `/novedades`; **nunca** enlazan a las tiendas reales ni a una URL inventada. |
+| RF-16 | Mockup: teléfono maquetado en HTML/CSS con capturas de la propia tienda como estáticos (DP-8 opción B); sin API ni coste. |
 
 ## 4. Requisitos no funcionales
 
@@ -151,33 +152,53 @@ Solo si se aprueban Club y referidos (DP-4, DP-5):
 
 ## 11. Criterios de aceptación
 
-**Pendientes de redactar tras decidir las DP.** Esbozo de cobertura (cada uno con su RF, Dado/Cuando/Entonces y test):
-RF-01 (e2e modal: abrir/cerrar/foco/Esc/clic fuera/sin JS), RF-02 a RF-06 (e2e de `/cuenta` con barra lateral y axe, responsive 320–1280), RF-09 a RF-12 (integración de la consulta de ofertas con BD real + e2e de `/ofertas`), RF-13 a RF-16 (e2e de la portada y del diálogo; sin enlaces muertos), y si se aprueban RF-07/RF-08 (integración con RLS e idempotencia del webhook).
+(Numeración propia de SPEC-005.)
 
-## 12. Tareas previstas (orientativo, a crear tras aprobar)
+**| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-01 | RF-10 | Productos con y sin `compare_at_cents` en alguna variante activa | Se consulta la lista de ofertas | Devuelve solo los que tienen al menos una variante con `compare_at_cents` no nulo, sin duplicados, con la misma forma que el catálogo; sin ofertas devuelve `[]` | integración (BD real, solo lectura) y unitario |
+| CA-02 | RF-11 | `/ofertas` con ofertas | Se abre | Lista esas prendas con la tarjeta completa (CA-122/CA-141 de SPEC-001: hover, tallas, añadir), contador y rejilla del catálogo | e2e + unitario |
+| CA-03 | RF-11 | `/ofertas` sin ofertas | Se abre | Estado vacío actual con enlace a Novedades | unitario |
+| CA-04 | RF-12 | `/ofertas` | Se mira | Banner superior con titular, texto y «hasta −N %» calculado del mayor descuento real (redondeado como la tarjeta); sin ofertas no hay cifra; imagen estática optimizada con `alt`; legible de 320 a 1280 px | e2e + unitario |
+| CA-05 | RF-11, RF-12 | `/ofertas` de 320 a 1280 px | Se abre | Sin scroll horizontal ni recortes; axe sin violaciones graves; captura a 375 px en la review | e2e, `responsive.spec.ts` ampliado, test:a11y |
+| CA-06 | RF-09 | El seed de novedades | Se revisa | Marca exactamente 8 productos existentes con `is_new = true` por `slug`, es idempotente y no toca stock, precios ni otras columnas | revisión + comprobación documentada tras aplicarlo (con permiso) |
+| CA-07 | RF-02, RF-06 | Un cliente con sesión | Abre cualquier `/cuenta/*` | Barra lateral (≥ 768 px) / pestañas horizontales desplazables (< 768 px) con las seis entradas, `nav` con nombre, `aria-current` en la activa, zonas ≥ 44 px, «Cerrar sesión» como formulario; sin sesión redirige a `/acceso` | e2e + axe |
+| CA-08 | RF-03, RF-04 | `/cuenta`, `/cuenta/direcciones/*`, `/cuenta/pedidos/*` | Se abren | Funcionan igual que antes dentro del layout nuevo; sin tabla ni pantalla de direcciones nuevas | tests e2e existentes de cuenta + responsive |
+| CA-09 | RF-05 | Las entradas de la barra | Se pulsan | «Mis favoritos» lleva a `/cuenta/favoritos` (T-043); ninguna entrada es un enlace muerto | e2e |
+| CA-10 | RF-07 | `/cuenta/club` | Se abre | Pantalla informativa «Próximamente», sin formularios ni cifras, sin acceso a la BD más allá de la sesión | unitario + e2e |
+| CA-11 | RF-08 | `/cuenta/recomienda` | Se abre | Pantalla informativa «Próximamente», sin código de referido ni lógica | unitario + e2e |
+| CA-12 | RF-01 | El icono de usuario sin sesión | Se pulsa | Se abre el modal con pestañas «Iniciar sesión» / «Crear cuenta» (reutiliza las acciones y la validación de `/acceso` y `/registro`); `role="dialog"`, `aria-modal`, foco atrapado y devuelto, Esc / X / clic fuera, `body` sin scroll; imagen a la izquierda y formulario a la derecha desde 768 px, solo formulario por debajo; sin movimiento con `prefers-reduced-motion` | unitario + e2e |
+| CA-13 | RF-01 | Sin JavaScript, o con sesión | Se pulsa el icono | Sin JS lleva a `/acceso`; con sesión lleva a `/cuenta`; el error de credenciales se anuncia sin cerrar el modal; se conserva `?siguiente=` y se fusiona el carrito | e2e |
+| CA-14 | RF-13, RF-14 | La portada | Se mira el final | Sección «Trama en tu móvil» antes del pie con teléfono maquetado, dos botones de tienda y el aviso `role="note"` «Trama es un proyecto de demostración: no existe una app real.»; la portada sigue estática | unitario + e2e |
+| CA-15 | RF-15 | Los botones de tienda | Se pulsan | Abren un diálogo accesible «App no disponible» con enlace a `/novedades`, cerrable con Esc / X / clic fuera; ningún enlace a tiendas reales ni `#` | e2e |
+| CA-16 | RF-16 | La sección de app de 320 a 1280 px | Se abre | Sin scroll horizontal ni recortes; imágenes con `alt`; axe sin violaciones graves; captura a 375 px | e2e, responsive, a11y |
 
-1. Layout de `/cuenta` con barra lateral (+ vacíos).
-2. Favoritos: ya existen T-041, T-042, T-043 (pendientes): se ejecutan, no se duplican.
-3. Modal de acceso.
-4. Datos de ofertas (migración según DP-3) + seed idempotente de nuevos/ofertas.
-5. `/ofertas` conectada + banner.
-6. Sección «Trama en tu móvil».
-7. (Si DP-4) Trama Club: datos + RLS → lógica → pantalla.
-8. (Si DP-5) Referidos: datos + RLS → lógica → pantalla.
+## 12. Tareas (orden de DP-10: Ofertas primero)
 
----
+| Orden | Tarea | CA |
+|---|---|---|
+| 1 | T-099 Consulta de ofertas (lectura, sin migración) | CA-01 |
+| 2 | T-100 `/ofertas` conectada + banner | CA-02 a CA-05 |
+| 3 | T-101 Seed de 8 novedades (`is_new`) | CA-06 |
+| 4 | T-041, T-042, T-043 Favoritos (ya existentes, pendientes) | RF-24 de SPEC-001 |
+| 5 | T-102 Layout de `/cuenta` con barra lateral y pestañas | CA-07 a CA-09 |
+| 6 | T-103 Trama Club informativo | CA-10 |
+| 7 | T-104 Recomienda y gana informativo | CA-11 |
+| 8 | T-105 Modal de acceso | CA-12, CA-13 |
+| 9 | T-106 Sección «Trama en tu móvil» y diálogo | CA-14 a CA-16 |
 
-## DECISIONES PENDIENTES
+## Decisiones adoptadas (2026-10-24)
 
-| # | Decisión | Opciones y trade-off | Recomendación |
-|---|---|---|---|
-| **DP-1** | Referencia «Fútbol Emotion» para el modal | (a) Ejecutar `/competencia` sobre su web y guardarlo como exploración (rigor, tarda). (b) Que el usuario pegue capturas/descripción. (c) Diseñar un modal limpio estándar con los tokens v1 y sin referencia. | **(a)**: `rules/ui-decisions.md` pide investigar, no adivinar la convención. Mientras, la spec no cierra el diseño del modal. |
-| **DP-2** | ¿`/cuenta` con barra lateral en móvil? | (a) Barra superior con pestañas desplazables. (b) Selector desplegable. (c) Menú inferior (tab bar). | **(a)**: es lo habitual en cuentas de e-commerce y mantiene las 4 entradas visibles. |
-| **DP-3** | `is_offer` frente a `compare_at_cents` | (A) **Derivar «oferta» de `compare_at_cents`** (sin columna nueva): una sola fuente de verdad, `/ofertas` ya tendría 5 prendas de seed. (B) Añadir `products.is_offer boolean` (+ `discount_percent`) como pide el usuario: duplica el dato y puede contradecir el precio tachado; exigiría CHECK y migración. (C) Ambos: `is_offer` como etiqueta editorial y `compare_at_cents` como precio. | **A**. Si el usuario quiere el campo `is_offer` literal, **B/C con una restricción que impida `is_offer` sin descuento**. Es el único punto donde su petición choca con lo que ya existe. |
-| **DP-4** | Trama Club (puntos) | (a) Implementarlo (cifras, canje, caducidad a decidir por el usuario; texto legal). (b) Solo una pantalla informativa «Próximamente» honesta, sin lógica. (c) Dejarlo fuera de la fase. | **(b)** en esta fase: en una demo con pagos en test los puntos no tienen valor real y añaden privacidad y fraude; si el usuario lo quiere funcional, **(a)** con ADR y sus cifras. |
-| **DP-5** | Recomienda y gana | Igual que DP-4, más riesgo de fraude y datos de terceros. | **(b)/(c)**: lo más delicado de la spec; implementarlo solo con cifras, reglas antifraude y asesoría legal decididas. |
-| **DP-6** | Cuántos productos `is_new` más | Número y categorías; las fotos son estáticos (ADR-009). | Que el usuario diga cuántos; recomiendo ≥ 8 para llenar la rejilla de Novedades; fotos nuevas: ¿las aporta él? |
-| **DP-7** | Botones de tiendas de apps | (a) Diálogo «App no disponible (demo)». (b) Botones desactivados con `aria-disabled` y texto «Próximamente». (c) Enlazar a las tiendas reales (prohibido por puerta 7 y engañoso). | **(a)**, con botones propios (no las insignias oficiales, para evitar problemas de marca y sugerir una app real). |
-| **DP-8** | Mockup «imagen generada» | (a) Que el usuario genere/aporte la imagen (Gemini, etc.) y se añade como estático. (b) Maquetar el teléfono en HTML/CSS/SVG con capturas de la propia tienda (sin API, sin coste). (c) Servicio de imagen de pago (tope de coste obligatorio). | **(b)** o **(a)**: yo no genero binarios aquí y (c) añade coste y revisión de términos. |
-| **DP-9** | ¿Se incluye «borrar mi cuenta»? | Incluirlo en la barra o diferirlo. | Diferirlo a otra spec, pero **anotarlo**: es un requisito de privacidad de cualquier área de usuario real. |
-| **DP-10** | Orden de ejecución | (a) Cuenta + favoritos primero; ofertas después; app móvil al final. (b) Ofertas primero (valor visible rápido). | **(b)**: `/ofertas` vacía es el hueco más visible y DP-3 no depende de legal; Club/Referidos al final o fuera. |
+| # | Decisión del usuario |
+|---|---|
+| DP-1 | Opción C: reglas de diseño premium del OS; modal con tarjeta centrada, imagen a la izquierda y formulario a la derecha. |
+| DP-2 | Opción A: pestañas horizontales desplazables en móvil. |
+| DP-3 | Opción A: usar `compare_at_cents`; no se crea `is_offer`. |
+| DP-4 y DP-5 | Opción B: Trama Club y Recomienda y gana como pantallas informativas «Próximamente» en la barra lateral, sin BD ni canje. |
+| DP-6 | 8 productos existentes con `is_new = true` en el seed. |
+| DP-7 | Opción A: diálogo «App no disponible». |
+| DP-8 | Opción B: teléfono maquetado en HTML/CSS con capturas de la tienda. |
+| DP-9 | Diferir «borrar mi cuenta» (anotado: requisito de privacidad pendiente). |
+| DP-10 | Opción B: Ofertas primero. |
+
+**Consecuencias:** al no haber puntos ni referidos funcionales, desaparecen de esta fase las tablas, el antifraude y los textos legales de §8 y §9 (siguen siendo condición para una spec futura que los implemente). No hay migración de ofertas. Los favoritos (T-041 a T-043) deben cerrarse antes de la barra lateral para que «Mis favoritos» no sea un enlace muerto.
