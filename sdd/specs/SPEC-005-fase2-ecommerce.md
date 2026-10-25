@@ -202,3 +202,23 @@ Solo si se aprueban Club y referidos (DP-4, DP-5):
 | DP-10 | Opción B: Ofertas primero. |
 
 **Consecuencias:** al no haber puntos ni referidos funcionales, desaparecen de esta fase las tablas, el antifraude y los textos legales de §8 y §9 (siguen siendo condición para una spec futura que los implemente). No hay migración de ofertas. Los favoritos (T-041 a T-043) deben cerrarse antes de la barra lateral para que «Mis favoritos» no sea un enlace muerto.
+
+---
+
+## Enmienda 1 — 2026-10-25 — sin ADR — menú desplegable del icono de usuario (RF-17, CA-17 a CA-20)
+
+**Origen:** el usuario pide que el icono de usuario de la cabecera, con sesión, despliegue un menú flotante en lugar de llevar a `/cuenta` (referencia de estilo: Sprinter). **Matiza RF-01 y CA-13**: sin sesión sigue abriéndose el modal de acceso; con sesión, en vez de ir a `/cuenta`, se abre el menú. Sin JavaScript el icono sigue siendo un enlace a `/cuenta`.
+
+- **RF-17 (nuevo):** con sesión, el icono abre un menú con «Hola, <nombre>» (nombre del perfil; sin nombre, «Hola») y las entradas «Mis datos» (`/cuenta`), «Mis pedidos» (`/cuenta/pedidos`), «Trama Club» (`/cuenta/club`) y «Cerrar sesión» (acción de servidor existente). **Se piden solo esas cuatro**: «Mis favoritos» y «Recomienda y gana» siguen en la barra de la cuenta (T-102) y no están en el menú (decisión a confirmar).
+- Se cierra con un clic fuera, con Esc y al elegir una entrada; el foco vuelve al icono con Esc.
+- **Accesibilidad:** el icono lleva `aria-haspopup` y `aria-expanded`; el menú, `role="menu"` con `role="menuitem"` y navegación con flechas, Inicio y Fin.
+- **Estilo:** tokens de v1 (`bg-surface`, `border-border`, `rounded-container`, `shadow-card`), no las clases `rounded-xl shadow-lg` del encargo: la regla de estilos prohíbe valores fuera de los tokens.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-17 | RF-17 | Un cliente con sesión en cualquier página | Pulsa el icono de usuario | Se abre un menú (`role="menu"`) bajo el icono con «Hola, <nombre>», «Mis datos», «Mis pedidos», «Trama Club» y «Cerrar sesión»; el icono pasa a `aria-expanded="true"`; no navega | e2e `user-menu` y unitario |
+| CA-18 | RF-17 | El menú abierto | Se pulsa fuera, se pulsa Esc o se elige una entrada | Se cierra; con Esc el foco vuelve al icono; cada entrada lleva a su destino y «Cerrar sesión» cierra la sesión | e2e `user-menu` |
+| CA-19 | RF-17 | El menú abierto | Se usa el teclado | La primera entrada recibe el foco; flechas arriba/abajo, Inicio y Fin recorren las entradas; Tab saca el foco y cierra el menú; axe sin violaciones graves | e2e `user-menu` y unitario |
+| CA-20 | RF-17, RF-01 | Un visitante sin sesión, o sin JavaScript | Pulsa el icono | Sin sesión abre el modal de acceso (CA-12); sin JavaScript va a `/cuenta`; de 320 a 1280 px el menú no se sale del viewport ni causa scroll horizontal | e2e `user-menu` y `auth-modal` |
+
+**Nueva tarea derivada:** T-107 (componente `UserMenu` e integración en la cabecera).

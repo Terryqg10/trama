@@ -1,14 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { Menu, Search, ShoppingBag, User, X } from 'lucide-react';
-import { sessionStatusAction } from '@/lib/auth/actions';
 import { ACTION_NAV, MAIN_NAV } from '@/lib/domain/navigation';
-import { AuthModal } from './account/AuthModal';
 import { useCartDrawer } from './cart/CartDrawerContext';
 import { SearchBar } from './layout/SearchBar';
+import { UserMenu } from './layout/UserMenu';
 import { Logo } from './Logo';
 import { useHashOverlay } from './useHashOverlay';
 
@@ -34,11 +33,7 @@ const overlayLinkBase =
  */
 export function SiteHeader() {
   const pathname = usePathname();
-  const router = useRouter();
   const { openCart } = useCartDrawer();
-  // El modal de acceso está abierto mientras la ruta sea en la que se abrió: un acceso correcto redirige y lo cierra.
-  const [authPath, setAuthPath] = useState<string | null>(null);
-  const authOpen = authPath === pathname;
   const triggerRef = useRef<HTMLAnchorElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLAnchorElement>(null);
@@ -62,17 +57,6 @@ export function SiteHeader() {
   useEffect(() => {
     if (search.open) searchInputRef.current?.focus();
   }, [search.open]);
-
-  // Con JavaScript, el icono de usuario abre el modal si no hay sesión y lleva a `/cuenta` si la hay (CA-12, CA-13). Sin
-  // JavaScript sigue siendo un enlace a `/cuenta`, que sin sesión redirige a `/acceso`. En las páginas de acceso navega.
-  async function onAccountClick(event: ReactMouseEvent<HTMLAnchorElement>): Promise<void> {
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
-    if (['/acceso', '/registro', '/recuperar'].includes(pathname)) return;
-    event.preventDefault();
-    const { signedIn } = await sessionStatusAction();
-    if (signedIn) router.push(ACTION_NAV.account.href);
-    else setAuthPath(pathname);
-  }
 
   function itemClass(href: string): string {
     return `${linkBase} ${pathname === href ? linkCurrent : linkIdle}`;
@@ -120,16 +104,7 @@ export function SiteHeader() {
           >
             <Search aria-hidden="true" />
           </a>
-          <Link
-            href={ACTION_NAV.account.href}
-            aria-label={ACTION_NAV.account.label}
-            aria-haspopup="dialog"
-            data-testid="account-open"
-            onClick={onAccountClick}
-            className={iconButton}
-          >
-            <User aria-hidden="true" />
-          </Link>
+          <UserMenu />
           {/* Sigue siendo un enlace a /carrito (sin JavaScript navega); con JavaScript abre el carrito lateral (CA-124), salvo en
               /carrito, donde ya está la lista completa. */}
           <Link
@@ -277,7 +252,6 @@ export function SiteHeader() {
           <span tabIndex={0} onFocus={() => overlay.focusEdge('first')} data-focus-guard="end" />
         </div>
       </div>
-      <AuthModal open={authOpen} onClose={() => setAuthPath(null)} />
     </header>
   );
 }

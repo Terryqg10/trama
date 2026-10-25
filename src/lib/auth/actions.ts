@@ -135,11 +135,18 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
   redirect(merged ? `${destination}${destination.includes('?') ? '&' : '?'}carrito=fusionado` : destination);
 }
 
-/** ¿Hay sesión? Lo consulta el icono de usuario de la cabecera para decidir entre el modal de acceso y `/cuenta` (CA-13, T-105). */
-export async function sessionStatusAction(): Promise<{ readonly signedIn: boolean }> {
+/**
+ * ¿Hay sesión? Lo consulta el icono de usuario de la cabecera para decidir entre el modal de acceso y el menú de la cuenta
+ * (CA-13, CA-17, T-105, T-107). Con sesión devuelve también el nombre del perfil (vacío si no lo tiene).
+ */
+export async function sessionStatusAction(): Promise<
+  { readonly signedIn: false } | { readonly signedIn: true; readonly name: string }
+> {
   const supabase = await createAuthClient();
   const { data } = await supabase.auth.getUser();
-  return { signedIn: data.user !== null };
+  if (data.user === null) return { signedIn: false };
+  const profile = await supabase.from('profiles').select('full_name').eq('id', data.user.id).maybeSingle();
+  return { signedIn: true, name: profile.data?.full_name?.trim() ?? '' };
 }
 
 export async function logoutAction(): Promise<void> {

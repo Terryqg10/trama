@@ -65,6 +65,8 @@ test.describe('CA-12: el modal', () => {
     await page.getByTestId('account-open').focus();
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('auth-modal')).toBeVisible();
+    // El foco entra en un efecto: hasta entonces el oyente de Esc aún no existe (WebKit llega antes).
+    await expect(page.getByTestId('auth-modal')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('auth-modal')).toBeHidden();
     await expect(page.getByTestId('account-open')).toBeFocused();
@@ -129,7 +131,7 @@ test.describe('CA-13: sesión, errores y carrito', () => {
     await expect(page.getByTestId('auth-modal')).toHaveCount(0);
   });
 
-  test('con sesión, el icono lleva a /cuenta sin abrir el modal', async ({ page }) => {
+  test('con sesión, el icono abre el menú de la cuenta (T-107) y no el modal', async ({ page }) => {
     const credentials = await newUser('modal-session');
     await page.goto('/acceso');
     await page.getByLabel('Email').fill(credentials.email);
@@ -138,7 +140,8 @@ test.describe('CA-13: sesión, errores y carrito', () => {
     await expect(page).toHaveURL(/\/cuenta$/);
     await page.goto('/novedades');
     await page.getByTestId('account-open').click();
-    await expect(page).toHaveURL(/\/cuenta$/);
+    await expect(page.getByTestId('user-menu')).toBeVisible();
+    await expect(page).toHaveURL(/\/novedades$/);
     await expect(page.getByTestId('auth-modal')).toHaveCount(0);
   });
 
