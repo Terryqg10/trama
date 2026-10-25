@@ -4,6 +4,7 @@ import { DUAL_BANNER_SLIDES } from '@/components/home/dual-banner-slides';
 import { DualBannerSlider } from '@/components/home/DualBannerSlider';
 import { ExploreSection } from '@/components/home/ExploreSection';
 import { HERO_SLIDES } from '@/components/home/hero-slides';
+import { MobileAppSection } from '@/components/home/MobileAppSection';
 import { NewArrivals } from '@/components/home/NewArrivals';
 import { NewsletterSection } from '@/components/home/NewsletterSection';
 import { PromoModal } from '@/components/home/PromoModal';
@@ -53,6 +54,7 @@ export default function Home() {
         <TrustSection />
       </div>
       <NewsletterSection />
+      <MobileAppSection />
     </>
   );
 }
