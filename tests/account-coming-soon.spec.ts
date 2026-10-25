@@ -33,7 +33,10 @@ async function enter(page: Page, width: number): Promise<void> {
   await expect(page).toHaveURL(/\/cuenta$/);
 }
 
-const PAGES = [{ path: '/cuenta/club', label: 'Trama Club' }] as const;
+const PAGES = [
+  { path: '/cuenta/club', label: 'Trama Club' },
+  { path: '/cuenta/recomienda', label: 'Recomienda y gana' },
+] as const;
 
 test('sin sesión redirigen al acceso', async ({ page }) => {
   for (const { path } of PAGES) {
