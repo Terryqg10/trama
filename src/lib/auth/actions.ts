@@ -135,6 +135,13 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
   redirect(merged ? `${destination}${destination.includes('?') ? '&' : '?'}carrito=fusionado` : destination);
 }
 
+/** ¿Hay sesión? Lo consulta el icono de usuario de la cabecera para decidir entre el modal de acceso y `/cuenta` (CA-13, T-105). */
+export async function sessionStatusAction(): Promise<{ readonly signedIn: boolean }> {
+  const supabase = await createAuthClient();
+  const { data } = await supabase.auth.getUser();
+  return { signedIn: data.user !== null };
+}
+
 export async function logoutAction(): Promise<void> {
   const supabase = await createAuthClient();
   await supabase.auth.signOut();

@@ -20,7 +20,8 @@ function GuestCartField() {
 
 const linkClass = 'font-medium text-accent-text underline underline-offset-4 hover:text-accent-hover';
 
-export function LoginForm({ next }: { readonly next?: string }) {
+/** Con `onSwitch` (modal de acceso, T-105) el enlace a la otra pestaña no navega: la cambia. */
+export function LoginForm({ next, onSwitch }: { readonly next?: string; readonly onSwitch?: () => void }) {
   const [state, action] = useActionState(loginAction, initialFormState);
   const formRef = useFormFocus(state);
   return (
@@ -51,15 +52,21 @@ export function LoginForm({ next }: { readonly next?: string }) {
       </p>
       <p className="text-sm text-fg-muted">
         ¿No tienes cuenta?{' '}
-        <Link href="/registro" className={linkClass}>
-          Crear cuenta
-        </Link>
+        {onSwitch ? (
+          <button type="button" onClick={onSwitch} className={`${linkClass} min-h-11`}>
+            Crear cuenta
+          </button>
+        ) : (
+          <Link href="/registro" className={linkClass}>
+            Crear cuenta
+          </Link>
+        )}
       </p>
     </form>
   );
 }
 
-export function RegisterForm() {
+export function RegisterForm({ onSwitch }: { readonly onSwitch?: () => void } = {}) {
   const [state, action] = useActionState(registerAction, initialFormState);
   const formRef = useFormFocus(state);
   return (
@@ -92,9 +99,15 @@ export function RegisterForm() {
       <SubmitButton pendingLabel="Creando cuenta…">Crear cuenta</SubmitButton>
       <p className="text-sm text-fg-muted">
         ¿Ya tienes cuenta?{' '}
-        <Link href="/acceso" className={linkClass}>
-          Iniciar sesión
-        </Link>
+        {onSwitch ? (
+          <button type="button" onClick={onSwitch} className={`${linkClass} min-h-11`}>
+            Iniciar sesión
+          </button>
+        ) : (
+          <Link href="/acceso" className={linkClass}>
+            Iniciar sesión
+          </Link>
+        )}
       </p>
     </form>
   );
