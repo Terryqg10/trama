@@ -76,6 +76,16 @@ export default async function CuentaPage({
           </span>
         </Link>
 
+        <Link
+          href="/cuenta/favoritos"
+          className="flex min-h-11 items-center justify-between rounded-container border border-border bg-surface px-5 py-3 font-semibold hover:bg-accent-soft"
+        >
+          Mis favoritos
+          <span aria-hidden="true" className="text-fg-muted">
+            →
+          </span>
+        </Link>
+
         <section aria-labelledby="titulo-perfil">
           <h2 id="titulo-perfil" className="text-xl font-semibold">
             Tus datos

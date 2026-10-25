@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import {
   adminClient,
@@ -121,6 +122,80 @@ test.describe('CA-77: con sesión el corazón añade, quita y se conserva al rec
         const box = await sticky.boundingBox();
         expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(width);
       }
+    });
+  }
+});
+
+// CA-78 (T-043): «Mis favoritos» en la cuenta.
+test.describe('CA-78: página «Mis favoritos»', () => {
+  test('sin sesión redirige al acceso', async ({ page }) => {
+    await page.goto('/cuenta/favoritos');
+    await expect(page).toHaveURL(/\/acceso/);
+  });
+
+  test('sin favoritos muestra el aviso con enlace al catálogo', async ({ page }) => {
+    const credentials = await newUser('fav-empty');
+    await page.goto('/acceso');
+    await login(page, credentials, /\/cuenta$/);
+    await page.getByRole('link', { name: /Mis favoritos/ }).click();
+    await expect(page).toHaveURL(/\/cuenta\/favoritos$/);
+    await expect(page.getByText('Aún no tienes favoritos')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Ver novedades' })).toHaveAttribute('href', '/novedades');
+  });
+
+  test('con favoritos los lista con enlace a la ficha y permite quitarlos', async ({ page }) => {
+    const credentials = await newUser('fav-list');
+    await page.goto('/acceso');
+    await login(page, credentials, /\/cuenta$/);
+    await page.goto(FICHA);
+    await page.getByTestId('favorite-button').click();
+    await expect(page.getByTestId('favorite-button')).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(async () => (await favoriteIds(credentials.email)).length).toBe(1);
+
+    await page.goto('/cuenta/favoritos');
+    const list = page.getByTestId('favorites-list');
+    await expect(list.locator('article')).toHaveCount(1);
+    await expect(list.getByRole('link', { name: 'Polo piqué básico' })).toHaveAttribute('href', FICHA);
+    const axe = await new AxeBuilder({ page }).analyze();
+    expect(axe.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
+    await list.getByRole('button', { name: 'Quitar Polo piqué básico de favoritos' }).click();
+    await expect(page.getByText('Aún no tienes favoritos')).toBeVisible();
+    expect(await favoriteIds(credentials.email)).toHaveLength(0);
+  });
+
+  test('un producto desactivado no aparece', async ({ page }) => {
+    const credentials = await newUser('fav-inactive');
+    await page.goto('/acceso');
+    await login(page, credentials, /\/cuenta$/);
+    await page.goto(FICHA);
+    await page.getByTestId('favorite-button').click();
+    await expect.poll(async () => (await favoriteIds(credentials.email)).length).toBe(1);
+    // Se desactiva un producto de PRUEBA propio, no uno del catálogo real.
+    const created = await admin
+      .from('products')
+      .insert({ slug: `t043-${Date.now()}`, name: 'Prenda inactiva T-043', gender: 'mujer', category: 'jerseis', occasion: 'casual', active: false })
+      .select('id')
+      .single();
+    if (created.error) throw new Error(created.error.message);
+    const productId = (created.data as { id: string }).id;
+    const user = (await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })).data.users.find((u) => u.email === credentials.email);
+    await admin.from('favorites').insert({ user_id: user?.id ?? '', product_id: productId });
+    await page.goto('/cuenta/favoritos');
+    await expect(page.getByTestId('favorites-list').locator('article')).toHaveCount(1);
+    await expect(page.getByText('Prenda inactiva T-043')).toHaveCount(0);
+    await admin.from('products').delete().eq('id', productId);
+  });
+
+  for (const width of [320, 375, 768, 1280]) {
+    test(`sin scroll horizontal a ${width} px`, async ({ page }) => {
+      const credentials = await newUser(`fav-w${width}`);
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto('/acceso');
+      await login(page, credentials, /\/cuenta$/);
+      await page.goto('/cuenta/favoritos');
+      await expect(page.getByText('Aún no tienes favoritos')).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
     });
   }
 });

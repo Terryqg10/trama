@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/auth/session';
 import { addFavorite, removeFavorite } from './favorites';
@@ -34,4 +35,21 @@ export async function setFavoriteAction(productId: string, favorite: boolean): P
     console.error('setFavoriteAction falló', error instanceof Error ? error.message : 'error desconocido');
     return { status: 'error' };
   }
+}
+
+/**
+ * Quitar un favorito desde la lista de la cuenta (CA-78, T-043). Formulario de servidor: funciona sin JavaScript. La
+ * entrada se valida con Zod y la operación usa la sesión (RLS); un id inválido o una sesión caducada no hacen nada.
+ */
+export async function removeFavoriteFormAction(formData: FormData): Promise<void> {
+  const productId = productIdSchema.safeParse(formData.get('productId'));
+  if (!productId.success) return;
+  try {
+    const { client, user } = await getCurrentUser();
+    if (!user) return;
+    await removeFavorite(client, productId.data);
+  } catch (error) {
+    console.error('removeFavoriteFormAction falló', error instanceof Error ? error.message : 'error desconocido');
+  }
+  revalidatePath('/cuenta/favoritos');
 }

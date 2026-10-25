@@ -97,6 +97,25 @@ export async function getOfferProducts(
   return sortProducts(rows.map(toCatalogProduct).filter(isOffer), 'novedades');
 }
 
+/**
+ * Productos activos por id, en el mismo orden que `ids` (los inactivos o inexistentes se omiten: las políticas RLS los
+ * ocultan). Para la lista de favoritos (T-043). Los ids se validan como UUID.
+ */
+export async function getProductsByIds(
+  ids: readonly string[],
+  client: PublicSupabaseClient = createPublicClient(),
+): Promise<CatalogProduct[]> {
+  const parsed = z.array(z.string().uuid()).max(MAX_PRODUCTS).parse([...ids]);
+  if (parsed.length === 0) return [];
+  const { data, error } = await client.from('products').select(LIST_SELECT).in('id', parsed);
+  if (error) throw new Error(`No se pudieron cargar los productos: ${error.message.slice(0, 200)}`);
+  const byId = new Map(z.array(catalogRowSchema).parse(data).map((row) => [row.id, toCatalogProduct(row)]));
+  return parsed.flatMap((id) => {
+    const product = byId.get(id);
+    return product ? [product] : [];
+  });
+}
+
 /** Devuelve la ficha de un producto activo, o `null` si no existe o no es visible. */
 export async function getProductBySlug(
   slug: string,
