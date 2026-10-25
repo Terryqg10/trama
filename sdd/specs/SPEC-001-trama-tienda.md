@@ -1187,3 +1187,17 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-143 | RF-23 | La portada | Se llega a la franja de envío | Muestra, centrados en columna con `gap-3`, un icono de camión decorativo, el título «ENVÍO GRATIS A PARTIR DE 50,00 €» (texto «Envío gratis a partir de 50,00 €» en mayúsculas por CSS, importe de `shop.ts`) y el subtítulo con la tarifa plana y los días de devolución de `shop.ts`; fondo `bg-surface`, contraste AA de título y subtítulo, sin foto, a todo el ancho y sin scroll horizontal de 320 a 1920 px | test unitario `ShippingBanner`, e2e `home-sections` y `home-layout` |
 
 **Nueva tarea derivada:** T-109 (franja de envío con icono).
+
+### Enmienda 44 — 2026-10-25 — sin ADR — fondo degradado sutil en la newsletter (CA-144)
+
+**Origen:** el usuario pide un fondo degradado sutil, con el color de acento, en la sección de newsletter de la portada. **Sustituye** de la Enmienda 26 / CA-101 (y del test `newsletter`) que el fondo fuera `bg-surface-muted`; el resto de CA-101 (formulario, consentimiento, `aria-live`, centrado) no cambia.
+
+- **Fondo:** degradado diagonal que sale de la esquina superior izquierda: `bg-linear-to-br from-accent/10 via-surface to-surface` (en Tailwind 4 `bg-linear-to-br` sustituye al `bg-gradient-to-br` del encargo). Solo tokens.
+- **Contraste:** el texto debe seguir cumpliendo AA (≥ 4,5:1) sobre **el peor píxel** del degradado, no solo sobre un color.
+- El título y el formulario siguen centrados.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-144 | RF-26 | La portada | Se llega a la newsletter | El fondo es un degradado diagonal (`background-image` con degradado, sin color plano) de `accent` al 10 % hacia `surface`; el título, la etiqueta y el texto del consentimiento tienen ≥ 4,5:1 sobre el peor píxel del fondo a 320, 375, 768 y 1280 px; el contenido sigue centrado y sin scroll horizontal | test unitario `NewsletterSection`, e2e `newsletter` |
+
+**Nueva tarea derivada:** T-110 (fondo degradado de la newsletter).

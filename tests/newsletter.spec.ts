@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
+import sharp from 'sharp';
 import { adminClient } from './helpers/auth-users';
 
 // CA-100 y CA-101 (T-059 y T-060): sección de newsletter de la portada (propuestas de valor y suscripción). El alta
@@ -48,7 +49,7 @@ test.describe('sin propuestas de valor sobre el newsletter (CA-101, CA-111)', ()
 });
 
 test.describe('formulario de newsletter (CA-101)', () => {
-  test('tiene título, email, casilla sin marcar con enlace a /privacidad y «Suscribirme», sobre bg-surface-muted', async ({ page }) => {
+  test('tiene título, email, casilla sin marcar con enlace a /privacidad y «Suscribirme», sobre un degradado', async ({ page }) => {
     await open(page);
     const section = newsletter(page);
     await expect(section.getByRole('heading', { level: 2, name: '¡Entérate de todas las novedades y ofertas!' })).toBeVisible();
@@ -57,16 +58,9 @@ test.describe('formulario de newsletter (CA-101)', () => {
     await expect(section.getByRole('link', { name: 'política de privacidad' })).toHaveAttribute('href', '/privacidad');
     await expect(section.getByRole('button', { name: 'Suscribirme' })).toBeVisible();
     expect(await section.evaluate((el) => getComputedStyle(el).textAlign)).toBe('center');
-    const bg = await section.evaluate((el) => getComputedStyle(el).backgroundColor);
-    const mutedBg = await page.evaluate(() => {
-      const probe = document.createElement('div');
-      probe.className = 'bg-surface-muted';
-      document.body.append(probe);
-      const color = getComputedStyle(probe).backgroundColor;
-      probe.remove();
-      return color;
-    });
-    expect(bg).toBe(mutedBg);
+    // CA-144: el fondo es un degradado (imagen de fondo), no un color plano.
+    const image = await section.evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(image).toContain('gradient');
   });
 
   test('el enlace de privacidad lleva a la página de privacidad', async ({ page }) => {
@@ -137,4 +131,52 @@ test.describe('formulario de newsletter (CA-101)', () => {
       await expect(newsletter(page).getByText('Debes aceptar la política de privacidad para suscribirte.')).toBeVisible();
     });
   });
+});
+
+// CA-144 (T-110): contraste AA del texto sobre el peor píxel del degradado.
+const lin = (c: number): number => {
+  const v = c / 255;
+  return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+};
+const luminance = (r: number, g: number, b: number): number => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+const contrast = (a: number, b: number): number => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+
+test.describe('fondo degradado (CA-144)', () => {
+  for (const width of [320, 375, 768, 1280]) {
+    test(`el texto cumple AA sobre el peor píxel del degradado y el contenido sigue centrado a ${width} px`, async ({ page }) => {
+      await open(page, width);
+      const section = newsletter(page);
+      const targets = [
+        section.getByRole('heading', { level: 2 }),
+        section.getByText('He leído y acepto', { exact: false }),
+        section.getByText('Email', { exact: true }),
+      ];
+      const colors: number[] = [];
+      for (const target of targets) {
+        const color = await target.first().evaluate((el) => getComputedStyle(el).color);
+        const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(color);
+        expect(match, `color ${color}`).not.toBeNull();
+        colors.push(luminance(Number(match?.[1]), Number(match?.[2]), Number(match?.[3])));
+      }
+      // Se oculta el contenido para medir solo el fondo.
+      await section.evaluate((el) =>
+        el.querySelectorAll('h2, form').forEach((child) => child.setAttribute('style', 'visibility: hidden !important')),
+      );
+      const png = await section.screenshot();
+      await section.evaluate((el) => el.querySelectorAll('h2, form').forEach((child) => child.removeAttribute('style')));
+      const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      let worst = Infinity;
+      for (let i = 0; i < data.length; i += info.channels) {
+        const bg = luminance(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0);
+        for (const text of colors) worst = Math.min(worst, contrast(text, bg));
+      }
+      expect(worst, `contraste mínimo a ${width}px`).toBeGreaterThanOrEqual(4.5);
+      const heading = await section.getByRole('heading', { level: 2 }).boundingBox();
+      const box = await section.boundingBox();
+      const centreHeading = (heading?.x ?? 0) + (heading?.width ?? 0) / 2;
+      expect(Math.abs(centreHeading - ((box?.x ?? 0) + (box?.width ?? 0) / 2))).toBeLessThan(2);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+    });
+  }
 });

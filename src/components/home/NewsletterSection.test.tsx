@@ -29,8 +29,14 @@ describe('NewsletterSection (CA-101)', () => {
     expect(screen.getByTestId('newsletter-message').getAttribute('aria-live')).toBe('polite');
   });
 
-  it('el fondo del bloque de newsletter usa el token surface-muted', () => {
+  it('el fondo es un degradado diagonal con el acento y solo tokens (CA-144)', () => {
     render(<NewsletterSection />);
-    expect(screen.getByTestId('newsletter').className).toContain('bg-surface-muted');
+    const classes = screen.getByTestId('newsletter').className;
+    expect(classes).toContain('bg-linear-to-br');
+    expect(classes).toContain('from-accent/10');
+    expect(classes).toContain('via-surface');
+    expect(classes).toContain('to-surface');
+    expect(classes).not.toContain('bg-surface-muted');
+    expect(classes).not.toMatch(/#|black|\[(?!--)[^\]]+\]/);
   });
 });

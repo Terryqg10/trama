@@ -6,7 +6,7 @@ import { NewsletterForm } from './NewsletterForm';
  */
 export function NewsletterSection() {
   return (
-    <section aria-labelledby="newsletter-titulo" data-testid="newsletter" className="bg-surface-muted px-(--layout-gutter) py-12 text-center">
+    <section aria-labelledby="newsletter-titulo" data-testid="newsletter" className="bg-linear-to-br from-accent/10 via-surface to-surface px-(--layout-gutter) py-12 text-center">
       <h2 id="newsletter-titulo" className="text-2xl font-bold text-fg md:text-3xl">
         ¡Entérate de todas las novedades y ofertas!
       </h2>
