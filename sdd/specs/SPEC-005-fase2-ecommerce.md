@@ -222,3 +222,26 @@ Solo si se aprueban Club y referidos (DP-4, DP-5):
 | CA-20 | RF-17, RF-01 | Un visitante sin sesión, o sin JavaScript | Pulsa el icono | Sin sesión abre el modal de acceso (CA-12); sin JavaScript va a `/cuenta`; de 320 a 1280 px el menú no se sale del viewport ni causa scroll horizontal | e2e `user-menu` y `auth-modal` |
 
 **Nueva tarea derivada:** T-107 (componente `UserMenu` e integración en la cabecera).
+
+---
+
+## Enmienda 2 — 2026-10-25 — sin ADR — contador en el icono de la cesta (RF-18, CA-21 a CA-24)
+
+**Origen:** el usuario pide un badge con el número de artículos en el icono de la cesta de la cabecera. **Amplía RF-03 de SPEC-001** (carrito) sin cambiar ninguno de sus CA.
+
+**Realidad del carrito (condiciona el diseño):** no existe un `useCart` global con `items[].quantity`. El carrito de invitado vive en `localStorage` (`useSavedCart`, líneas `{ variantId, qty }`) y el de la cuenta, en la BD (`getAccountCartAction`). Un contador correcto tiene que servir a los dos.
+
+- **RF-18 (nuevo):** el icono de la cesta de la cabecera muestra el **total de unidades** (suma de `qty`) en un badge. Oculto con 0 unidades; con más de 9, «9+».
+- **Invitado:** se calcula de `localStorage` y se actualiza al instante, también entre pestañas.
+- **Con sesión:** se pregunta a `getAccountCartAction` (existente) al montar la cabecera y en cada cambio de ruta; los puntos que modifican el carrito de la cuenta (añadir, cantidad, quitar) avisan al contador con el carrito resultante, sin otra consulta. Al cerrar sesión vuelve al contador de invitado. **Coste asumido:** una consulta ligera por navegación; la portada y la cabecera siguen siendo estáticas (el contador se rellena tras la hidratación).
+- **Accesibilidad:** el enlace lleva `aria-label="Carrito, N artículo(s)"` (sin cantidad, «Carrito»); el badge es decorativo (`aria-hidden`) y no recibe clics (`pointer-events-none`). Texto de 12 px como mínimo (`--text-min`).
+- **Estilo:** tokens de v1 (`bg-accent`, `text-accent-fg`, `text-xs`, `min-w-5 h-5`), no `text-[10px]` ni `min-w-[18px]` del encargo: la regla de estilos prohíbe valores arbitrarios y el texto no puede bajar de 12 px.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-21 | RF-18 | Un invitado con 0, 1, 9 y 10 unidades en la cesta | Mira la cabecera | Sin unidades no hay badge; con 1, «1»; con 9, «9»; con 10 o más, «9+»; cuenta unidades, no líneas | unitario y e2e `cart-badge` |
+| CA-22 | RF-18 | Un invitado | Añade o quita una prenda (ficha, tarjeta, drawer o `/carrito`) | El badge cambia al momento y se conserva al recargar | e2e `cart-badge` |
+| CA-23 | RF-18 | Un cliente con sesión | Añade una prenda, cambia su cantidad, la quita, navega o recarga, y cierra sesión | El badge refleja el carrito de la cuenta en cada paso; al cerrar sesión pasa a reflejar el del navegador | e2e `cart-badge` |
+| CA-24 | RF-18 | El icono de la cesta con prendas | Se mira y se usa | `aria-label="Carrito, N artículos"` (singular con 1); el badge es `aria-hidden` y `pointer-events-none` (el clic abre el carrito lateral); de 320 a 1280 px no sale del viewport ni causa scroll horizontal; axe sin violaciones graves | e2e `cart-badge`, test:a11y |
+
+**Nueva tarea derivada:** T-108 (contador del carrito en la cabecera).

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { AuthModal } from '@/components/account/AuthModal';
 import { logoutAction, sessionStatusAction } from '@/lib/auth/actions';
+import { announceAccountCart } from '@/lib/cart/count';
 import { ACTION_NAV } from '@/lib/domain/navigation';
 
 const iconButton =
@@ -145,7 +146,7 @@ export function UserMenu() {
               {item.label}
             </Link>
           ))}
-          <form action={logoutAction} role="none">
+          <form action={logoutAction} onSubmit={() => announceAccountCart(null)} role="none">
             <button type="submit" role="menuitem" tabIndex={-1} className={itemClass}>
               Cerrar sesión
             </button>

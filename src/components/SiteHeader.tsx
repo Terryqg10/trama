@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { badgeLabel, cartLinkLabel, useCartCount } from '@/lib/cart/count';
 import { ACTION_NAV, MAIN_NAV } from '@/lib/domain/navigation';
 import { useCartDrawer } from './cart/CartDrawerContext';
 import { SearchBar } from './layout/SearchBar';
@@ -34,6 +35,8 @@ const overlayLinkBase =
 export function SiteHeader() {
   const pathname = usePathname();
   const { openCart } = useCartDrawer();
+  const cartCount = useCartCount();
+  const cartBadge = badgeLabel(cartCount);
   const triggerRef = useRef<HTMLAnchorElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLAnchorElement>(null);
@@ -109,7 +112,7 @@ export function SiteHeader() {
               /carrito, donde ya está la lista completa. */}
           <Link
             href={ACTION_NAV.cart.href}
-            aria-label={ACTION_NAV.cart.label}
+            aria-label={cartLinkLabel(cartCount)}
             aria-haspopup="dialog"
             data-testid="cart-open"
             onClick={(event) => {
@@ -117,9 +120,18 @@ export function SiteHeader() {
               event.preventDefault();
               openCart();
             }}
-            className={iconButton}
+            className={`${iconButton} relative`}
           >
             <ShoppingBag aria-hidden="true" />
+            {cartBadge === null ? null : (
+              <span
+                aria-hidden="true"
+                data-testid="cart-count"
+                className="pointer-events-none absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-accent-fg"
+              >
+                {cartBadge}
+              </span>
+            )}
           </Link>
           <a
             ref={triggerRef}

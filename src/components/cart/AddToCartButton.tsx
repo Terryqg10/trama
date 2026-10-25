@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { addToAccountCartAction } from '@/lib/cart/actions';
 import { addToCart } from '@/lib/cart/cart';
+import { announceAccountCart } from '@/lib/cart/count';
 import { readCart, useHydrated, writeCart } from '@/lib/cart/store';
 import { useGuestCartMerge } from '@/lib/cart/use-guest-merge';
 import { useCartDrawer } from './CartDrawerContext';
@@ -61,6 +62,7 @@ export function AddToCartButton({
         });
         return;
       }
+      announceAccountCart(result.cart);
       capped = result.capped;
     } else {
       const result = addToCart(readCart(), variantId, stock);

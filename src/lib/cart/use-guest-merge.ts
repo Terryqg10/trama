@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { mergeGuestCartAction } from './actions';
 import { type SavedCart } from './cart';
+import { announceAccountCart } from './count';
 import { readCart, writeCart } from './store';
 
 // Solo una fusión a la vez en esta pestaña: navegar entre páginas con sesión no la repite.
@@ -29,6 +30,7 @@ export function useGuestCartMerge(enabled: boolean, onMerged?: (cart: SavedCart)
       .then((result) => {
         if (result.status !== 'ok') return;
         writeCart([]);
+        announceAccountCart(result.cart);
         callback.current?.(result.cart);
       })
       .catch(() => undefined)

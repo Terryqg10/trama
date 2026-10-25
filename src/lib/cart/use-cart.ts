@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCartLinesAction, saveAccountCartAction } from './actions';
 import { maxQty, removeLine, savingsCents, setLineQty, summarize, type CartTotals, type SavedCart, type SavedLine } from './cart';
 import type { CartLineInfo } from './lines';
+import { announceAccountCart } from './count';
 import { useHydrated, useSavedCart, writeCart } from './store';
 import { useGuestCartMerge } from './use-guest-merge';
 
@@ -69,13 +70,17 @@ export function useCart(initialAccountCart?: SavedCart): UseCart {
   const latest = useRef(0);
   const persist = useCallback((next: SavedCart, previous: SavedCart) => {
     setAccountCart(next);
+    announceAccountCart(next);
     const ticket = ++latest.current;
     queue.current = queue.current.then(async () => {
       const result = await saveAccountCartAction(next).catch(() => ({ status: 'error' as const }));
       if (ticket !== latest.current) return;
-      if (result.status === 'ok') setAccountCart(result.cart);
-      else {
+      if (result.status === 'ok') {
+        setAccountCart(result.cart);
+        announceAccountCart(result.cart);
+      } else {
         setAccountCart(previous);
+        announceAccountCart(previous);
         setNotice({ variantId: null, text: 'No hemos podido guardar el cambio. Inténtalo de nuevo.' });
       }
     });

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logoutAction } from '@/lib/auth/actions';
+import { announceAccountCart } from '@/lib/cart/count';
 
 /**
  * Navegación de la cuenta (RF-02, CA-07, T-102). Desde 768 px, columna lateral; por debajo, pestañas horizontales
@@ -48,7 +49,7 @@ export function AccountNav() {
           );
         })}
         <li className="shrink-0 md:shrink">
-          <form action={logoutAction}>
+          <form action={logoutAction} onSubmit={() => announceAccountCart(null)}>
             <button type="submit" className={`${itemClass} text-start`}>
               Cerrar sesión
             </button>
