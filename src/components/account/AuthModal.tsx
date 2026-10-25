@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { LoginForm, RegisterForm } from './AuthForms';
 
-export const AUTH_MODAL_IMAGE = '/images/hero/hero-acceso-modal.webp';
+export const AUTH_MODAL_IMAGE = '/images/products/auth-banner.webp';
 
 type Tab = 'login' | 'register';
 
