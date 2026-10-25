@@ -109,7 +109,7 @@ export function AuthModal({ open, onClose }: { readonly open: boolean; readonly 
         </button>
         {/* Imagen decorativa a la izquierda desde 768 px: es el primer elemento del DOM, sin reordenar con CSS. */}
         <div className="relative hidden min-h-96 md:block" data-testid="auth-modal-image">
-          <Image src={AUTH_MODAL_IMAGE} alt="" fill sizes="24rem" className="object-cover" />
+          <Image src={AUTH_MODAL_IMAGE} alt="" fill sizes="24rem" className="object-cover object-bottom" />
         </div>
         <div className="p-6 pt-14 md:p-10 md:pt-14">
           <h2 id={titleId} className="text-2xl font-bold text-fg">
