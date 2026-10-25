@@ -27,7 +27,7 @@ const PHONE_PHOTOS = [
 
 function PhoneMockup() {
   return (
-    <div aria-hidden="true" data-testid="phone-mockup" className="mx-auto w-56 md:w-64">
+    <div aria-hidden="true" data-testid="phone-mockup" className="mx-auto w-56 md:w-64 lg:w-72">
       <div className="rounded-container border-4 border-fg bg-fg p-1 shadow-card">
         <div className="overflow-clip rounded-card bg-surface">
           <div className="mx-auto mt-2 h-1.5 w-16 rounded-full bg-fg/80" />
@@ -108,8 +108,8 @@ export function MobileAppSection() {
   }, [open, close]);
 
   return (
-    <section aria-labelledby="movil-titulo" data-testid="mobile-app" className="bg-surface-muted">
-      <div className="mx-auto grid max-w-(--layout-container) items-center gap-10 px-(--layout-gutter) py-16 md:grid-cols-2">
+    <section aria-labelledby="movil-titulo" data-testid="mobile-app" className="border-t border-border bg-surface">
+      <div className="mx-auto grid max-w-5xl items-center gap-10 px-(--layout-gutter) py-12 md:grid-cols-2 md:gap-16 md:py-16 lg:py-20">
         <div>
           <h2 id="movil-titulo" className="text-2xl font-bold text-fg md:text-3xl">
             Trama en tu móvil
