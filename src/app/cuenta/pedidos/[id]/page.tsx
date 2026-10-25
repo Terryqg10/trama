@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
-import { PageContainer } from '@/components/PageContainer';
 import { requireUser } from '@/lib/auth/session';
 import { capitalize } from '@/lib/catalog/facets';
 import { formatEuros } from '@/lib/domain/shop';
@@ -22,7 +21,7 @@ export default async function PedidoDetallePage({ params }: { readonly params: P
   const { address } = order;
 
   return (
-    <PageContainer>
+    <div>
       <div className="mx-auto max-w-2xl">
         <Link
           href="/cuenta/pedidos"
@@ -97,6 +96,6 @@ export default async function PedidoDetallePage({ params }: { readonly params: P
           </div>
         </section>
       </div>
-    </PageContainer>
+    </div>
   );
 }

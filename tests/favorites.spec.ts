@@ -100,7 +100,7 @@ test.describe('CA-77: con sesión el corazón añade, quita y se conserva al rec
     await login(page, credentials, /\/cuenta$/);
     await page.goto(FICHA);
     await page.getByTestId('add-to-cart').scrollIntoViewIfNeeded();
-    await page.mouse.wheel(0, 900);
+    await page.evaluate(() => window.scrollBy(0, 900));
     const sticky = page.getByTestId('favorite-button-sticky');
     await expect(sticky).toBeVisible();
     await sticky.click();
@@ -114,7 +114,7 @@ test.describe('CA-77: con sesión el corazón añade, quita y se conserva al rec
     test(`sin scroll horizontal ni nombre cortado en la barra a ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 700 });
       await page.goto(FICHA);
-      await page.mouse.wheel(0, 900);
+      await page.evaluate(() => window.scrollBy(0, 900));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
       if (width < 768) {

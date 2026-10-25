@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ProfileForm } from '@/components/account/AccountForms';
 import { GuestCartMerger } from '@/components/cart/GuestCartMerger';
-import { PageContainer } from '@/components/PageContainer';
-import { deleteAddressAction, logoutAction } from '@/lib/auth/actions';
+import { deleteAddressAction } from '@/lib/auth/actions';
 import { requireUser } from '@/lib/auth/session';
 
 export const metadata: Metadata = { title: 'Mi cuenta' };
@@ -30,17 +29,10 @@ export default async function CuentaPage({
   const rows = addresses.data ?? [];
 
   return (
-    <PageContainer>
+    <div>
       <GuestCartMerger merged={carrito === 'fusionado'} />
       <div className="mx-auto max-w-2xl space-y-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-display font-bold">Mi cuenta</h1>
-          <form action={logoutAction}>
-            <button type="submit" className={secondaryButton}>
-              Cerrar sesión
-            </button>
-          </form>
-        </div>
+        <h1 className="text-display font-bold">Mi cuenta</h1>
 
         {aviso === 'contrasena' ? (
           <p role="status" className="rounded-control border border-success px-4 py-3 text-sm font-medium text-success">
@@ -65,26 +57,6 @@ export default async function CuentaPage({
             </span>
           </Link>
         ) : null}
-
-        <Link
-          href="/cuenta/pedidos"
-          className="flex min-h-11 items-center justify-between rounded-container border border-border bg-surface px-5 py-3 font-semibold hover:bg-accent-soft"
-        >
-          Mis pedidos
-          <span aria-hidden="true" className="text-fg-muted">
-            →
-          </span>
-        </Link>
-
-        <Link
-          href="/cuenta/favoritos"
-          className="flex min-h-11 items-center justify-between rounded-container border border-border bg-surface px-5 py-3 font-semibold hover:bg-accent-soft"
-        >
-          Mis favoritos
-          <span aria-hidden="true" className="text-fg-muted">
-            →
-          </span>
-        </Link>
 
         <section aria-labelledby="titulo-perfil">
           <h2 id="titulo-perfil" className="text-xl font-semibold">
@@ -150,6 +122,6 @@ export default async function CuentaPage({
           )}
         </section>
       </div>
-    </PageContainer>
+    </div>
   );
 }

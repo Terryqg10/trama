@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
-import { PageContainer } from '@/components/PageContainer';
 import { requireUser } from '@/lib/auth/session';
 import { formatEuros } from '@/lib/domain/shop';
 import { formatOrderDate, listOrders, orderNumber, type OrderSummary } from '@/lib/orders/orders';
@@ -22,7 +21,7 @@ export default async function PedidosPage() {
   }
 
   return (
-    <PageContainer>
+    <div>
       <div className="mx-auto max-w-2xl">
         <Link
           href="/cuenta"
@@ -66,6 +65,6 @@ export default async function PedidosPage() {
           )}
         </div>
       </div>
-    </PageContainer>
+    </div>
   );
 }

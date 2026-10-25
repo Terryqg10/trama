@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
-import { PageContainer } from '@/components/PageContainer';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { requireUser } from '@/lib/auth/session';
 import { getProductsByIds } from '@/lib/catalog/queries';
@@ -36,7 +35,7 @@ export default async function FavoritosPage() {
   }
 
   return (
-    <PageContainer>
+    <div>
       <Link
         href="/cuenta"
         className="inline-flex min-h-11 items-center rounded-control pr-3 text-sm font-medium text-accent-text hover:underline"
@@ -79,6 +78,6 @@ export default async function FavoritosPage() {
           </>
         )}
       </div>
-    </PageContainer>
+    </div>
   );
 }
