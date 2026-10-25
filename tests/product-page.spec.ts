@@ -20,6 +20,8 @@ test.describe('tarjetas del listado enlazadas a la ficha', () => {
     await page.goto('/hombre');
     const card = page.locator('article', { hasText: 'Polo piqué básico' });
     await expect(card).toBeVisible();
+    // Con las novedades de T-101 el polo ya no cae en la primera pantalla: se trae a la vista antes de medir.
+    await card.scrollIntoViewIfNeeded();
     // Enlace extendido: se puede pulsar en cualquier punto de la tarjeta, no solo en el nombre.
     const box = await card.boundingBox();
     expect(box).not.toBeNull();

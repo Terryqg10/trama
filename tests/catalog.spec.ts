@@ -26,7 +26,21 @@ async function openFilters(page: Page): Promise<void> {
 const sorted = (values: string[]) => [...values].sort();
 
 const BLUSAS_MUJER = ['Blusa de lino', 'Blusa de popelín con lazada', 'Blusa satinada'];
-const NOVEDADES = ['Blusa de lino', 'Blusa satinada', 'Camisa de popelín', 'Polo piqué básico'];
+// Los 4 del seed de demostración más los 8 de `supabase/seed/catalog-new-flags.sql` (T-101, CA-06 de SPEC-005).
+const NOVEDADES = [
+  'Blusa de lino',
+  'Blusa satinada',
+  'Camisa de popelín',
+  'Polo piqué básico',
+  'Sudadera oversize negra',
+  'Bomber negra',
+  'Camisa de franela oversize',
+  'Chaqueta cortavientos gris',
+  'Sudadera cropped rosa',
+  'Chaqueta vaquera oversize',
+  'Top crop negro',
+  'Pantalón cargo beige',
+];
 
 test.describe('catálogo: listado conectado a la BD', () => {
   test('/mujer y /hombre muestran productos de su género', async ({ page }) => {
@@ -96,7 +110,9 @@ test.describe('CA-26: Novedades solo muestra productos nuevos', () => {
 
   test('permite filtrar por género dentro de Novedades', async ({ page }) => {
     await open(page, '/novedades?genero=mujer');
-    expect(sorted(await names(page))).toEqual(sorted(['Blusa de lino', 'Blusa satinada']));
+    expect(sorted(await names(page))).toEqual(
+      sorted(['Blusa de lino', 'Blusa satinada', 'Sudadera cropped rosa', 'Chaqueta vaquera oversize', 'Top crop negro', 'Pantalón cargo beige']),
+    );
   });
 });
 
