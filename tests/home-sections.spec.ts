@@ -125,6 +125,10 @@ test.describe('franja de envío gratis (CA-117)', () => {
     await expect(banner).toContainText('Envío gratis a partir de 50,00 €');
     await expect(banner).not.toContainText('49,99');
     await expect(banner.locator('img')).toHaveCount(0);
+    // CA-143: icono de camión decorativo, título en mayúsculas y subtítulo con los datos de `shop.ts`.
+    await expect(banner.locator('svg[aria-hidden="true"]')).toHaveCount(1);
+    await expect(page.getByTestId('shipping-banner-text')).toHaveCSS('text-transform', 'uppercase');
+    await expect(page.getByTestId('shipping-banner-detail')).toHaveText('Tarifa plana de 4,95 € en el resto de pedidos. Devolución en 30 días.');
     const text = page.getByTestId('shipping-banner-text');
     const bannerBox = await banner.boundingBox();
     const textBox = await text.boundingBox();
@@ -133,13 +137,12 @@ test.describe('franja de envío gratis (CA-117)', () => {
   });
 
   for (const width of [320, 375, 768, 1280, 1920]) {
-    test(`es una franja fina a todo el ancho y cabe sin scroll horizontal a ${width} px`, async ({ page }) => {
+    test(`es una franja a todo el ancho y cabe sin scroll horizontal a ${width} px`, async ({ page }) => {
       await open(page, width);
       const banner = page.getByTestId('shipping-banner');
       await banner.scrollIntoViewIfNeeded();
       const box = await banner.boundingBox();
       expect(box?.width ?? 0).toBeCloseTo(width - (await page.evaluate(() => window.innerWidth - document.documentElement.clientWidth)), 0);
-      expect(box?.height ?? 0).toBeLessThanOrEqual(100);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
     });
@@ -155,9 +158,10 @@ test.describe('franja de envío gratis (CA-117)', () => {
       const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(textColor);
       expect(match).not.toBeNull();
       const textL = luminance(Number(match?.[1]), Number(match?.[2]), Number(match?.[3]));
-      await target.evaluate((el) => el.setAttribute('style', 'color: transparent !important'));
+      // Se oculta todo el contenido (título, subtítulo e icono) para medir solo el fondo.
+      await banner.evaluate((el) => el.querySelectorAll('p, svg').forEach((child) => child.setAttribute('style', 'visibility: hidden !important')));
       const png = await banner.screenshot();
-      await target.evaluate((el) => el.removeAttribute('style'));
+      await banner.evaluate((el) => el.querySelectorAll('p, svg').forEach((child) => child.removeAttribute('style')));
       const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
       let worst = Infinity;
       for (let i = 0; i < data.length; i += info.channels) {

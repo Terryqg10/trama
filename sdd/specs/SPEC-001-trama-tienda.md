@@ -1174,3 +1174,16 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-142 | RF-25 | La portada y `/buscar` de 320 a 1280 px | Se abren | La portada sigue sin panel (solo círculos); `/buscar` no tiene scroll horizontal ni tarjetas cortadas con el panel abierto; axe sin violaciones graves | e2e `catalog-quick-add`, `responsive.spec.ts` y test:a11y |
 
 **Nuevas tareas derivadas:** T-098 (`/buscar` con `quickAdd`, CA-141 y CA-142).
+
+### Enmienda 43 — 2026-10-25 — sin ADR — franja de envío gratis con icono, título y subtítulo (CA-143; sustituye partes de CA-117)
+
+**Origen:** el usuario pide rediseñar la franja de envío gratis de la portada («muy genérica») con un aspecto más cuidado: icono de camión, título en mayúsculas espaciadas y un subtítulo sutil. **Sustituye de CA-117** que la franja sea «fina» (alto máximo de 100 px, fondo `bg-surface-muted`): pasa a ser una banda con aire (`py-10`) sobre `bg-surface`. **Se mantiene** de CA-117: franja de texto a todo el ancho, sin foto, con el importe de `shop.ts`, contraste AA con tokens, sin dos bandas con foto seguidas y sin scroll horizontal de 320 a 1920 px.
+
+- **Contenido:** icono `Truck` (`size-8`, `text-accent`, decorativo), título «Envío gratis a partir de 50,00 €» (el importe sale de `shop.ts`) mostrado en mayúsculas con `uppercase tracking-widest text-sm font-bold text-fg`, y subtítulo `text-xs text-fg-muted`, con `gap-3` entre los tres.
+- **Subtítulo (decisión a confirmar):** el encargo proponía «En 24-48h en península. Devoluciones gratuitas.». **No se usa**: ni los plazos de entrega ni la gratuidad de las devoluciones están en ninguna spec ni en `shop.ts` (el pie dice que la política es de ejemplo) y no se inventan promesas comerciales. Se usa lo ya declarado en la tienda, calculado de `shop.ts`: «Tarifa plana de 4,95 € en el resto de pedidos. Devolución en 30 días.».
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-143 | RF-23 | La portada | Se llega a la franja de envío | Muestra, centrados en columna con `gap-3`, un icono de camión decorativo, el título «ENVÍO GRATIS A PARTIR DE 50,00 €» (texto «Envío gratis a partir de 50,00 €» en mayúsculas por CSS, importe de `shop.ts`) y el subtítulo con la tarifa plana y los días de devolución de `shop.ts`; fondo `bg-surface`, contraste AA de título y subtítulo, sin foto, a todo el ancho y sin scroll horizontal de 320 a 1920 px | test unitario `ShippingBanner`, e2e `home-sections` y `home-layout` |
+
+**Nueva tarea derivada:** T-109 (franja de envío con icono).

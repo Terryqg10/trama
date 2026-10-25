@@ -1,19 +1,32 @@
-import { FREE_SHIPPING_THRESHOLD_CENTS, formatEuros } from '@/lib/domain/shop';
+import { Truck } from 'lucide-react';
+import {
+  FREE_SHIPPING_THRESHOLD_CENTS,
+  RETURN_WINDOW_DAYS,
+  SHIPPING_FLAT_CENTS,
+  formatEuros,
+} from '@/lib/domain/shop';
 
 /**
- * Franja de envío gratis de la portada (CA-117, T-072; antes un banner con foto, CA-98). Es solo texto, a todo el ancho
- * y con tokens: el mensaje ya está en la barra de anuncios y en la sección de confianza, y una foto grande lo repetía
- * una tercera vez. El umbral sale de `shop.ts`, no se escribe a mano. Reversible: la foto sigue en `public/`.
+ * Franja de envío gratis de la portada (CA-117, T-072; rediseñada en CA-143, T-109). Sin foto, a todo el ancho y con tokens:
+ * icono de camión, título en mayúsculas espaciadas y un subtítulo sutil. Todos los importes y plazos salen de `shop.ts`, no
+ * se escriben a mano (el subtítulo no promete plazos de entrega ni devoluciones gratuitas: eso no está declarado en ninguna parte).
  */
 export function ShippingBanner() {
   return (
     <section
       aria-label="Envío gratis"
       data-testid="shipping-banner"
-      className="flex min-h-14 w-full items-center justify-center bg-surface-muted px-(--layout-gutter) py-3 text-center"
+      className="flex w-full flex-col items-center justify-center gap-3 bg-surface px-(--layout-gutter) py-10 text-center"
     >
-      <p data-testid="shipping-banner-text" className="text-base font-semibold text-fg md:text-lg">
+      <Truck aria-hidden="true" className="size-8 text-accent" />
+      <p
+        data-testid="shipping-banner-text"
+        className="text-sm font-bold uppercase tracking-widest text-fg"
+      >
         Envío gratis a partir de {formatEuros(FREE_SHIPPING_THRESHOLD_CENTS)}
+      </p>
+      <p data-testid="shipping-banner-detail" className="text-xs text-fg-muted">
+        Tarifa plana de {formatEuros(SHIPPING_FLAT_CENTS)} en el resto de pedidos. Devolución en {RETURN_WINDOW_DAYS} días.
       </p>
     </section>
   );

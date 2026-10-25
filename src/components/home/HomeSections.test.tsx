@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { TopBar } from '../layout/TopBar';
 import { catalogRowSchema, toCatalogProduct } from '@/lib/catalog/product';
-import { FREE_SHIPPING_THRESHOLD_CENTS, formatEuros } from '@/lib/domain/shop';
+import { FREE_SHIPPING_THRESHOLD_CENTS, RETURN_WINDOW_DAYS, SHIPPING_FLAT_CENTS, formatEuros } from '@/lib/domain/shop';
 import { ColdWeatherSection } from './ColdWeatherSection';
 import { ExploreSection } from './ExploreSection';
 import { NEW_ARRIVALS_LIMIT, NewArrivalsView } from './NewArrivals';
@@ -64,11 +64,31 @@ describe('ShippingBanner (CA-117)', () => {
     expect(screen.getByTestId('shipping-banner').textContent).not.toContain('49,99');
   });
 
+  it('lleva el subtítulo con la tarifa plana y los días de devolución de shop.ts, sin promesas inventadas (CA-143)', () => {
+    render(<ShippingBanner />);
+    expect(screen.getByTestId('shipping-banner-detail').textContent).toBe(
+      `Tarifa plana de ${formatEuros(SHIPPING_FLAT_CENTS)} en el resto de pedidos. Devolución en ${RETURN_WINDOW_DAYS} días.`,
+    );
+    expect(screen.getByTestId('shipping-banner').textContent).not.toMatch(/24|48|gratuitas/);
+  });
+
+  it('el título va en mayúsculas espaciadas y el icono de camión es decorativo (CA-143)', () => {
+    const { container } = render(<ShippingBanner />);
+    const title = screen.getByTestId('shipping-banner-text').className;
+    expect(title).toContain('uppercase');
+    expect(title).toContain('tracking-widest');
+    expect(title).toContain('font-bold');
+    const icon = container.querySelector('svg');
+    expect(icon?.getAttribute('aria-hidden')).toBe('true');
+    expect(icon?.getAttribute('class')).toContain('text-accent');
+  });
+
   it('es una franja de texto: sin foto y con tokens, sin negro ni valores arbitrarios', () => {
     const { container } = render(<ShippingBanner />);
     expect(container.querySelector('img')).toBeNull();
     const classes = screen.getByTestId('shipping-banner').className + screen.getByTestId('shipping-banner-text').className;
-    expect(classes).toContain('bg-surface-muted');
+    expect(classes).toContain('bg-surface');
+    expect(classes).toContain('gap-3');
     expect(classes).toContain('text-fg');
     expect(classes).not.toMatch(/black|#|\[(?!--)[^\]]+\]/);
   });
