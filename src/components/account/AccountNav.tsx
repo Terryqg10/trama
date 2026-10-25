@@ -14,6 +14,7 @@ const ITEMS = [
   { href: '/cuenta', label: 'Mis datos', also: ['/cuenta/direcciones'] },
   { href: '/cuenta/pedidos', label: 'Mis pedidos', also: [] },
   { href: '/cuenta/favoritos', label: 'Mis favoritos', also: [] },
+  { href: '/cuenta/club', label: 'Trama Club', also: [] },
 ] as const;
 
 function isActive(pathname: string, href: string, also: readonly string[]): boolean {

@@ -19,6 +19,7 @@ describe('AccountNav', () => {
       ['Mis datos', '/cuenta'],
       ['Mis pedidos', '/cuenta/pedidos'],
       ['Mis favoritos', '/cuenta/favoritos'],
+      ['Trama Club', '/cuenta/club'],
     ]);
     expect(screen.getByRole('button', { name: 'Cerrar sesión' }).closest('form')).not.toBeNull();
   });
@@ -29,6 +30,7 @@ describe('AccountNav', () => {
     ['/cuenta/pedidos', 'Mis pedidos'],
     ['/cuenta/pedidos/abc', 'Mis pedidos'],
     ['/cuenta/favoritos', 'Mis favoritos'],
+    ['/cuenta/club', 'Trama Club'],
   ])('en %s marca «%s» con aria-current', (path, label) => {
     pathname = path;
     render(<AccountNav />);
