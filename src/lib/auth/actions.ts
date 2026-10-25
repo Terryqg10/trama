@@ -132,7 +132,7 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
   const merged = await mergeGuestCartOnEntry(supabase, signedIn.user.id, raw['guestCart']);
   const next = nextPathSchema.safeParse(raw['siguiente']);
   const destination = next.success ? next.data : '/cuenta';
-  redirect(merged ? `${destination}?carrito=fusionado` : destination);
+  redirect(merged ? `${destination}${destination.includes('?') ? '&' : '?'}carrito=fusionado` : destination);
 }
 
 export async function logoutAction(): Promise<void> {

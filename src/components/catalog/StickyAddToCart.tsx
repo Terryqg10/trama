@@ -3,6 +3,7 @@
 import { ArrowUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { AddToCartButton } from '@/components/cart/AddToCartButton';
+import { FavoriteButton } from './FavoriteButton';
 
 /** «Volver arriba» aparece al bajar más de esta cantidad de pantallas (CA-74). */
 const BACK_TO_TOP_SCREENS = 1.5;
@@ -82,13 +83,14 @@ export function StickyAddToCart({
       >
         <ArrowUp aria-hidden="true" className="size-5" />
       </button>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-fg">{name}</p>
           <p className="text-base font-bold text-fg">{priceLabel}</p>
         </div>
+        <FavoriteButton testId="favorite-button-sticky" />
         {/* Ancho fijo: el aviso de «añadido» no debe ensanchar la columna ni truncar el nombre. */}
-        <div className="w-44 shrink-0">
+        <div className="w-40 shrink-0">
           <AddToCartButton
             testId="add-to-cart-sticky"
             variantId={variantId}

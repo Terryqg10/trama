@@ -11,6 +11,7 @@ import { formatEuros } from '@/lib/domain/shop';
 import { AddToCartButton } from '../cart/AddToCartButton';
 import { PageContainer } from '../PageContainer';
 import { ShippingInfo } from '../ShippingInfo';
+import { FavoriteButton, FavoriteProvider } from './FavoriteButton';
 import { FitInfo } from './FitInfo';
 import { StickyAddToCart } from './StickyAddToCart';
 import { SizeGuideModal } from './SizeGuideModal';
@@ -29,10 +30,13 @@ export function ProductDetailView({
   sizeGuide,
   searchParams,
   signedIn,
+  favorite,
 }: {
   readonly product: ProductDetail;
   /** Hay sesión: el carrito se guarda en la cuenta (T-031). */
   readonly signedIn: boolean;
+  /** El cliente ya tiene el producto en favoritos (T-042). */
+  readonly favorite: boolean;
   /** Guía de la categoría del producto, o `null` si no tiene (entonces no se muestra el enlace). */
   readonly sizeGuide: SizeGuide | null;
   readonly searchParams: RawSearchParams;
@@ -48,6 +52,13 @@ export function ProductDetailView({
 
   return (
     <PageContainer>
+      <FavoriteProvider
+        productId={product.id}
+        slug={product.slug}
+        productName={product.name}
+        initialFavorite={favorite}
+        signedIn={signedIn}
+      >
       <Link
         href={backHref}
         className="inline-flex min-h-11 items-center gap-1 rounded-control pr-3 text-sm font-medium text-accent-text hover:underline"
@@ -85,7 +96,10 @@ export function ProductDetailView({
 
         <div className="space-y-6">
           <div>
-            <h1 className="text-display font-bold">{product.name}</h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-display font-bold">{product.name}</h1>
+              <FavoriteButton />
+            </div>
             <p className="mt-3 text-2xl font-bold text-fg">{priceLabel}</p>
             <p className="text-sm text-fg-muted">IVA incluido</p>
           </div>
@@ -130,6 +144,7 @@ export function ProductDetailView({
       />
       {/* Espaciador: la barra fija no debe tapar el final de la página en móvil. */}
       <div aria-hidden="true" className="h-24 md:hidden" />
+      </FavoriteProvider>
     </PageContainer>
   );
 }

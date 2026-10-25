@@ -4,6 +4,7 @@ import {
   fieldErrors,
   formDataToObject,
   loginSchema,
+  nextPathSchema,
   recoverySchema,
   registerSchema,
   resetPasswordSchema,
@@ -117,5 +118,24 @@ describe('formDataToObject', () => {
     formData.set('email', 'ana@example.test');
     formData.set('archivo', new File(['x'], 'x.txt'));
     expect(formDataToObject(formData)).toEqual({ email: 'ana@example.test' });
+  });
+});
+
+describe('nextPathSchema (T-042)', () => {
+  it('admite /checkout y la ficha con favorito=1, y nada más', () => {
+    expect(nextPathSchema.safeParse('/checkout').success).toBe(true);
+    expect(nextPathSchema.safeParse('/producto/polo-pique-basico?favorito=1').success).toBe(true);
+    for (const value of [
+      'https://evil.example',
+      '//evil.example',
+      '/producto/polo?favorito=1&x=2',
+      '/producto/../admin?favorito=1',
+      '/producto/Polo?favorito=1',
+      '/producto/polo',
+      '/admin',
+      '',
+    ]) {
+      expect(nextPathSchema.safeParse(value).success, value).toBe(false);
+    }
   });
 });

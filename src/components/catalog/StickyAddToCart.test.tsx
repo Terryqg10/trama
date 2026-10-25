@@ -14,6 +14,10 @@ vi.mock('@/components/cart/AddToCartButton', () => ({
   ),
 }));
 
+vi.mock('./FavoriteButton', () => ({
+  FavoriteButton: ({ testId }: { testId?: string }) => <span data-testid={testId ?? 'favorite-button'} />,
+}));
+
 type ObserverCallback = (entries: IntersectionObserverEntry[]) => void;
 
 let callback: ObserverCallback | null = null;
