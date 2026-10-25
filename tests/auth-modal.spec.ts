@@ -150,6 +150,8 @@ test.describe('CA-13: sesión, errores y carrito', () => {
     await page.keyboard.press('Escape');
     await page.getByTestId('account-open').click();
     await expect(page.getByTestId('auth-modal')).toBeVisible();
+    // El campo oculto lleva el carrito del navegador: se espera a que lo tenga antes de enviar.
+    await expect(page.getByTestId('auth-modal').locator('input[name="guestCart"]')).not.toHaveValue('[]');
     await fillLogin(page, credentials);
     await expect(page).toHaveURL(/\/cuenta\?carrito=fusionado$/);
   });
