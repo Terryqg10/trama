@@ -79,6 +79,22 @@ test.describe('cuenta: registro e inicio de sesión (CA-06, CA-07)', () => {
     await expect(page).toHaveURL(/\/registro$/);
   });
 
+  // CA-154 (T-122, invariante I10): una contraseña larga pero sin números se rechaza en el servidor y no se crea la cuenta.
+  test('registro: una contraseña débil se rechaza con el mensaje del OS y no crea la cuenta', async ({ page }) => {
+    const email = newCredentials('debil').email;
+    createdEmails.push(email);
+    await page.goto('/registro');
+    await page.getByLabel('Nombre').fill('Cliente de prueba');
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Contraseña').fill('solo-letras-largas');
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
+
+    await expect(page.getByText('Contraseña débil: usa al menos 8 caracteres con letras y números.')).toBeVisible();
+    await expect(page).toHaveURL(/\/registro$/);
+    const listed = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    expect(listed.data.users.some((user) => user.email === email)).toBe(false);
+  });
+
   test('auth-bad-credentials: el error es genérico y no revela si el email existe', async ({ page }) => {
     const existing = newCredentials('existente');
     createdEmails.push(existing.email);

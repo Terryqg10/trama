@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { validatePassword } from '@/lib/password';
 import { requiredString } from '@/lib/zod-helpers';
 
 /**
@@ -15,10 +16,16 @@ const email = requiredString(REQUIRED)
   .max(254, 'El email es demasiado largo.')
   .email('Introduce un email válido.');
 
-// 72 bytes es el límite de bcrypt, que usa Supabase Auth.
+// 72 bytes es el límite de bcrypt, que usa Supabase Auth. Además de la longitud, la fortaleza se valida con la función del OS
+// (invariante I10, CA-154): se rechaza el nivel «débil» (sin letras, sin números o demasiado corta). Solo se aplica al fijar una
+// contraseña (registro y restablecimiento); el acceso no cambia, así que las cuentas existentes siguen entrando.
 const newPassword = requiredString(REQUIRED)
   .min(8, 'La contraseña debe tener al menos 8 caracteres.')
-  .max(72, 'La contraseña no puede superar los 72 caracteres.');
+  .max(72, 'La contraseña no puede superar los 72 caracteres.')
+  .superRefine((value, ctx) => {
+    const strength = validatePassword(value);
+    if (!strength.valida) ctx.addIssue({ code: 'custom', message: strength.mensaje });
+  });
 
 const text = (max: number) =>
   requiredString(REQUIRED)

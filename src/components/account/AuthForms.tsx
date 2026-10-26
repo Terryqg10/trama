@@ -93,7 +93,7 @@ export function RegisterForm({ onSwitch }: { readonly onSwitch?: () => void } = 
         label="Contraseña"
         type="password"
         autoComplete="new-password"
-        hint="Entre 8 y 72 caracteres."
+        hint="Entre 8 y 72 caracteres, con letras y números."
         error={state.fieldErrors?.['password']}
       />
       <SubmitButton pendingLabel="Creando cuenta…">Crear cuenta</SubmitButton>
@@ -148,7 +148,7 @@ export function ResetPasswordForm() {
         label="Nueva contraseña"
         type="password"
         autoComplete="new-password"
-        hint="Entre 8 y 72 caracteres."
+        hint="Entre 8 y 72 caracteres, con letras y números."
         error={state.fieldErrors?.['password']}
       />
       <TextField

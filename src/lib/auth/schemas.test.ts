@@ -63,7 +63,7 @@ describe('registerSchema', () => {
     const result = registerSchema.safeParse({
       fullName: ' Ana ',
       email: '  Ana@Example.TEST ',
-      password: 'contraseña-larga',
+      password: 'contraseña-larga1',
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -76,13 +76,49 @@ describe('registerSchema', () => {
     const base = { fullName: 'Ana', email: 'ana@example.test' };
     expect(registerSchema.safeParse({ ...base, password: '1234567' }).success).toBe(false);
     expect(registerSchema.safeParse({ ...base, password: 'x'.repeat(73) }).success).toBe(false);
-    expect(registerSchema.safeParse({ ...base, password: 'x'.repeat(72) }).success).toBe(true);
+    expect(registerSchema.safeParse({ ...base, password: 'x'.repeat(71) + '1' }).success).toBe(true);
   });
 
   it('rechaza emails mal formados', () => {
-    const result = registerSchema.safeParse({ fullName: 'Ana', email: 'ana', password: 'contraseña-larga' });
+    const result = registerSchema.safeParse({ fullName: 'Ana', email: 'ana', password: 'contraseña-larga1' });
     expect(result.success).toBe(false);
     if (!result.success) expect(fieldErrors(result.error).email).toBe('Introduce un email válido.');
+  });
+});
+
+// CA-154 (T-122, invariante I10): la contraseña nueva se valida con `validatePassword` del OS; el acceso no cambia.
+describe('fortaleza de la contraseña nueva (CA-154)', () => {
+  const base = { fullName: 'Ana', email: 'ana@example.test' };
+
+  it.each(['12345678', 'solo-letras-sin-numeros', '        ', 'abc12'])('rechaza la contraseña débil %j con el mensaje del OS o el de longitud', (password) => {
+    const result = registerSchema.safeParse({ ...base, password });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(fieldErrors(result.error).password).toMatch(/^(Contraseña débil: usa al menos 8 caracteres con letras y números\.|La contraseña debe tener al menos 8 caracteres\.)$/);
+    }
+  });
+
+  it('una contraseña de 8 o más con solo dígitos o solo letras dice cómo mejorarla', () => {
+    for (const password of ['123456789012', 'abcdefghijkl']) {
+      const result = registerSchema.safeParse({ ...base, password });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(fieldErrors(result.error).password).toBe('Contraseña débil: usa al menos 8 caracteres con letras y números.');
+    }
+  });
+
+  it.each(['abcdefg1', 'Contraseña2026', 'Una-Contraseña-Larga-2026!'])('acepta la contraseña %j (buena o fuerte)', (password) => {
+    expect(registerSchema.safeParse({ ...base, password }).success).toBe(true);
+    expect(resetPasswordSchema.safeParse({ password, confirm: password }).success).toBe(true);
+  });
+
+  it('el restablecimiento también rechaza una contraseña débil y marca el campo password', () => {
+    const result = resetPasswordSchema.safeParse({ password: 'sinnumeros', confirm: 'sinnumeros' });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(fieldErrors(result.error).password).toBe('Contraseña débil: usa al menos 8 caracteres con letras y números.');
+  });
+
+  it('el acceso no cambia: una contraseña débil de una cuenta existente sigue siendo válida para entrar', () => {
+    expect(loginSchema.safeParse({ email: 'ana@example.test', password: '123' }).success).toBe(true);
   });
 });
 
@@ -100,14 +136,14 @@ describe('loginSchema y recoverySchema', () => {
 
 describe('resetPasswordSchema (CA-59)', () => {
   it('exige que ambas contraseñas coincidan y marca el campo confirm', () => {
-    const result = resetPasswordSchema.safeParse({ password: 'contraseña-larga', confirm: 'otra-distinta' });
+    const result = resetPasswordSchema.safeParse({ password: 'contraseña-larga1', confirm: 'otra-distinta' });
     expect(result.success).toBe(false);
     if (!result.success) expect(fieldErrors(result.error).confirm).toBe('Las contraseñas no coinciden.');
   });
 
   it('acepta contraseñas válidas e iguales', () => {
     expect(
-      resetPasswordSchema.safeParse({ password: 'contraseña-larga', confirm: 'contraseña-larga' }).success,
+      resetPasswordSchema.safeParse({ password: 'contraseña-larga1', confirm: 'contraseña-larga1' }).success,
     ).toBe(true);
   });
 });

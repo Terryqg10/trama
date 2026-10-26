@@ -1330,3 +1330,23 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-104 | RF-26 | Un envío con el campo trampa relleno | Llega al servidor | Se descarta sin guardar ni avisar; el campo no es visible ni accesible para una persona | unitario de la acción y e2e `newsletter` |
 
 **Nueva tarea:** T-061 (ya existía; pasa a «en curso» con estos CA).
+
+### Enmienda 51 — 2026-10-27 — sin ADR — contraseñas seguras al registrarse y al restablecer (invariante I10; CA-154, CA-155)
+
+**Origen:** la sincronización con el OS (cdebfb1) añade la invariante **I10** («toda autenticación de usuario debe validar la fortaleza de la contraseña con `validatePassword` del OS, `src/lib/password.ts`»). Hoy Trama solo exige de 8 a 72 caracteres. **Amplía** RF-04 (cuentas); el acceso (login) **no cambia**: las cuentas existentes con una contraseña corta o simple siguen entrando.
+
+**Servidor (CA-154).**
+- `registerSchema` y `resetPasswordSchema` (las dos únicas formas de fijar una contraseña) validan con `validatePassword`: se rechaza el nivel «débil» (menos de 8 caracteres, o sin letras, o sin números). Se aceptan «buena» (≥ 8 con letras y números) y «fuerte» (≥ 12 con mayúsculas, minúsculas, números y símbolos). El tope de 72 caracteres de bcrypt se mantiene.
+- El mensaje de error por campo es el del OS («Contraseña débil: usa al menos 8 caracteres con letras y números.»); una contraseña de menos de 8 caracteres sigue diciendo «La contraseña debe tener al menos 8 caracteres.».
+- El texto de ayuda de los formularios pasa a «Entre 8 y 72 caracteres, con letras y números.».
+
+**Indicador de fortaleza (CA-155).** Bajo el campo de contraseña del registro (página y modal de acceso) y de «Nueva contraseña» aparece el componente `PasswordStrength` del OS: barra de tres tramos y etiqueta de texto («Contraseña débil/buena/fuerte», no solo color) que se anuncia con `aria-live="polite"`. Solo se pinta al escribir. Es **informativo**: no bloquea el envío; el servidor es quien rechaza. **Se adapta a los tokens de Trama** (el componente del OS usaba `bg-red-600`, `bg-yellow-500`, `bg-green-600` y `bg-black/10`, que la regla de estilos prohíbe): `bg-danger`, `bg-accent`, `bg-success` y `bg-surface-muted`. Al volver a sincronizar con el OS hay que conservar esta adaptación (queda anotado en la review).
+
+**Datos y privacidad (sección 9):** sin cambios; la contraseña no se guarda ni se registra aquí (la gestiona Supabase Auth, cifrada).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-154 | RF-04 | Un registro o un restablecimiento de contraseña | La contraseña es «débil» según `validatePassword` (corta, sin letras o sin números) | Se rechaza en el servidor con el mensaje del OS y no se crea la cuenta ni se cambia la contraseña; «buena» y «fuerte» pasan; el acceso con cuentas existentes no cambia | unitario `schemas` y e2e `auth` |
+| CA-155 | RF-04 | El formulario de registro (página y modal) y el de nueva contraseña | Se escribe una contraseña | Aparece la barra y la etiqueta de fortaleza (débil/buena/fuerte) con tokens del estilo, anunciada con `aria-live`; no aparece con el campo vacío; no bloquea el envío; sin desbordes de 320 a 1280 px | unitario `PasswordStrength` y e2e `auth` |
+
+**Nuevas tareas derivadas:** T-122 (validación en el servidor) y T-123 (indicador de fortaleza).
