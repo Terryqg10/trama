@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
-import { Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { badgeLabel, cartLinkLabel, useCartCount } from '@/lib/cart/count';
 import { ACTION_NAV, MAIN_NAV } from '@/lib/domain/navigation';
 import { useCartDrawer } from './cart/CartDrawerContext';
@@ -107,6 +107,10 @@ export function SiteHeader() {
           >
             <Search aria-hidden="true" />
           </a>
+          {/* Enlace a /cuenta/favoritos (CA-27): sin sesión, la página lleva al acceso y vuelve. */}
+          <Link href={ACTION_NAV.favorites.href} aria-label="Mis favoritos" data-testid="favorites-link" className={iconButton}>
+            <Heart aria-hidden="true" />
+          </Link>
           <UserMenu />
           {/* Sigue siendo un enlace a /carrito (sin JavaScript navega); con JavaScript abre el carrito lateral (CA-124), salvo en
               /carrito, donde ya está la lista completa. */}

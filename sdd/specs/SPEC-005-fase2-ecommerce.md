@@ -263,3 +263,18 @@ Solo si se aprueban Club y referidos (DP-4, DP-5):
 | CA-26 | RF-16 | La sección de 320 a 1280 px | Se abre | El teléfono inclinado queda dentro del viewport, sin recortes ni scroll horizontal; la captura carga sin deformarse (proporción 390 × 844) | e2e `mobile-app`, responsive |
 
 **Nueva tarea derivada:** T-112 (teléfono realista).
+
+## Enmienda 4 — 2026-10-26 — sin ADR — icono de favoritos (corazón) en la cabecera (RF-24, CA-27)
+
+**Origen:** el usuario pide un icono de corazón de favoritos en la parte derecha de la cabecera. **Amplía** la Enmienda 21 de SPEC-001 (favoritos en la ficha) con un acceso directo a `/cuenta/favoritos`.
+
+- **Dónde:** junto a los iconos de acción de la derecha, antes del de cuenta y la cesta (orden habitual del sector: favoritos, cuenta, cesta), en escritorio y en móvil. Icono `Heart` de lucide, zona táctil de 44 × 44 px, `aria-label="Mis favoritos"`.
+- **Destino:** enlace a `/cuenta/favoritos`. Sin sesión, la página protegida lleva al acceso (comportamiento existente de `/cuenta`) y, tras entrar, a favoritos. Sin contador ni estado relleno: la cabecera sigue siendo estática y no lee la sesión (mismo motivo que la Enmienda 2).
+- **Anchos estrechos:** los cinco iconos (buscar, favoritos, cuenta, cesta, menú) de 44 px más el logo no caben por debajo de 370 px. Por debajo de ese ancho el logo muestra solo el símbolo (el enlace sigue llamándose «Trama, ir al inicio»); desde 370 px, igual que ahora. Se usa una variante de ancho exacto porque ningún `--bp-*` cae ahí; es el único valor arbitrario y se justifica en el plan.
+- **Fuera de alcance:** corazón en la `ProductCard`.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-27 | RF-24 | La cabecera de cualquier página, de 320 a 1280 px | Se mira a la derecha | Hay un icono de corazón (enlace «Mis favoritos» a `/cuenta/favoritos`, 44 × 44 px) antes del de cuenta y la cesta; no provoca desbordamiento ni recortes | test unitario de navegación, e2e `responsive` y `cart-badge`/cabecera |
+
+**Nueva tarea derivada:** T-114 (icono de favoritos en la cabecera).

@@ -45,7 +45,8 @@ export function Logo() {
       >
         <path d="M4 8h16M4 16h16M8 4v16M16 4v16" />
       </svg>
-      <span className="text-xl font-bold tracking-tight">Trama</span>
+      {/* Por debajo de 370 px la cabecera con el corazón no cabe: queda el símbolo (el enlace conserva su `aria-label`). */}
+      <span className="text-xl font-bold tracking-tight max-[369px]:hidden">Trama</span>
     </Link>
   );
 }

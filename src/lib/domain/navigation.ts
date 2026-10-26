@@ -25,4 +25,5 @@ export const LEGAL_NAV: readonly NavItem[] = [
 export const ACTION_NAV = {
   cart: { label: 'Carrito', href: '/carrito' },
   account: { label: 'Cuenta', href: '/cuenta' },
+  favorites: { label: 'Favoritos', href: '/cuenta/favoritos' },
 } as const satisfies Record<string, NavItem>;

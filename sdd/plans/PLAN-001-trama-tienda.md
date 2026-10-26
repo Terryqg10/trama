@@ -749,3 +749,9 @@ Las tareas nuevas siguen desde T-086.
 |---|---|---|---|
 | Flechas del carrusel junto a «Ver todo», no flotantes sobre las tarjetas | Zalando y ASOS ponen las flechas a los lados, sobre el carrusel | Sobre las tarjetas taparían la imagen y los controles de la propia tarjeta (tallas, añadir) y chocarían con el efecto peek | Flechas siempre en el mismo sitio, sin tapar producto. Reversible: mover los botones dentro del visor |
 | Sin flechas en móvil | En móvil se desliza con el dedo; el peek indica que hay más | — (coincide con la convención) | Menos elementos táctiles que apretar |
+
+## Decisiones de UI — T-114 (corazón en la cabecera)
+
+| Decisión | Convención del sector | Por qué nos apartamos | Qué gana el usuario |
+|---|---|---|---|
+| Por debajo de 370 px el logo pierde la palabra «Trama» y deja el símbolo | Zalando, ASOS y Mango mantienen el logo completo | Con buscar, favoritos, cuenta, cesta y menú a 44 px (WCAG 2.5.8 / invariante I6) no caben en 320-369 px; recortar las áreas táctiles o esconder un icono es peor. Variante `max-[369px]` porque ningún `--bp-*` cae en ese punto | Todos los accesos visibles y tocables en móviles pequeños. Reversible: quitar la clase si se retira un icono |
