@@ -96,6 +96,25 @@ test.describe('CA-16: anchos y accesibilidad', () => {
     });
   }
 
+  test('el teléfono es realista: captura real de la tienda nítida, sin deformar, inclinado en 3D y decorativo (CA-25, CA-26)', async ({ page }) => {
+    await open(page);
+    const phone = page.getByTestId('phone-mockup');
+    await expect(phone).toHaveAttribute('aria-hidden', 'true');
+    const image = page.getByTestId('phone-screen').locator('img');
+    await expect(image).toHaveAttribute('alt', '');
+    await expect(image).toHaveAttribute('src', /hero-app-pantalla\.webp$/);
+    // La imagen es perezosa: se espera a que cargue.
+    await expect.poll(() => image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth)).toBeGreaterThan(0);
+    const natural = await image.evaluate((el: HTMLImageElement) => ({ w: el.naturalWidth, h: el.naturalHeight }));
+    expect(natural.w).toBeGreaterThanOrEqual(900);
+    // La captura es 390 × 844: la proporción natural no cambia.
+    expect(Math.abs(natural.w / natural.h - 390 / 844)).toBeLessThan(0.01);
+    // Inclinado en 3D: la caja transformada no es la rectangular del diseño.
+    const transform = await phone.locator('> div').first().evaluate((el) => getComputedStyle(el).transform);
+    expect(transform).not.toBe('none');
+    expect(transform).toContain('matrix3d');
+  });
+
   test('axe sin violaciones graves, con la sección y con el diálogo abierto', async ({ page }) => {
     // Sin animación: axe mediría el contraste a mitad del fundido de entrada.
     await page.emulateMedia({ reducedMotion: 'reduce' });

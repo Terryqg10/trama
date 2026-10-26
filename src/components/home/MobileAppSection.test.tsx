@@ -16,6 +16,18 @@ describe('MobileAppSection', () => {
     expect(screen.getByTestId('phone-mockup').getAttribute('aria-hidden')).toBe('true');
   });
 
+  it('el teléfono es realista: la pantalla es la captura real de la tienda, decorativa y sin imagen de terceros (CA-25)', () => {
+    const { container } = render(<MobileAppSection />);
+    const screenEl = screen.getByTestId('phone-screen');
+    const image = screenEl.querySelector('img');
+    expect(image?.getAttribute('src')).toContain('hero-app-pantalla.webp');
+    expect(image?.getAttribute('alt')).toBe('');
+    expect(screenEl.className).toContain('overflow-clip');
+    expect(screen.getByTestId('phone-mockup').className).toContain('perspective-distant');
+    expect(container.querySelectorAll('img')).toHaveLength(1);
+    expect(screenEl.textContent).toContain('9:41');
+  });
+
   it('no hay enlaces a tiendas ni destinos vacíos: solo botones', () => {
     const { container } = render(<MobileAppSection />);
     expect(container.querySelectorAll('a')).toHaveLength(0);

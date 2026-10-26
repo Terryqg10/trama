@@ -245,3 +245,21 @@ Solo si se aprueban Club y referidos (DP-4, DP-5):
 | CA-24 | RF-18 | El icono de la cesta con prendas | Se mira y se usa | `aria-label="Carrito, N artículos"` (singular con 1); el badge es `aria-hidden` y `pointer-events-none` (el clic abre el carrito lateral); de 320 a 1280 px no sale del viewport ni causa scroll horizontal; axe sin violaciones graves | e2e `cart-badge`, test:a11y |
 
 **Nueva tarea derivada:** T-108 (contador del carrito en la cabecera).
+
+---
+
+## Enmienda 3 — 2026-10-26 — sin ADR — teléfono realista con una captura de la tienda (RF-16, CA-25 y CA-26)
+
+**Origen:** al usuario no le gusta el teléfono maquetado de «Trama en tu móvil» (T-106): quiere un mockup más realista, como el de las referencias que aporta (un iPhone inclinado con la tienda en pantalla). **Sustituye** la forma de RF-16 y de DP-8 B: el teléfono sigue maquetado en HTML y CSS (sin API de imágenes ni servicios de pago), pero ahora con un marco realista y **una captura real de la portada** de la tienda como pantalla, en lugar de una cuadrícula dibujada con fotos sueltas. Es la «captura de la propia tienda» que DP-8 B ya preveía.
+
+- **Marco:** bisel de titanio con degradado y reflejo, isla dinámica, botones laterales (silencio, volumen y encendido), esquinas de iPhone, sombra suave e inclinación en 3D (rotación en los tres ejes con perspectiva), solo con tokens. **No usa marcas ni logotipos de terceros.**
+- **Pantalla:** `hero-app-pantalla.webp/.avif` (en `public/images/hero/`), captura de `/` a 390 × 844 px con densidad 3 (1170 × 2532) hecha con Playwright, optimizada con el pipeline del proyecto (ADR-009) y servida sin recompresión.
+- **Accesibilidad:** el teléfono es decorativo (`aria-hidden`, imagen con `alt` vacío); la sección conserva su titular, el aviso de demostración y los botones (CA-14 y CA-15 no cambian).
+- **Movimiento:** estático (sin animación), así que `prefers-reduced-motion` ya está cubierto. En móvil la inclinación se reduce para que no se salga del viewport.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-25 | RF-16 | La sección «Trama en tu móvil» | Se mira el teléfono | Es un marco de iPhone realista (bisel, isla dinámica, botones laterales, reflejo y sombra) inclinado en 3D, con la captura real de la portada como pantalla (`object-cover`, nítida, no una cuadrícula dibujada); decorativo (`aria-hidden`, `alt` vacío); sin imagen de terceros ni logotipos | test unitario y e2e `mobile-app` |
+| CA-26 | RF-16 | La sección de 320 a 1280 px | Se abre | El teléfono inclinado queda dentro del viewport, sin recortes ni scroll horizontal; la captura carga sin deformarse (proporción 390 × 844) | e2e `mobile-app`, responsive |
+
+**Nueva tarea derivada:** T-112 (teléfono realista).

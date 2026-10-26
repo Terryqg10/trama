@@ -18,39 +18,49 @@ const FOCUSABLE =
 
 const STORE_BUTTONS = ['App Store', 'Google Play'] as const;
 
-const PHONE_PHOTOS = [
-  '/images/products/abrigo-pano-gris.webp',
-  '/images/products/jersey-punto-crema.webp',
-  '/images/products/bomber-negra.webp',
-  '/images/products/chaqueta-vaquera-oversize.webp',
-] as const;
+/** Captura real de la portada a 390 × 844 px (densidad 3), hecha con Playwright y optimizada con el pipeline (ADR-009, T-112). */
+export const PHONE_SCREEN = '/images/hero/hero-app-pantalla.webp';
 
+/** Botón lateral del teléfono (silencio, volumen, encendido): una pieza fina pegada al marco. */
+function SideButton({ side, className }: { readonly side: 'left' | 'right'; readonly className: string }) {
+  return (
+    <span
+      className={`absolute w-1 bg-border-strong ${side === 'left' ? '-left-0.5 rounded-l-sm' : '-right-0.5 rounded-r-sm'} ${className}`}
+    />
+  );
+}
+
+/**
+ * Teléfono realista (RF-16, CA-25 y CA-26, T-112): marco de titanio con degradado, bisel negro, isla dinámica, botones laterales,
+ * reflejo en la pantalla, sombra e inclinación en 3D; la pantalla es una captura real de la portada. Decorativo (`aria-hidden`)
+ * y estático. Sin marcas ni logotipos. En móvil se inclina menos para no salirse del viewport.
+ */
 function PhoneMockup() {
   return (
-    <div aria-hidden="true" data-testid="phone-mockup" className="mx-auto w-56 md:w-64 lg:w-72">
-      <div className="rounded-container border-4 border-fg bg-fg p-1 shadow-card">
-        <div className="overflow-clip rounded-card bg-surface">
-          <div className="mx-auto mt-2 h-1.5 w-16 rounded-full bg-fg/80" />
-          <div className="flex items-center justify-between px-3 py-2">
-            <span className="text-sm font-bold text-fg">Trama</span>
-            <span className="size-4 rounded-full bg-accent-soft" />
-          </div>
-          <div className="px-3">
-            <span className="inline-flex rounded-control bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-text">
-              Novedades
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2 p-3">
-            {PHONE_PHOTOS.map((src) => (
-              <div key={src} className="relative aspect-3/4 overflow-clip rounded-card bg-surface-muted">
-                <Image src={src} alt="" fill unoptimized sizes="7rem" className="object-cover" />
+    <div aria-hidden="true" data-testid="phone-mockup" className="mx-auto w-52 perspective-distant md:w-60 lg:w-64">
+      <div className="relative transform-3d rotate-z-3 rotate-x-3 -rotate-y-6 md:rotate-z-6 md:rotate-x-6 md:-rotate-y-12">
+        <SideButton side="left" className="top-16 h-6" />
+        <SideButton side="left" className="top-28 h-10" />
+        <SideButton side="left" className="top-40 h-10" />
+        <SideButton side="right" className="top-32 h-16" />
+        <div className="rounded-4xl bg-linear-to-br from-border via-border-strong to-border p-0.5 shadow-2xl">
+          <div className="rounded-4xl bg-fg p-2">
+            <div data-testid="phone-screen" className="relative flex aspect-9/19 flex-col overflow-clip rounded-3xl bg-surface">
+              {/* Barra de estado: la hora y tres piezas (señal, red y batería) a los lados de la isla dinámica. */}
+              <div className="flex h-9 shrink-0 items-end justify-between px-4 pb-1 text-xs font-semibold text-fg">
+                <span>9:41</span>
+                <span className="flex items-center gap-0.5">
+                  <span className="h-2 w-2.5 rounded-sm bg-fg" />
+                  <span className="h-2 w-2 rounded-full bg-fg" />
+                  <span className="h-2.5 w-3.5 rounded-sm bg-fg" />
+                </span>
               </div>
-            ))}
-          </div>
-          <div className="flex justify-around border-t border-border py-3">
-            <span className="size-4 rounded-full bg-accent" />
-            <span className="size-4 rounded-full bg-surface-muted" />
-            <span className="size-4 rounded-full bg-surface-muted" />
+              <div className="relative min-h-0 flex-1">
+                <Image src={PHONE_SCREEN} alt="" fill unoptimized sizes="16rem" className="object-cover object-top" />
+              </div>
+              <span className="absolute left-1/2 top-2 h-5 w-16 -translate-x-1/2 rounded-full bg-fg" />
+              <span className="pointer-events-none absolute inset-0 bg-linear-to-br from-surface/30 via-transparent to-transparent" />
+            </div>
           </div>
         </div>
       </div>
