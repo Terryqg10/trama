@@ -64,12 +64,13 @@ describe('ShippingBanner (CA-117)', () => {
     expect(screen.getByTestId('shipping-banner').textContent).not.toContain('49,99');
   });
 
-  it('lleva el subtítulo con la tarifa plana y los días de devolución de shop.ts, sin promesas inventadas (CA-143)', () => {
+  it('el subtítulo no repite lo que dice la sección de confianza: ni la tarifa, ni los días, ni la devolución (CA-143, CA-145)', () => {
     render(<ShippingBanner />);
-    expect(screen.getByTestId('shipping-banner-detail').textContent).toBe(
-      `Tarifa plana de ${formatEuros(SHIPPING_FLAT_CENTS)} en el resto de pedidos. Devolución en ${RETURN_WINDOW_DAYS} días.`,
-    );
-    expect(screen.getByTestId('shipping-banner').textContent).not.toMatch(/24|48|gratuitas/);
+    expect(screen.getByTestId('shipping-banner-detail').textContent).toBe('Se aplica automáticamente al tramitar tu compra.');
+    const text = screen.getByTestId('shipping-banner').textContent ?? '';
+    expect(text).not.toContain(formatEuros(SHIPPING_FLAT_CENTS));
+    expect(text).not.toContain(`${RETURN_WINDOW_DAYS} días`);
+    expect(text).not.toMatch(/24|48|gratuitas|devol/i);
   });
 
   it('el título va en mayúsculas espaciadas y el icono de camión es decorativo (CA-143)', () => {

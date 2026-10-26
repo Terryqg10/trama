@@ -1201,3 +1201,19 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-144 | RF-26 | La portada | Se llega a la newsletter | El fondo es un degradado diagonal (`background-image` con degradado, sin color plano) de `accent` al 10 % hacia `surface`; el título, la etiqueta y el texto del consentimiento tienen ≥ 4,5:1 sobre el peor píxel del fondo a 320, 375, 768 y 1280 px; el contenido sigue centrado y sin scroll horizontal | test unitario `NewsletterSection`, e2e `newsletter` |
 
 **Nueva tarea derivada:** T-110 (fondo degradado de la newsletter).
+
+### Enmienda 45 — 2026-10-26 — sin ADR — sin palabras repetidas entre la franja de envío y «Compra con tranquilidad» (CA-145)
+
+**Origen:** el usuario señala que, seguidas en la portada, la franja de envío (Enmienda 43) y la sección de confianza (CA-111, Enmienda 28) repiten los mismos datos y palabras: el umbral de 50,00 € aparece tres veces (título de la franja, texto de la primera tarjeta y su insignia «Gratis desde 50,00 €»), «tarifa plana de 4,95 €» y «30 días» aparecen en las dos, y el subtítulo de la sección repite lo que dicen sus propias tarjetas («envío», «devolución», «pago seguro»).
+
+**Qué cambia (cada dato se dice una sola vez, en la portada completa)**
+- **Franja de envío (CA-143):** el título sigue diciendo el umbral («Envío gratis a partir de 50,00 €»). El subtítulo deja de repetir la tarifa y la devolución y pasa a decir algo que no está en ningún otro sitio de la portada y que es cierto en la tienda (el envío gratis se aplica solo, sin código): «Se aplica automáticamente al tramitar tu compra.».
+- **Sección de confianza (CA-111):** la primera tarjeta dice solo la tarifa («Tarifa plana de 4,95 € por pedido.») y **pierde la insignia** «Gratis desde…», que repetía su propio texto. La segunda tarjeta no repite «devolver» en su texto: «Si no te encaja, es gratis y te reembolsamos en 5 días laborables.». El subtítulo de la sección pasa a «Todo claro antes de pagar.».
+- **Se mantienen** las promesas de ejemplo de la Enmienda 28 (24-48 h, devolución gratuita, reembolso en 5 días laborables) y la nota «Condiciones de ejemplo…».
+- **Sustituye de los tests de CA-111** que el texto de la sección contuviera «50,00» (el umbral vive ahora solo en la franja); siguen exigiéndose «4,95» y «30 días».
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-145 | RF-16, RF-23 | La portada con la franja de envío y «Compra con tranquilidad» | Se lee su texto | «50,00 €», «tarifa plana», «30 días» y «devol…» aparecen cada uno una vez en el conjunto de las dos secciones, salvo «devolución» en la nota de condiciones de ejemplo; la primera tarjeta no lleva insignia; el subtítulo de la franja es «Se aplica automáticamente al tramitar tu compra.» | test unitario `HomeSections` y e2e `trust-section` y `home-sections` |
+
+**Nueva tarea derivada:** T-111 (texto sin repeticiones en la franja y la sección de confianza).

@@ -1,12 +1,7 @@
 import Link from 'next/link';
 import { PackageCheck, RotateCcw, ShieldCheck, Truck } from 'lucide-react';
 import type { ComponentType } from 'react';
-import {
-  FREE_SHIPPING_THRESHOLD_CENTS,
-  RETURN_WINDOW_DAYS,
-  SHIPPING_FLAT_CENTS,
-  formatEuros,
-} from '@/lib/domain/shop';
+import { RETURN_WINDOW_DAYS, SHIPPING_FLAT_CENTS, formatEuros } from '@/lib/domain/shop';
 
 interface Pillar {
   readonly Icon: ComponentType<{ readonly 'aria-hidden': 'true'; readonly className: string }>;
@@ -17,20 +12,20 @@ interface Pillar {
 }
 
 /**
- * Cuatro motivos para comprar con confianza. La tarifa, el umbral y los días salen de `shop.ts`; el resto del texto
+ * Cuatro motivos para comprar con confianza. La tarifa y los días salen de `shop.ts` (el umbral de envío gratis, solo en la
+ * franja de envío que la precede: CA-145, T-111); el resto del texto
  * (24-48 h, devolución gratuita, reembolso en 5 días) es de ejemplo, como dice la nota de la sección (Enmienda 28).
  */
 const PILLARS: readonly Pillar[] = [
   {
     Icon: Truck,
     title: 'Envío en 24-48 h',
-    text: `Tarifa plana de ${formatEuros(SHIPPING_FLAT_CENTS)} y gratis a partir de ${formatEuros(FREE_SHIPPING_THRESHOLD_CENTS)}.`,
-    badge: `Gratis desde ${formatEuros(FREE_SHIPPING_THRESHOLD_CENTS)}`,
+    text: `Tarifa plana de ${formatEuros(SHIPPING_FLAT_CENTS)} por pedido.`,
   },
   {
     Icon: RotateCcw,
     title: `${RETURN_WINDOW_DAYS} días para devolver`,
-    text: 'Si no te encaja, la devolución es gratuita y te reembolsamos en 5 días laborables.',
+    text: 'Si no te encaja, es gratis y te reembolsamos en 5 días laborables.',
   },
   {
     Icon: ShieldCheck,
@@ -58,7 +53,7 @@ export function TrustSection() {
           Compra con tranquilidad
         </h2>
         <p className="mx-auto mt-2 max-w-(--layout-prose-max) text-fg-muted">
-          Envío rápido, devolución fácil y pago seguro: todo claro antes de pagar.
+          Todo claro antes de pagar.
         </p>
       </div>
 

@@ -125,10 +125,10 @@ test.describe('franja de envío gratis (CA-117)', () => {
     await expect(banner).toContainText('Envío gratis a partir de 50,00 €');
     await expect(banner).not.toContainText('49,99');
     await expect(banner.locator('img')).toHaveCount(0);
-    // CA-143: icono de camión decorativo, título en mayúsculas y subtítulo con los datos de `shop.ts`.
+    // CA-143 y CA-145: icono de camión decorativo, título en mayúsculas y subtítulo que no repite a la sección de confianza.
     await expect(banner.locator('svg[aria-hidden="true"]')).toHaveCount(1);
     await expect(page.getByTestId('shipping-banner-text')).toHaveCSS('text-transform', 'uppercase');
-    await expect(page.getByTestId('shipping-banner-detail')).toHaveText('Tarifa plana de 4,95 € en el resto de pedidos. Devolución en 30 días.');
+    await expect(page.getByTestId('shipping-banner-detail')).toHaveText('Se aplica automáticamente al tramitar tu compra.');
     const text = page.getByTestId('shipping-banner-text');
     const bannerBox = await banner.boundingBox();
     const textBox = await text.boundingBox();

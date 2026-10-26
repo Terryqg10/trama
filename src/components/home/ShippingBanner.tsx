@@ -1,15 +1,10 @@
 import { Truck } from 'lucide-react';
-import {
-  FREE_SHIPPING_THRESHOLD_CENTS,
-  RETURN_WINDOW_DAYS,
-  SHIPPING_FLAT_CENTS,
-  formatEuros,
-} from '@/lib/domain/shop';
+import { FREE_SHIPPING_THRESHOLD_CENTS, formatEuros } from '@/lib/domain/shop';
 
 /**
  * Franja de envío gratis de la portada (CA-117, T-072; rediseñada en CA-143, T-109). Sin foto, a todo el ancho y con tokens:
- * icono de camión, título en mayúsculas espaciadas y un subtítulo sutil. Todos los importes y plazos salen de `shop.ts`, no
- * se escriben a mano (el subtítulo no promete plazos de entrega ni devoluciones gratuitas: eso no está declarado en ninguna parte).
+ * icono de camión, título en mayúsculas espaciadas y un subtítulo sutil. El importe sale de `shop.ts`. Sin palabras repetidas con
+ * la sección de confianza que la sigue (CA-145, T-111): la tarifa, los días de devolución y las promesas de ejemplo se dicen solo allí.
  */
 export function ShippingBanner() {
   return (
@@ -26,7 +21,7 @@ export function ShippingBanner() {
         Envío gratis a partir de {formatEuros(FREE_SHIPPING_THRESHOLD_CENTS)}
       </p>
       <p data-testid="shipping-banner-detail" className="text-xs text-fg-muted">
-        Tarifa plana de {formatEuros(SHIPPING_FLAT_CENTS)} en el resto de pedidos. Devolución en {RETURN_WINDOW_DAYS} días.
+        Se aplica automáticamente al tramitar tu compra.
       </p>
     </section>
   );

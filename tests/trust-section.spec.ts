@@ -29,14 +29,32 @@ test.describe('sección de confianza (CA-111)', () => {
     }
   });
 
-  test('los importes y plazos salen de la tienda: 4,95 €, 50,00 € y 30 días', async ({ page }) => {
+  test('los importes y plazos salen de la tienda: 4,95 € y 30 días (el umbral de 50,00 € vive en la franja de envío, CA-145)', async ({ page }) => {
     await open(page);
     const text = await section(page).innerText();
     expect(text).toContain('4,95');
-    expect(text).toContain('50,00');
     expect(text).toContain('30 días');
     expect(text).not.toContain('49,99');
     expect(text).not.toContain('*');
+  });
+
+  // CA-145 (T-111): cada dato se dice una sola vez entre la franja de envío y esta sección.
+  test('no repite datos ni palabras con la franja de envío que la precede', async ({ page }) => {
+    await open(page);
+    const banner = await page.getByTestId('shipping-banner').innerText();
+    const trust = await section(page).innerText();
+    const both = `${banner}\n${trust}`;
+    const count = (re: RegExp) => (both.match(re) ?? []).length;
+    expect(count(/50,00/g)).toBe(1);
+    expect(count(/tarifa plana/gi)).toBe(1);
+    expect(count(/30 días/g)).toBe(1);
+    // «devol…» solo en la tarjeta de devolución y en la nota de condiciones de ejemplo.
+    expect(count(/devol/gi)).toBe(2);
+    await expect(page.getByTestId('trust-pillar').first().locator('span.rounded-full').filter({ hasText: /Gratis/ })).toHaveCount(0);
+    await expect(page.getByTestId('shipping-banner-detail')).toHaveText('Se aplica automáticamente al tramitar tu compra.');
+    await expect(section(page).getByText('Todo claro antes de pagar.')).toBeVisible();
+    await expect(section(page).getByText('Tarifa plana de 4,95 € por pedido.')).toBeVisible();
+    await expect(section(page).getByText('Si no te encaja, es gratis y te reembolsamos en 5 días laborables.')).toBeVisible();
   });
 
   test('lleva la nota de condiciones de ejemplo y el enlace a las condiciones', async ({ page }) => {
