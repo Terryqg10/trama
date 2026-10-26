@@ -55,6 +55,8 @@ responda. Si algo se ve mal, se anota.
 - 375 px: igual.
 - 768 px: transiciones sin rarezas.
 - 1280 px: equilibrado.
+- ¿Los filtros en móvil se ven como un menú limpio (select/dropdown) o
+  hay una fila de botones desbordada?
 
 ### 5. Estados y vacíos
 
@@ -82,6 +84,13 @@ responda. Si algo se ve mal, se anota.
 - Imágenes aportan, no genéricas.
 - Hero transmite lo que debe.
 - Ninguna sección vacía de contenido visual.
+- Solo si el proyecto es e-commerce (catálogo o carrito):
+  - ¿El Hero es una imagen a sangre o una tarjeta grande, con texto
+    legible (scrim si hay imagen de fondo)?
+  - ¿Hay al menos una franja de interrupción (promoción) entre las
+    rejillas de productos?
+  - ¿Con más de 3 categorías, se muestran como carrusel o rejilla de
+    imágenes y no solo texto?
 
 ### 9. Layout Macro y Navegación
 

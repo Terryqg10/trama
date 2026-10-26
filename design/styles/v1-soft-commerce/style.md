@@ -98,6 +98,15 @@ salvo justificación explícita en `sdd/plans/` bajo `## Decisiones de UI`.
   filtros ha aplicado.
 - Botones "Aplicar" fuera del área de filtros.
 
+## Navegación y Header
+
+El header debe tener `sticky top-0 z-50` en todos los proyectos. Siempre
+debe ser visible al hacer scroll (tanto en escritorio como en móvil). Si
+el diseño es transparente sobre el hero, debe volverse opaco al hacer
+scroll (usando un evento de scroll o Intersection Observer). El menú
+móvil debe ser un overlay a pantalla completa (nunca un desplegable) y
+debe incluir siempre el botón de 'Reservar' o 'Contactar'.
+
 ## Menú móvil
 
 Convención del sector para tiendas de consumo: menú a pantalla

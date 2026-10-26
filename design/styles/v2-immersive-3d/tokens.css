@@ -1,5 +1,5 @@
 /*
- * v2-immersive-3d — tokens.css  (v0.1.0, borrador)
+ * v2-immersive-3d — tokens.css  (v0.3.0, borrador)
  *
  * SOLO TOKENS ESTRUCTURALES: forma, elevación, tipografía, movimiento,
  * parallax y layout. NO define colores. Cada proyecto deduce su paleta y
@@ -38,6 +38,7 @@
   --text-min: 0.75rem;
 
   /* Movimiento */
+  --duration-base:   300ms;
   --duration-micro:   300ms;
   --duration-section: 600ms;
   --duration-hero:    1400ms;
@@ -73,6 +74,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   :root {
+    --duration-base:   0.01ms;
     --duration-micro:   0.01ms;
     --duration-section: 0.01ms;
     --duration-hero:    0.01ms;

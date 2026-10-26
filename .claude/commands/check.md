@@ -8,6 +8,18 @@ apliquen según el nivel del proyecto y la tarea en curso.
 1. Identifica la tarea activa. Determina el nivel (S/M/L) desde
    sdd/plans/.
 
+   Antes de lanzar los tests de UI (responsive, a11y), analiza el cambio
+   actual (puedes mirar el git diff o la tarea):
+   1. Si el cambio es puramente lógico o de base de datos: lanza las
+      puertas de UI habituales.
+   2. Si el cambio es puramente cosmético (solo texto, color, o añadir
+      un icono sin alterar padding/márgenes): puedes omitir el test
+      responsive para ahorrar tiempo, pero SÍ debes pasar typecheck, lint
+      y a11y.
+   3. Si el cambio altera layout, espaciado (márgenes, padding) o
+      estructura: ES OBLIGATORIO lanzar responsive.spec.ts y la captura
+      a 375 px.
+
 2. Ejecuta una por una y pega la salida (no un resumen).
 
    Obligatorias siempre:
@@ -21,7 +33,7 @@ apliquen según el nivel del proyecto y la tarea en curso.
    Si se tocó UI:
    pnpm check-palette
    pnpm test:a11y
-   pnpm exec playwright test tests/responsive.spec.ts   (aplica a TODOS los niveles, S incluido)
+   pnpm exec playwright test tests/responsive.spec.ts   (todos los niveles, S incluido; se omite solo en cambios puramente cosméticos, ver arriba)
 
    Según el nivel:
    - S: Lighthouse (rendimiento y accesibilidad ≥ 90).

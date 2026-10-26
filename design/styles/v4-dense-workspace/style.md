@@ -233,6 +233,15 @@ style.md`, sección "Controles de formulario".
 6. Al cerrar cada tarea de UI, rellena en `sdd/reviews/T-xxx.md` la evidencia de CA-S1 a CA-S18 que apliquen.
 7. Una versión aprobada no se edita.
 
+## Navegación y Header
+
+El header debe tener `sticky top-0 z-50` en todos los proyectos. Siempre
+debe ser visible al hacer scroll (tanto en escritorio como en móvil). Si
+el diseño es transparente sobre el hero, debe volverse opaco al hacer
+scroll (usando un evento de scroll o Intersection Observer). El menú
+móvil debe ser un overlay a pantalla completa (nunca un desplegable) y
+debe incluir siempre el botón de 'Reservar' o 'Contactar'.
+
 ## Cambios
 
 ### 0.2.0 — 2026-10-16

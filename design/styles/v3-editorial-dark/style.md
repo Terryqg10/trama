@@ -1,7 +1,7 @@
 ---
 id: v3-editorial-dark
 name: Editorial Dark
-version: 0.2.0
+version: 0.3.0
 status: borrador
 surface: marca
 layout: a-sangre
@@ -150,6 +150,15 @@ significa ocupar el ancho, no desbordar.
 - **Reflujo a 320 px:** obligatorio. Ningún texto girado, ningún titular
   gigante que desborde.
 
+## Navegación y Header
+
+El header debe tener `sticky top-0 z-50` en todos los proyectos. Siempre
+debe ser visible al hacer scroll (tanto en escritorio como en móvil). Si
+el diseño es transparente sobre el hero, debe volverse opaco al hacer
+scroll (usando un evento de scroll o Intersection Observer). El menú
+móvil debe ser un overlay a pantalla completa (nunca un desplegable) y
+debe incluir siempre el botón de 'Reservar' o 'Contactar'.
+
 ## Menú móvil
 
 Convención para sitios editoriales oscuros: overlay a pantalla completa
@@ -248,6 +257,9 @@ style.md`, sección "Controles de formulario".
 6. Una versión aprobada no se edita.
 
 ## Cambios
+
+### 0.3.0 — 2026-10-26
+- Añadido el token `--duration-base` (250ms) para cumplir el contrato del Craft Floor.
 
 ### 0.2.0 — 2026-10-16
 - Nueva sección "Menú móvil": overlay a pantalla completa con

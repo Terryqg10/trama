@@ -1,5 +1,5 @@
 /*
- * v3-editorial-dark — tokens.css  (v0.1.0, borrador)
+ * v3-editorial-dark — tokens.css  (v0.3.0, borrador)
  *
  * SOLO TOKENS ESTRUCTURALES: forma, elevación, tipografía, movimiento,
  * layout. NO define colores. Cada proyecto deduce su paleta (modo oscuro)
@@ -42,6 +42,7 @@
   --text-min: 0.875rem;
 
   /* Movimiento (contenido: nada de parallax pesado) */
+  --duration-base: 250ms;
   --duration-micro: 200ms;
   --duration-enter: 400ms;
   --duration-slide: 600ms;
@@ -67,6 +68,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   :root {
+    --duration-base: 0.01ms;
     --duration-micro: 0.01ms;
     --duration-enter: 0.01ms;
     --duration-slide: 0.01ms;

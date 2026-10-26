@@ -41,6 +41,8 @@ tarea con una afirmación: la cierra con evidencia.
      `sdd/plans/` bajo `## Decisiones de UI` que lo justifica.
 8. Accesibilidad: axe sin violaciones graves; prefers-reduced-motion
    respetado; foco visible; 44×44 px táctil; texto ≥ 12 px.
+   - Imágenes: todas tienen `sizes`, `width`/`height` o `fill` con
+     contenedor aspect-ratio para evitar CLS.
 9. Privacidad: sección "Datos y privacidad" de la spec actualizada si se
    tocaron datos personales.
 10. Estilo: check-palette pasa; sin hex ni valores arbitrarios en
@@ -72,3 +74,49 @@ El nivel está en sdd/plans/.
 - Checklist de interfaz marcada.
 - Problemas conocidos, si los hay.
 - Estado final: cerrada o vuelve a pendiente.
+
+## Estrategia de Ejecución de Tests (Eficiencia)
+
+- **Durante el desarrollo:** NO se ejecuta la suite completa de e2e en
+  cada iteración. Se ejecuta solo el archivo de test relacionado con el
+  cambio (ej. `playwright test tests/mi-componente.spec.ts`).
+- **Ahorro de navegadores:** Mientras se itera, usar `--project=chromium`
+  (escritorio). El proyecto `mobile` solo se ejecuta en el pase final
+  antes del commit.
+- **Logs reducidos:** Al pedir los resultados de los tests, pedir solo
+  las últimas 20 líneas del log (resumen) o el error específico. Evitar
+  volcar los 1000+ tests en el contexto.
+- **Tests flaky:** Si un test falla de forma intermitente (flaky) por la
+  máquina local (ej. animaciones, ratón), arreglarlo con esperas
+  (`waitFor`) o marcarlo como `test.fixme`, nunca dejarlo reintentando
+  infinitamente.
+
+## Verificación de Tests Flaky (Ahorro de Tiempo)
+
+Cuando se corrija un test que falla de forma intermitente (flaky), está
+PROHIBIDO ejecutar la suite completa de e2e varias veces seguidas para
+comprobarlo. El proceso correcto es:
+
+1. Ejecutar SOLO el archivo del test afectado, repitiéndolo varias veces
+   con el flag de Playwright:
+   `pnpm exec playwright test tests/archivo-afectado.spec.ts --project=chromium --repeat-each=10`
+2. Si pasa las 10 repeticiones, el arreglo es válido.
+3. Solo en el pase final del día (el /check o /review de cierre) se
+   lanzará la suite completa.
+
+Motivo: Evitar tiempos de espera de 30+ minutos y el consumo masivo de
+tokens en logs repetidos.
+
+## Regla de Impacto de Cambios (Eficiencia vs Calidad)
+
+- **Durante la iteración:** Si una tarea es puramente cosmética (iconos,
+  textos, colores) y NO altera la lógica, el agente solo ejecutará
+  `typecheck`, `lint` y el test directamente afectado. No lanzará las
+  suites completas.
+- **En el pase final (antes del commit):** Si el cambio cosmético toca
+  espaciado, márgenes, padding o layout (ej. añadir un icono a una
+  tarjeta), ES OBLIGATORIO ejecutar el test de responsive
+  (`responsive.spec.ts`) y la captura a 375 px exigida por la puerta 7,
+  para asegurar que no se ha roto el reflow.
+- Si el cambio es puramente de texto o color sin afectar al flujo, el
+  pase final puede omitir el responsive.

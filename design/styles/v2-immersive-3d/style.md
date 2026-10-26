@@ -1,7 +1,7 @@
 ---
 id: v2-immersive-3d
 name: Immersive 3D
-version: 0.2.0
+version: 0.3.0
 status: borrador
 surface: marketing
 layout: hero-a-pantalla
@@ -140,6 +140,15 @@ Vitals.
 - **Presupuesto del hero:** en móvil ≤ 250 KB (LCP crítico). En
   escritorio ≤ 400 KB.
 
+## Navegación y Header
+
+El header debe tener `sticky top-0 z-50` en todos los proyectos. Siempre
+debe ser visible al hacer scroll (tanto en escritorio como en móvil). Si
+el diseño es transparente sobre el hero, debe volverse opaco al hacer
+scroll (usando un evento de scroll o Intersection Observer). El menú
+móvil debe ser un overlay a pantalla completa (nunca un desplegable) y
+debe incluir siempre el botón de 'Reservar' o 'Contactar'.
+
 ## Menú móvil
 
 Convención del sector para landings inmersivas: overlay a pantalla
@@ -228,6 +237,9 @@ sección "Controles de formulario".
 5. Una versión aprobada no se edita.
 
 ## Cambios
+
+### 0.3.0 — 2026-10-26
+- Añadido el token `--duration-base` (300ms) para cumplir el contrato del Craft Floor.
 
 ### 0.2.0 — 2026-10-16
 - Nueva sección "Menú móvil": overlay a pantalla completa con fade/slide.

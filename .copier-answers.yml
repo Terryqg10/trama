@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: 435c3e2
+_commit: cdebfb1
 _src_path: C:\proyectos\web-os
 author_name: terry
 project_description: Prueba 1 para proyecto
@@ -7,3 +7,4 @@ project_name: Prueba 1
 project_slug: trama
 rigor_level: S
 style: v1-soft-commerce
+supabase_port_offset: 0

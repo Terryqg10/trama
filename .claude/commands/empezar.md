@@ -64,7 +64,22 @@ Espera a que el usuario apruebe la paleta antes de continuar.
 
 ## Paso 4b — Dirección visual
 
-Pregunta en un solo mensaje:
+Este paso ocurre SIEMPRE antes de escribir la spec o el plan (pasos 6 y
+7). No se propone ni se diseña nada sin pasar antes por aquí.
+
+Antes de proponer el estilo, pregúntame:
+
+- ¿Tienes capturas de pantalla o URLs de webs que te sirvan de
+  referencia visual (colores, tipografía, estructura)?
+- Si no tienes referencias, propón 3 direcciones de arte distintas (ej.
+  Minimalista suizo, Editorial clásico, Lujo oscuro) con una frase de por
+  qué encajan con el sector, y espera a que elija una.
+
+Espera respuesta. No avances sin referencias o sin una dirección elegida.
+Las referencias (o la dirección elegida) se anotan en el
+`## 5a. Dirección visual` del plan.
+
+Después, pregunta en un solo mensaje:
 
 - ¿Vas a aportar imágenes propias (fotos, logos, ilustraciones)? ¿Las
   tienes ya o llegarán después?

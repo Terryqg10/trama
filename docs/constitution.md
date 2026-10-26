@@ -63,6 +63,11 @@ IDs de trazabilidad `RF-xx → CA-xx → T-xx → test`. Cada CA tiene test o
 comprobación manual documentada. Una tarea no se cierra con una
 afirmación: se cierra con evidencia.
 
+### I10 — Contraseñas seguras
+Toda autenticación de usuario debe validar la fortaleza de la contraseña
+(mínimo 8 caracteres, mezcla de letras y números) usando la función
+`validatePassword` del OS (`src/lib/password.ts`).
+
 ## 3. Defaults sobrescribibles con ADR
 
 | ID | Default | Notas |

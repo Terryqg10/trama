@@ -62,6 +62,10 @@ Detalle en `.claude/rules/styles.md`.
 | — | /decide | Cuando aparece una decisión con alternativas reales. |
 | — | /style | Consulta o cambia el estilo del proyecto. |
 | — | /competencia | Investiga la competencia y la convierte en ADR, spec y tareas. |
+| — | /brain | Ejecuta el pipeline autónomo completo (Plan -> Build -> Auditar -> Pulir -> Tests). |
+| — | /auditar-pagina | Compara la página actual con las checklists y añade los bloques que falten. |
+| — | /pulir-ui | Aplica el Craft Floor y eleva la calidad visual (espaciado, tipografía, tokens). |
+| — | /sincronizar | Actualiza el proyecto con la última versión del OS vía Copier. |
 
 > Si el proyecto acaba de instanciarse y no hay specs todavía, el primer
 > comando es `/empezar`, no `/start`.

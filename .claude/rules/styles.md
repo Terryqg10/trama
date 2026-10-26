@@ -72,3 +72,15 @@ Reglas:
 - Prohibido esconder un desbordamiento con `overflow-x: hidden` en
   html/body: arregla la causa (el nav debe plegarse antes de que sus
   enlaces dejen de caber).
+
+## Imágenes Responsive y Rendimiento (CLS)
+
+- Todas las imágenes deben tener un atributo `sizes` adecuado (ej.
+  `(min-width: 1024px) 33vw, 100vw`).
+- Siempre se debe reservar el espacio de la imagen (relación de aspecto)
+  para evitar el Cumulative Layout Shift (CLS). Usa `aspect-ratio` o
+  width/height declarados.
+- En Next.js, usa el componente `<Image>` con las props `width` y
+  `height` (o `fill` con un contenedor con aspect-ratio).
+- Si la imagen tiene un recorte distinto en móvil vs escritorio, usa
+  `<picture>` o el arte de dirección de `next/image`.
