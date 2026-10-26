@@ -15,6 +15,9 @@ const ROUTES = [
   '/registro',
   '/recuperar',
   '/recuperar?error=enlace',
+  // Confirmación de la newsletter (CA-103, T-061): el formulario y un resultado.
+  `/newsletter/confirmar?token=${'A'.repeat(43)}`,
+  '/newsletter/confirmar?resultado=confirmed',
 ];
 
 // axe calcula el contraste con el color pintado en ese instante: a medio fundido (T-051, CA-90) el texto de una sección

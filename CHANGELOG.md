@@ -12,6 +12,7 @@ y versionado [SemVer](https://semver.org/lang/es/).
 - Novedades de la portada como carrusel con efecto peek (T-113).
 - Carrito lateral avanzado (Fase 3): iconos de pago de `simple-icons` con aviso de entorno de demostración (T-119), código de descuento con límite de 3 intentos por minuto que el pago recoge (T-120) y «Completa tu look» con tres básicos (T-121).
 - Franja de envío gratis (T-109), fondo degradado en la newsletter (T-110) y texto sin repeticiones con «Compra con tranquilidad» (T-111).
+- Newsletter lista para producción (T-061): sección de privacidad del correo, doble confirmación con token de un solo uso y hash (en la demo, enlace en pantalla) y campo trampa anti altas automáticas.
 
 ### Cambiado
 - El retorno tras el acceso admite también `/hombre`, `/mujer`, `/novedades`, `/ofertas` y `/buscar` (lista blanca, T-115).

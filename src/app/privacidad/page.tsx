@@ -36,6 +36,28 @@ export default function PrivacidadPage() {
         </li>
       </ul>
 
+      <LegalHeading>Correo de novedades y ofertas</LegalHeading>
+      <p>
+        Si te suscribes en la portada, guardamos tu email, la constancia de que aceptaste esta política y las fechas
+        de alta y de confirmación. Solo se usan para avisarte de novedades y ofertas, y solo si lo has consentido de
+        forma expresa: la alta no cuenta hasta que confirmas desde el enlace de confirmación (doble confirmación).
+      </p>
+      <ul className="list-disc space-y-2 pl-6">
+        <li>
+          <strong>Cuánto tiempo:</strong> mientras no retires tu consentimiento. VERIFICAR el plazo máximo de
+          conservación en un uso real.
+        </li>
+        <li>
+          <strong>Cómo darte de baja:</strong> un servicio real incluiría un enlace de baja en cada mensaje y un
+          contacto del responsable. Esta tienda es una demostración y no envía correos, así que no hay ninguno que
+          enseñar. VERIFICAR el canal de baja y la base jurídica con un asesor antes de enviar nada.
+        </li>
+        <li>
+          <strong>Con quién:</strong> no se comparte con terceros; el alojamiento está en Supabase.
+        </li>
+      </ul>
+      <p>Este apartado es un texto de ejemplo, no asesoramiento legal.</p>
+
       <LegalHeading>Quién puede ver tus datos</LegalHeading>
       <p>
         Las personas con rol de administración de la tienda pueden ver los pedidos y el nombre y la dirección del

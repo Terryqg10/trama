@@ -5,6 +5,7 @@ import { useActionState, useId } from 'react';
 import { subscribeAction } from '@/app/actions/newsletter';
 import { initialNewsletterState } from '@/lib/newsletter/state';
 import { FormMessage, SubmitButton, TextField, useFormFocus } from '@/components/forms/fields';
+import { DemoNotice } from '@/components/DemoNotice';
 import { WelcomeCoupon } from './WelcomeCoupon';
 
 /**
@@ -20,7 +21,7 @@ export function NewsletterForm({ className = 'mx-auto mt-6 w-full max-w-xl space
   const consentError = state.fieldErrors?.consent;
 
   return (
-    <form ref={formRef} action={action} noValidate className={className}>
+    <form ref={formRef} action={action} noValidate className={`relative ${className}`}>
       <TextField
         name="email"
         label="Email"
@@ -57,8 +58,33 @@ export function NewsletterForm({ className = 'mx-auto mt-6 w-full max-w-xl space
         ) : null}
       </div>
 
+      {/* Campo trampa (CA-104): una persona no lo ve ni lo alcanza (`inert`: sin foco, sin lector de pantalla); un bot que rellena todo, sí. */}
+      <div inert aria-hidden="true" data-testid="newsletter-honeypot" className="pointer-events-none absolute size-px overflow-hidden opacity-0">
+        <label>
+          No rellenes este campo
+          <input name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+        </label>
+      </div>
+
       <div aria-live="polite" data-testid="newsletter-message">
         <FormMessage state={state} />
+        {state.status === 'success' && state.confirm ? (
+          <div className="mt-3">
+            <DemoNotice testId="newsletter-confirm" title="Confirma tu suscripción">
+              <span className="block">
+                Sin correo propio, el enlace de confirmación se muestra aquí. Con un proveedor de correo real te llegaría a tu
+                email. Caduca en 24 horas.
+              </span>
+              <Link
+                href={state.confirm.href}
+                data-testid="newsletter-confirm-link"
+                className="mt-3 inline-flex min-h-11 items-center rounded-control bg-accent px-4 text-sm font-semibold text-accent-fg hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                Confirmar mi suscripción
+              </Link>
+            </DemoNotice>
+          </div>
+        ) : null}
         {state.status === 'success' && state.coupon ? (
           <div className="mt-3">
             <WelcomeCoupon notice={state.coupon} />

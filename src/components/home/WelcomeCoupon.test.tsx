@@ -97,6 +97,25 @@ describe('NewsletterForm con cupón (CA-136)', () => {
     expect(live.querySelector('[data-testid="welcome-coupon-code"]')?.textContent).toBe('TRAMA-ABCD-EF23');
   });
 
+  it('con éxito enseña el enlace de confirmación (CA-103) y el campo trampa no es accesible ni se alcanza (CA-104)', async () => {
+    await submitWith({
+      status: 'success',
+      message: '¡Gracias por suscribirte! Falta un paso: confirma tu suscripción.',
+      confirm: { href: `/newsletter/confirmar?token=${'A'.repeat(43)}` },
+    });
+    const link = screen.getByTestId('newsletter-confirm-link');
+    expect(link.getAttribute('href')).toBe(`/newsletter/confirmar?token=${'A'.repeat(43)}`);
+    expect(link.textContent).toBe('Confirmar mi suscripción');
+    expect(screen.getByTestId('newsletter-confirm').textContent).toContain('Sin correo propio');
+
+    const trap = screen.getByTestId('newsletter-honeypot');
+    expect(trap.hasAttribute('inert')).toBe(true);
+    expect(trap.getAttribute('aria-hidden')).toBe('true');
+    const field = trap.querySelector('input[name="website"]');
+    expect(field?.getAttribute('tabindex')).toBe('-1');
+    expect(field?.getAttribute('autocomplete')).toBe('off');
+  });
+
   it('con éxito pero sin cupón (el servidor no pudo prepararlo) muestra solo el mensaje', async () => {
     await submitWith({ status: 'success', message: '¡Gracias por suscribirte! Te avisaremos de las novedades y ofertas.' });
     expect(screen.getByTestId('newsletter-message').textContent).toContain('¡Gracias por suscribirte!');

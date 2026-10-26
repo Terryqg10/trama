@@ -4,10 +4,10 @@ import { fieldErrors, formDataToObject } from '@/lib/auth/schemas';
 import { issueWelcomeCoupon } from '@/lib/coupons/store';
 import { newsletterSchema } from '@/lib/newsletter/schema';
 import type { CouponNotice, NewsletterState } from '@/lib/newsletter/state';
-import { subscribeToNewsletter } from '@/lib/newsletter/subscribe';
+import { confirmHref, subscribeToNewsletter } from '@/lib/newsletter/subscribe';
 import { createServiceClient } from '@/lib/supabase/service';
 
-const SUCCESS_MESSAGE = '¡Gracias por suscribirte! Te avisaremos de las novedades y ofertas.';
+const SUCCESS_MESSAGE = '¡Gracias por suscribirte! Falta un paso: confirma tu suscripción para recibir novedades y ofertas.';
 const SERVER_ERROR = 'No se ha podido completar la suscripción. Inténtalo de nuevo.';
 
 /**
@@ -34,11 +34,14 @@ async function couponNoticeFor(email: string): Promise<CouponNotice | null> {
 }
 
 /**
- * Acción del formulario de la newsletter (RF-26, CA-100, T-059). Valida con Zod, guarda y devuelve el estado para
- * `useActionState`. Un email ya suscrito responde igual que uno nuevo. Con éxito, añade el cupón de bienvenida (RF-27).
+ * Acción del formulario de la newsletter (RF-26, CA-100, CA-103 y CA-104, T-059 y T-061). Valida con Zod, guarda la alta como
+ * PENDIENTE y devuelve el estado para `useActionState`, con el enlace de confirmación (sin correo propio, en pantalla). Un email
+ * nuevo, pendiente o ya confirmado responde igual. Con éxito, añade el cupón de bienvenida (RF-27). Si el campo trampa
+ * (`website`) viene relleno, descarta la alta sin guardar nada y responde como si hubiera ido bien.
  */
 export async function subscribeAction(_previous: NewsletterState, formData: FormData): Promise<NewsletterState> {
   const raw = formDataToObject(formData);
+  if ((raw.website ?? '').trim() !== '') return { status: 'success', message: SUCCESS_MESSAGE };
   const parsed = newsletterSchema.safeParse(raw);
   if (!parsed.success) {
     return {
@@ -53,5 +56,5 @@ export async function subscribeAction(_previous: NewsletterState, formData: Form
   if (!result.ok) return { status: 'error', message: SERVER_ERROR, values: { email: parsed.data.email } };
 
   const coupon = await couponNoticeFor(parsed.data.email);
-  return { status: 'success', message: SUCCESS_MESSAGE, ...(coupon ? { coupon } : {}) };
+  return { status: 'success', message: SUCCESS_MESSAGE, confirm: { href: confirmHref(result.token) }, ...(coupon ? { coupon } : {}) };
 }

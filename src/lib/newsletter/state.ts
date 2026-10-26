@@ -8,7 +8,11 @@ export type CouponNotice =
   | { readonly status: 'issued' | 'existing'; readonly code: string; readonly expiresAt: string }
   | { readonly status: 'expired' | 'redeemed' };
 
-/** Estado del formulario de la newsletter: el genérico de las acciones de formulario más el cupón, si lo hay. */
-export type NewsletterState = FormState & { readonly coupon?: CouponNotice };
+/**
+ * Estado del formulario de la newsletter: el genérico de las acciones de formulario, el cupón (si lo hay) y el enlace de
+ * confirmación (CA-103, Enmienda 50): sin correo propio se enseña en pantalla. Una alta descartada por el honeypot responde
+ * como un éxito sin enlace ni cupón.
+ */
+export type NewsletterState = FormState & { readonly coupon?: CouponNotice; readonly confirm?: { readonly href: string } };
 
 export const initialNewsletterState: NewsletterState = { status: 'idle' };

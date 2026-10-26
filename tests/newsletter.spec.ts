@@ -180,3 +180,140 @@ test.describe('fondo degradado (CA-144)', () => {
     });
   }
 });
+
+// CA-102, CA-103 y CA-104 (T-061, Enmienda 50): privacidad del correo, doble confirmación y campo trampa. Sin correo propio, el
+// enlace de confirmación se muestra en pantalla. Los emails de prueba se borran en `afterAll`.
+const subscribers = () => adminClient().from('newsletter_subscribers');
+
+async function subscribe(page: Page, email: string): Promise<string> {
+  await open(page);
+  await newsletter(page).getByRole('textbox', { name: 'Email' }).fill(email);
+  await newsletter(page).getByRole('checkbox').check();
+  await newsletter(page).getByRole('button', { name: 'Suscribirme' }).click();
+  const link = page.getByTestId('newsletter-confirm-link');
+  await expect(link).toBeVisible();
+  return (await link.getAttribute('href')) ?? '';
+}
+
+test.describe('privacidad del correo de marketing (CA-102)', () => {
+  test('la política incluye la sección con finalidad, conservación y baja, marcada como ejemplo con VERIFICAR', async ({ page }) => {
+    await page.goto('/privacidad');
+    await expect(page.getByRole('heading', { name: 'Correo de novedades y ofertas' })).toBeVisible();
+    const text = await page.locator('main').innerText();
+    for (const part of ['avisarte de novedades y ofertas', 'Cuánto tiempo', 'Cómo darte de baja', 'VERIFICAR', 'texto de ejemplo']) {
+      expect(text, part).toContain(part);
+    }
+  });
+});
+
+test.describe('doble confirmación (CA-103)', () => {
+  test('la alta queda pendiente; abrir el enlace no confirma; el botón sí; y el enlace es de un solo uso', async ({ page }) => {
+    const email = newEmail();
+    const href = await subscribe(page, email);
+    expect(href).toMatch(/^\/newsletter\/confirmar\?token=[A-Za-z0-9_-]{43}$/);
+    await expect(page.getByTestId('newsletter-confirm')).toContainText('Sin correo propio');
+
+    const pending = await subscribers().select('confirmed_at, confirm_token_hash').eq('email', email).single();
+    expect(pending.data?.confirmed_at).toBeNull();
+    expect(pending.data?.confirm_token_hash).toMatch(/^[0-9a-f]{64}$/);
+    // En la BD solo está el hash, nunca el token.
+    expect(JSON.stringify(pending.data)).not.toContain(href.split('token=')[1] ?? 'x');
+
+    await page.goto(href);
+    await expect(page.getByRole('heading', { level: 1, name: 'Confirma tu suscripción' })).toBeVisible();
+    // Un GET no confirma nada.
+    expect((await subscribers().select('confirmed_at').eq('email', email).single()).data?.confirmed_at).toBeNull();
+
+    await page.getByTestId('newsletter-confirm-submit').click();
+    await expect(page.getByTestId('newsletter-confirm-result')).toHaveAttribute('data-result', 'confirmed');
+    await expect(page.getByRole('heading', { level: 1, name: 'Suscripción confirmada' })).toBeVisible();
+    const done = await subscribers().select('confirmed_at, confirm_token_hash, confirm_expires_at').eq('email', email).single();
+    expect(done.data?.confirmed_at).not.toBeNull();
+    expect(done.data?.confirm_token_hash).toBeNull();
+    expect(done.data?.confirm_expires_at).toBeNull();
+
+    // Un solo uso: el mismo enlace ya no sirve.
+    await page.goto(href);
+    await page.getByTestId('newsletter-confirm-submit').click();
+    await expect(page.getByTestId('newsletter-confirm-result')).toHaveAttribute('data-result', 'invalid');
+  });
+
+  test('un enlace caducado lo dice y no confirma', async ({ page }) => {
+    const email = newEmail();
+    const href = await subscribe(page, email);
+    await subscribers().update({ confirm_expires_at: new Date(Date.now() - 60_000).toISOString() }).eq('email', email);
+    await page.goto(href);
+    await page.getByTestId('newsletter-confirm-submit').click();
+    await expect(page.getByTestId('newsletter-confirm-result')).toHaveAttribute('data-result', 'expired');
+    await expect(page.getByRole('heading', { level: 1, name: 'El enlace ha caducado' })).toBeVisible();
+    expect((await subscribers().select('confirmed_at').eq('email', email).single()).data?.confirmed_at).toBeNull();
+  });
+
+  test('un token inventado o con mala forma dice que no es válido', async ({ page }) => {
+    await page.goto(`/newsletter/confirmar?token=${'A'.repeat(43)}`);
+    await page.getByTestId('newsletter-confirm-submit').click();
+    await expect(page.getByTestId('newsletter-confirm-result')).toHaveAttribute('data-result', 'invalid');
+    await page.goto('/newsletter/confirmar?token=corto');
+    await expect(page.getByTestId('newsletter-confirm-result')).toHaveAttribute('data-result', 'invalid');
+    await page.goto('/newsletter/confirmar');
+    await expect(page.getByTestId('newsletter-confirm-result')).toHaveAttribute('data-result', 'invalid');
+  });
+
+  test('volver a suscribir un email ya confirmado responde igual y no lo desconfirma', async ({ page }) => {
+    const email = newEmail();
+    const href = await subscribe(page, email);
+    await page.goto(href);
+    await page.getByTestId('newsletter-confirm-submit').click();
+    await expect(page.getByTestId('newsletter-confirm-result')).toHaveAttribute('data-result', 'confirmed');
+    const confirmedAt = (await subscribers().select('confirmed_at').eq('email', email).single()).data?.confirmed_at;
+
+    const again = await subscribe(page, email);
+    expect(again).toMatch(/^\/newsletter\/confirmar\?token=/);
+    expect((await subscribers().select('confirmed_at').eq('email', email).single()).data?.confirmed_at).toBe(confirmedAt);
+  });
+
+  for (const width of [320, 375, 768, 1280]) {
+    test(`la página de confirmación cabe sin scroll horizontal a ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto(`/newsletter/confirmar?token=${'A'.repeat(43)}`);
+      await expect(page.getByTestId('newsletter-confirm-submit')).toBeVisible();
+      const box = await page.getByTestId('newsletter-confirm-submit').boundingBox();
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    });
+  }
+});
+
+test.describe('campo trampa (CA-104)', () => {
+  test('una persona no lo ve, no es accesible ni se alcanza con Tab', async ({ page }) => {
+    await open(page);
+    const trap = page.getByTestId('newsletter-honeypot');
+    await expect(trap).toHaveAttribute('inert', '');
+    await expect(trap).toHaveAttribute('aria-hidden', 'true');
+    const box = await trap.boundingBox();
+    expect(Math.max(box?.width ?? 0, box?.height ?? 0)).toBeLessThanOrEqual(1);
+    // Solo el campo de email es un cuadro de texto accesible.
+    await expect(newsletter(page).getByRole('textbox')).toHaveCount(1);
+    await newsletter(page).getByRole('textbox', { name: 'Email' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(newsletter(page).getByRole('checkbox')).toBeFocused();
+  });
+
+  test('un envío con el campo trampa relleno se descarta sin guardar ni avisar', async ({ page }) => {
+    await open(page);
+    const email = newEmail();
+    await newsletter(page).getByRole('textbox', { name: 'Email' }).fill(email);
+    await newsletter(page).getByRole('checkbox').check();
+    await page.getByTestId('newsletter-honeypot').locator('input').evaluate((input: HTMLInputElement) => {
+      input.value = 'https://spam.example';
+    });
+    await newsletter(page).getByRole('button', { name: 'Suscribirme' }).click();
+    // Responde como un éxito, pero sin enlace de confirmación ni cupón...
+    await expect(message(page).getByRole('status').filter({ hasText: '¡Gracias por suscribirte!' })).toBeVisible();
+    await expect(page.getByTestId('newsletter-confirm-link')).toHaveCount(0);
+    await expect(page.getByTestId('welcome-coupon')).toHaveCount(0);
+    // ...y no guarda nada.
+    expect((await subscribers().select('email').eq('email', email)).data).toEqual([]);
+    expect((await adminClient().from('welcome_coupons').select('email').eq('email', email)).data).toEqual([]);
+  });
+});

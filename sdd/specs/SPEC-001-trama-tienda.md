@@ -1303,3 +1303,30 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-153 | RF-03 | Un carrito con prendas | Se llega al final del cuerpo del carrito lateral | «Completa tu look» muestra hasta 3 básicos que no están en el carrito, cada uno con foto, nombre, precio y «+»; elegir talla lo añade y el producto sale del carrusel; sin básicos, la sección no aparece | unitario `CompleteLook` y e2e `cart-drawer` |
 
 **Nuevas tareas derivadas:** T-119 (iconos de pago y mensaje), T-120 (código de descuento en el carrito lateral) y T-121 (Completa tu look).
+
+### Enmienda 50 — 2026-10-27 — sin ADR — newsletter lista para producción: privacidad, doble confirmación y honeypot (CA-102 a CA-104)
+
+**Origen:** T-061 (la Enmienda 26 dejó estos tres puntos como VERIFICAR, RGPD y LSSI). **Amplía** RF-26. Decisión del usuario (2026-10-27): como Trama es una demo sin correo propio ni proveedor, la doble confirmación **se hace sin enviar correo**: el enlace de confirmación se muestra en pantalla, igual que el código de bienvenida (Enmienda 41). No hay proveedor, así que no hay coste ni ADR; la interfaz del envío queda preparada para enchufar uno real.
+
+**Política de privacidad (CA-102).** Una sección «Correo de novedades y ofertas» en `/privacidad`: qué se guarda (email, el consentimiento y las fechas de alta y de confirmación), para qué (avisar de novedades y ofertas, solo con consentimiento expreso), cuánto tiempo (hasta que la persona retire el consentimiento) y cómo darse de baja. Es texto de ejemplo y lo marca como tal: **VERIFICAR** los plazos, la base jurídica y el canal de baja con un asesor antes de un uso real; no se citan artículos ni se inventan términos legales. La demo no envía correos, así que no hay enlace de baja que enseñar: se dice.
+
+**Doble confirmación (CA-103).**
+- Al suscribirse, la alta queda **pendiente** (`confirmed_at` nulo) con un token aleatorio de 32 bytes (`crypto`), del que solo se guarda su **hash SHA-256** (nunca el token), y una caducidad de **24 horas**. Un alta pendiente **no cuenta como suscrita**.
+- La respuesta enseña el aviso «Falta un paso» y el enlace «Confirmar mi suscripción» a `/newsletter/confirmar?token=…`, con la nota de demostración («Sin correo propio, el enlace se muestra aquí; con un proveedor real llegaría a tu email»).
+- `/newsletter/confirmar` **no confirma al abrirse** (un GET no cambia datos: los antivirus y las vistas previas de correo abren enlaces): enseña un botón «Confirmar mi suscripción» que envía un formulario (funciona sin JavaScript). Al confirmar, el servidor busca el hash, comprueba la caducidad, fija `confirmed_at` y **borra el token** (un solo uso). Enlace caducado, ya usado o inventado: mensaje claro y vuelta a la portada para suscribirse de nuevo.
+- **Sin enumeración:** un email ya confirmado, uno pendiente y uno nuevo reciben la **misma** respuesta (cada envío renueva el token y la caducidad); confirmar algo ya confirmado no cambia nada.
+- **Limitación de la demo (declarada):** como el enlace sale en la misma pantalla, quien escribe un email puede confirmarlo sin controlarlo; la doble confirmación solo prueba la titularidad del email cuando el enlace llega por correo. Con un proveedor real se sustituye `EmailSender` y deja de mostrarse en pantalla.
+- Los suscriptores que ya había antes de esta enmienda se marcan como confirmados (su alta tenía consentimiento expreso; no se pierden).
+- El cupón de bienvenida (Enmienda 41) **no cambia**: sigue mostrándose al suscribirse. Moverlo al momento de la confirmación queda como decisión aparte.
+
+**Honeypot (CA-104).** El formulario lleva un campo `website` que una persona no ve ni alcanza (contenedor `inert`, fuera de la vista, sin etiqueta anunciada). Si llega relleno, el servidor **descarta la alta sin guardar nada** y responde como si hubiera ido bien (el bot no aprende). Queda abierto valorar un CAPTCHA o un límite por IP si el honeypot no basta.
+
+**Datos y privacidad (sección 9):** `newsletter_subscribers` pasa a guardar además `confirmed_at`, `confirm_token_hash` y `confirm_expires_at`. El token en claro solo existe en la respuesta de esa petición y en el enlace; en la BD solo el hash. Se borra con el resto de datos de demostración.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-102 | RF-26 | La página de privacidad | Se abre | Incluye la sección «Correo de novedades y ofertas» con finalidad, datos guardados, conservación y baja, marcada como texto de ejemplo con VERIFICAR | e2e `privacy` o `newsletter` |
+| CA-103 | RF-26 | Una persona que se suscribe | Envía el formulario | La alta queda pendiente y no cuenta como suscrita hasta abrir el enlace y pulsar «Confirmar»; el token se guarda con hash, caduca a las 24 h y es de un solo uso; caducado, usado o inventado se rechaza; un email nuevo, pendiente o ya confirmado recibe la misma respuesta | unitarios `newsletter`, integración (RLS con el nuevo estado) y e2e `newsletter` |
+| CA-104 | RF-26 | Un envío con el campo trampa relleno | Llega al servidor | Se descarta sin guardar ni avisar; el campo no es visible ni accesible para una persona | unitario de la acción y e2e `newsletter` |
+
+**Nueva tarea:** T-061 (ya existía; pasa a «en curso» con estos CA).
