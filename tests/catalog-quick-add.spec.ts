@@ -24,13 +24,20 @@ const panel = (page: Page, name: string): Locator => card(page, name).getByTestI
 const savedCart = (page: Page) =>
   page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '[]') as { variantId: string; qty: number }[], CART_KEY);
 
-/** Pone el cursor sobre la foto de la tarjeta. */
+/**
+ * Pone el cursor sobre la foto de la tarjeta. La tarjeta se centra en pantalla y el cursor va al centro de la foto: la
+ * cabecera es fija, y un punto cerca del borde superior de la foto quedaría detrás de ella y no activaría el hover.
+ */
 async function hoverPhoto(page: Page, name: string): Promise<void> {
   const target = card(page, name);
-  await target.scrollIntoViewIfNeeded();
+  await target.evaluate((el) => el.scrollIntoView({ block: 'center' }));
   const image = await target.locator('img').first().boundingBox();
   if (!image) throw new Error('tarjeta sin imagen');
-  await page.mouse.move(image.x + image.width / 2, image.y + 60);
+  await page.mouse.move(image.x + image.width / 2, image.y + image.height / 2);
+  // Espera a que el panel termine de subir: pulsar una talla mientras se anima hace que Playwright recoloque el scroll
+  // bajo la cabecera fija y el cursor salga de la tarjeta.
+  await expect(card(page, name).getByTestId('quick-add')).toHaveCSS('opacity', '1');
+  await page.waitForTimeout(400);
 }
 
 test.describe('estado normal limpio (CA-122)', () => {
