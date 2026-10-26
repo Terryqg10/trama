@@ -20,6 +20,8 @@ interface TextFieldProps {
   readonly required?: boolean;
   readonly inputMode?: 'numeric' | 'text' | 'email';
   readonly maxLength?: number;
+  /** Se llama con el texto del campo en cada cambio (p. ej. el indicador de fortaleza). El campo sigue sin controlarse. */
+  readonly onValueChange?: (value: string) => void;
 }
 
 /** Campo con etiqueta visible, ayuda opcional y error por campo enlazado con `aria-describedby`. */
@@ -34,6 +36,7 @@ export function TextField({
   required = true,
   inputMode,
   maxLength,
+  onValueChange,
 }: TextFieldProps) {
   const id = useId();
   const hintId = `${id}-hint`;
@@ -55,6 +58,7 @@ export function TextField({
         required={required}
         inputMode={inputMode}
         maxLength={maxLength}
+        onChange={onValueChange ? (event) => onValueChange(event.target.value) : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
         className={`mt-1 ${inputClass}`}

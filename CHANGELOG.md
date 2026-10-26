@@ -15,6 +15,7 @@ y versionado [SemVer](https://semver.org/lang/es/).
 - Newsletter lista para producción (T-061): sección de privacidad del correo, doble confirmación con token de un solo uso y hash (en la demo, enlace en pantalla) y campo trampa anti altas automáticas.
 
 ### Cambiado
+- Las contraseñas nuevas (registro y restablecimiento) deben tener al menos 8 caracteres con letras y números, validadas en el servidor con `validatePassword` del OS (invariante I10, T-122), y los formularios muestran un indicador de fortaleza (T-123). El acceso no cambia.
 - El retorno tras el acceso admite también `/hombre`, `/mujer`, `/novedades`, `/ofertas` y `/buscar` (lista blanca, T-115).
 - Por debajo de 370 px el logo de la cabecera muestra solo el símbolo (T-114).
 

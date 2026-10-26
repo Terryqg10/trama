@@ -3,3 +3,7 @@
 # `COUPON_STORAGE_KEY = 'trama.coupon.v1'` (src/lib/coupons/stored-coupon.ts): es el NOMBRE de la clave de sessionStorage del
 # carrito lateral (T-120), no una clave de API; la regla generic-api-key lo confunde por el sufijo «_KEY». Revisado 2026-10-27.
 6e9602edfc23dc259a5d386082906e2257aef81b:src/lib/coupons/stored-coupon.ts:generic-api-key:9
+
+# Los dos textos que explican el falso positivo anterior citan ese mismo nombre de clave (documentación, no un secreto).
+5268484bd57b7ffcba5bfeaef8847bb801a858f1:.gitleaksignore:generic-api-key:3
+5268484bd57b7ffcba5bfeaef8847bb801a858f1:sdd/reviews/T-061.md:generic-api-key:30

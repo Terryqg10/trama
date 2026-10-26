@@ -95,6 +95,36 @@ test.describe('cuenta: registro e inicio de sesión (CA-06, CA-07)', () => {
     expect(listed.data.users.some((user) => user.email === email)).toBe(false);
   });
 
+  // CA-155 (T-123): indicador de fortaleza bajo la contraseña nueva, con etiqueta de texto y sin bloquear el envío.
+  test('registro: el indicador de fortaleza aparece al escribir y cabe de 320 a 1280 px', async ({ page }) => {
+    for (const width of [320, 375, 768, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/registro');
+      const indicator = page.getByTestId('password-strength');
+      await expect(indicator).toHaveAttribute('data-level', 'vacio');
+      expect((await indicator.boundingBox())?.height ?? 0).toBeLessThanOrEqual(1);
+
+      const field = page.getByLabel('Contraseña');
+      for (const [value, level, label] of [
+        ['abc', 'debil', 'Contraseña débil'],
+        ['abcdefg1', 'buena', 'Contraseña buena'],
+        ['Una-Contraseña-Larga-2026!', 'fuerte', 'Contraseña fuerte'],
+      ] as const) {
+        await field.fill(value);
+        await expect(indicator).toHaveAttribute('data-level', level);
+        await expect(indicator).toHaveText(label);
+        await expect(indicator).toBeVisible();
+      }
+      // Por debajo del campo y por encima del botón.
+      const fieldBox = await field.boundingBox();
+      const indicatorBox = await indicator.boundingBox();
+      const buttonBox = await page.getByRole('button', { name: 'Crear cuenta' }).boundingBox();
+      expect(indicatorBox?.y ?? 0).toBeGreaterThan((fieldBox?.y ?? 0) + (fieldBox?.height ?? 0));
+      expect(indicatorBox?.y ?? 0).toBeLessThan(buttonBox?.y ?? 0);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), `scroll a ${width}px`).toBeLessThanOrEqual(1);
+    }
+  });
+
   test('auth-bad-credentials: el error es genérico y no revela si el email existe', async ({ page }) => {
     const existing = newCredentials('existente');
     createdEmails.push(existing.email);

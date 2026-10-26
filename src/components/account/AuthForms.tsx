@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import {
   loginAction,
   recoverAction,
@@ -10,6 +10,7 @@ import {
 } from '@/lib/auth/actions';
 import { initialFormState } from '@/lib/auth/form-state';
 import { FormMessage, SubmitButton, TextField, useFormFocus } from '@/components/forms/fields';
+import { PasswordStrength } from '@/components/PasswordStrength';
 import { useSavedCart } from '@/lib/cart/store';
 
 /** Campo oculto con el carrito del navegador: el servidor lo fusiona con el de la cuenta al entrar (CA-04). */
@@ -69,8 +70,9 @@ export function LoginForm({ next, onSwitch }: { readonly next?: string; readonly
 export function RegisterForm({ onSwitch }: { readonly onSwitch?: () => void } = {}) {
   const [state, action] = useActionState(registerAction, initialFormState);
   const formRef = useFormFocus(state);
+  const [password, setPassword] = useState('');
   return (
-    <form ref={formRef} action={action} noValidate className="space-y-5">
+    <form ref={formRef} action={action} onReset={() => setPassword('')} noValidate className="space-y-5">
       <GuestCartField />
       <FormMessage state={state} />
       <TextField
@@ -95,7 +97,9 @@ export function RegisterForm({ onSwitch }: { readonly onSwitch?: () => void } = 
         autoComplete="new-password"
         hint="Entre 8 y 72 caracteres, con letras y números."
         error={state.fieldErrors?.['password']}
+        onValueChange={setPassword}
       />
+      <PasswordStrength password={password} />
       <SubmitButton pendingLabel="Creando cuenta…">Crear cuenta</SubmitButton>
       <p className="text-sm text-fg-muted">
         ¿Ya tienes cuenta?{' '}
@@ -140,8 +144,9 @@ export function RecoverForm() {
 export function ResetPasswordForm() {
   const [state, action] = useActionState(resetPasswordAction, initialFormState);
   const formRef = useFormFocus(state);
+  const [password, setPassword] = useState('');
   return (
-    <form ref={formRef} action={action} noValidate className="space-y-5">
+    <form ref={formRef} action={action} onReset={() => setPassword('')} noValidate className="space-y-5">
       <FormMessage state={state} />
       <TextField
         name="password"
@@ -150,7 +155,9 @@ export function ResetPasswordForm() {
         autoComplete="new-password"
         hint="Entre 8 y 72 caracteres, con letras y números."
         error={state.fieldErrors?.['password']}
+        onValueChange={setPassword}
       />
+      <PasswordStrength password={password} />
       <TextField
         name="confirm"
         label="Repite la contraseña"
