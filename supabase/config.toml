@@ -245,12 +245,10 @@ otp_expiry = 900
 # Enlace mágico de la clienta (ADR-0021, T-007): enlace con token_hash a /acceso/confirmar.
 [auth.email.template.magic_link]
 subject = "Tu enlace para entrar"
-content_path = "./supabase/templates/magic_link.html"
 
 # Primer acceso (la cuenta se crea con el primer enlace): mismo enlace y mismo texto.
 [auth.email.template.confirmation]
 subject = "Tu enlace para entrar"
-content_path = "./supabase/templates/magic_link.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
