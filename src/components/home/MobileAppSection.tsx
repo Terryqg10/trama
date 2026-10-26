@@ -108,7 +108,7 @@ export function MobileAppSection() {
   }, [open, close]);
 
   return (
-    <section aria-labelledby="movil-titulo" data-testid="mobile-app" className="border-t border-border bg-surface">
+    <section aria-labelledby="movil-titulo" data-testid="mobile-app" className="border-t border-border bg-surface-muted">
       <div className="mx-auto grid max-w-5xl items-center gap-10 px-(--layout-gutter) py-12 md:grid-cols-2 md:gap-16 md:py-16 lg:py-20">
         <div>
           <h2 id="movil-titulo" className="text-2xl font-bold text-fg md:text-3xl">
