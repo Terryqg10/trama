@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TopBar } from '../layout/TopBar';
 import { catalogRowSchema, toCatalogProduct } from '@/lib/catalog/product';
 import { FREE_SHIPPING_THRESHOLD_CENTS, RETURN_WINDOW_DAYS, SHIPPING_FLAT_CENTS, formatEuros } from '@/lib/domain/shop';
@@ -8,7 +8,15 @@ import { ExploreSection } from './ExploreSection';
 import { NEW_ARRIVALS_LIMIT, NewArrivalsView } from './NewArrivals';
 import { ShippingBanner } from './ShippingBanner';
 
-// CA-81, CA-83, CA-94, CA-98 y CA-85 (nivel de componente). El e2e `top-bar` y `home-sections` los comprueban en el navegador.
+// Embla no arranca en jsdom (sin matchMedia): el carrusel se prueba aparte en `NovedadesCarousel.test.tsx`.
+vi.mock('embla-carousel-react', () => ({
+  default: () => [
+    () => undefined,
+    { canScrollPrev: () => false, canScrollNext: () => false, scrollPrev: vi.fn(), scrollNext: vi.fn(), on: vi.fn().mockReturnThis(), off: vi.fn().mockReturnThis() },
+  ],
+}));
+
+// CA-81, CA-83, CA-94, CA-98, CA-85 y CA-146 (nivel de componente). El e2e `top-bar` y `home-sections` los comprueban en el navegador.
 
 function product(index: number) {
   return toCatalogProduct(

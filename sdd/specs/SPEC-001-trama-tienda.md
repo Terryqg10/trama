@@ -1217,3 +1217,22 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-145 | RF-16, RF-23 | La portada con la franja de envío y «Compra con tranquilidad» | Se lee su texto | «50,00 €», «tarifa plana», «30 días» y «devol…» aparecen cada uno una vez en el conjunto de las dos secciones, salvo «devolución» en la nota de condiciones de ejemplo; la primera tarjeta no lleva insignia; el subtítulo de la franja es «Se aplica automáticamente al tramitar tu compra.» | test unitario `HomeSections` y e2e `trust-section` y `home-sections` |
 
 **Nueva tarea derivada:** T-111 (texto sin repeticiones en la franja y la sección de confianza).
+
+### Enmienda 46 — 2026-10-26 — sin ADR — Novedades como carrusel con efecto «peek» (CA-146)
+
+**Origen:** el usuario pide que la sección «Novedades» de la portada, que ocupa dos filas de la rejilla (8 productos), pase a un carrusel horizontal que ocupe menos espacio y se vea más viva. **Sustituye** la rejilla de CA-85 por un carrusel; el resto de CA-85 (hasta 8 novedades, tarjeta del catálogo, «Ver todo» a `/novedades`) se mantiene.
+
+**Qué cambia**
+- **Carrusel** con `embla-carousel-react` (ya es dependencia del proyecto por el hero): componente cliente `NovedadesCarousel`, que recibe los productos ya cargados en el servidor. `NewArrivals` sigue siendo el componente de servidor que consulta.
+- **Productos visibles (efecto peek):** 4 desde `--bp-lg` (≥ 1024 px), 2,5 desde `--bp-md` (≥ 768 px) y 1,2 en móvil, de modo que se ve un trozo de la siguiente tarjeta. Se logra con anchos de fracción de Tailwind (`basis-1/4`, `basis-2/5`, `basis-5/6`), sin valores arbitrarios.
+- **Separación `gap-6` (1,5 rem):** Embla no admite `gap` en el contenedor, así que se aplica el patrón equivalente: contenedor con `-ml-6` y cada slide con `pl-6`.
+- **Sin barra de scroll visible:** el visor es `overflow-hidden` y el desplazamiento lo hace Embla (arrastre, táctil y flechas).
+- **Flechas** `ChevronLeft`/`ChevronRight` junto a «Ver todo», en la cabecera de la sección (no flotantes sobre las tarjetas, para no tapar producto). Desde `--bp-md` aparecen con fundido al pasar el ratón por la sección o al recibir foco el teclado; en móvil no se muestran (se desliza con el dedo). Se desactivan en los extremos. Botones de 44×44 px con `aria-label`.
+- **Movimiento:** con `prefers-reduced-motion` el desplazamiento por flechas es un salto directo y el fundido de las flechas no se anima.
+- **Se mantiene:** título «Novedades», «Ver todo», el límite de 8 y las `ProductCard` completas (hover, tallas rápidas y «Añadir»).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-146 | RF-16 | La portada con novedades | Se ve la sección «Novedades» | Es un carrusel horizontal sin barra de scroll visible con las tarjetas del catálogo: cuentan 4 tarjetas visibles a 1280 px, ≈ 2,5 a 768 px y ≈ 1,2 a 375 px (se asoma la siguiente); la separación es de 1,5 rem; las flechas anterior/siguiente desplazan el carrusel y se desactivan en los extremos; «Ver todo» y el título siguen en la cabecera; sin scroll horizontal de la página de 320 a 1280 px | test unitario `NovedadesCarousel` y e2e `home-sections` |
+
+**Nueva tarea derivada:** T-113 (carrusel de novedades).

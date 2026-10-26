@@ -742,3 +742,10 @@ Las tareas nuevas siguen desde T-084.
 - **Foco y scroll a mano:** un hook propio (el de `useHashOverlay` es de paneles con hash) con trampa de foco, Esc, bloqueo del scroll y retorno del foco.
 
 Las tareas nuevas siguen desde T-086.
+
+## Decisiones de UI — T-113 (carrusel de novedades)
+
+| Decisión | Convención del sector | Por qué nos apartamos | Qué gana el usuario |
+|---|---|---|---|
+| Flechas del carrusel junto a «Ver todo», no flotantes sobre las tarjetas | Zalando y ASOS ponen las flechas a los lados, sobre el carrusel | Sobre las tarjetas taparían la imagen y los controles de la propia tarjeta (tallas, añadir) y chocarían con el efecto peek | Flechas siempre en el mismo sitio, sin tapar producto. Reversible: mover los botones dentro del visor |
+| Sin flechas en móvil | En móvil se desliza con el dedo; el peek indica que hay más | — (coincide con la convención) | Menos elementos táctiles que apretar |

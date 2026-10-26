@@ -206,6 +206,86 @@ test.describe('novedades (CA-85)', () => {
   });
 });
 
+// CA-146 (T-113): Novedades como carrusel con efecto peek.
+test.describe('carrusel de novedades (CA-146)', () => {
+  for (const [width, expected] of [
+    [1280, 4],
+    [768, 2.5],
+    [375, 1.2],
+  ] as const) {
+    test(`a ${width} px se ven ≈ ${expected} tarjetas y la separación es de 24 px`, async ({ page }) => {
+      await open(page, width);
+      const viewport = page.getByTestId('novedades-viewport');
+      await viewport.scrollIntoViewIfNeeded();
+      const slides = page.getByTestId('novedades-slide');
+      const box = await viewport.boundingBox();
+      const first = await slides.nth(0).boundingBox();
+      const card1 = await slides.nth(0).locator('article').boundingBox();
+      const card2 = await slides.nth(1).locator('article').boundingBox();
+      if (!box || !first || !card1 || !card2) throw new Error('sin medidas');
+      // Cada slide mide (visor + 24 px) / n; la tarjeta, 24 px menos que su slide (pl-6).
+      expect((box.width + 24) / first.width).toBeCloseTo(expected, 1);
+      expect(card2.x - card1.x - card1.width).toBeCloseTo(24, 0);
+      await expect(page.getByTestId('novedades-viewport')).toHaveCSS('overflow-x', 'hidden');
+    });
+  }
+
+  test('las flechas aparecen al pasar el ratón, desplazan el carrusel y se desactivan en los extremos', async ({ page }) => {
+    await open(page, 1280);
+    const section = page.getByTestId('new-arrivals');
+    const prev = section.getByTestId('novedades-prev');
+    const next = section.getByTestId('novedades-next');
+    await expect(prev).toBeDisabled();
+    await section.hover();
+    await expect(next).toHaveCSS('opacity', '1');
+    const slides = section.getByTestId('novedades-slide');
+    const x0 = (await slides.nth(0).boundingBox())?.x ?? 0;
+    const total = await slides.count();
+    if (total <= 4) {
+      await expect(next).toBeDisabled();
+      return;
+    }
+    await next.click();
+    await expect.poll(async () => (await slides.nth(0).boundingBox())?.x ?? x0).toBeLessThan(x0);
+    await expect(prev).toBeEnabled();
+  });
+
+  test('una tarjeta que sale al desplazar con la flecha sigue llevando a su ficha', async ({ page }) => {
+    await open(page, 1280);
+    const section = page.getByTestId('new-arrivals');
+    const next = section.getByTestId('novedades-next');
+    await section.scrollIntoViewIfNeeded();
+    await section.hover();
+    if (await next.isDisabled()) return;
+    // Hasta el final: la última tarjeta queda dentro de la ventana del carrusel.
+    while (await next.isEnabled()) {
+      await next.click();
+      await page.waitForTimeout(700);
+    }
+    const last = section.getByTestId('novedades-slide').last().locator('article');
+    // Dentro de la ventana del carrusel (en horizontal); el scroll vertical lo resuelve el clic.
+    await expect
+      .poll(async () => {
+        const box = await last.boundingBox();
+        const view = await section.getByTestId('novedades-viewport').boundingBox();
+        if (!box || !view) return false;
+        return box.x >= view.x - 1 && box.x + box.width <= view.x + view.width + 1;
+      })
+      .toBe(true);
+    const name = await last.locator('h2').innerText();
+    await last.getByRole('link', { name }).click();
+    await expect(page).toHaveURL(/\/producto\//);
+  });
+
+  test('el carrusel no provoca scroll horizontal de la página de 320 a 1280 px', async ({ page }) => {
+    for (const width of [320, 480, 600, 768, 1024, 1280]) {
+      await open(page, width);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `scroll horizontal a ${width}px`).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
 test.describe('portada completa', () => {
   test('sin scroll horizontal ni elementos cortados de 320 a 1280 px', async ({ page }) => {
     for (const width of [320, 375, 768, 1280]) {
