@@ -155,7 +155,7 @@ test.describe('página de resultados (CA-93)', () => {
     await open(page, 1280, '/buscar?q=camiseta');
     const first = page.locator('article').first();
     const name = await first.locator('h2').innerText();
-    await first.getByRole('link').first().click();
+    await first.getByRole('link', { name, exact: true }).click();
     await expect(page).toHaveURL(/\/producto\//);
     await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
   });

@@ -7,8 +7,9 @@ test.describe('bloque de envío y devolución (CA-29, test shipping-policy-visib
     const block = page.getByRole('region', { name: 'Compra con tranquilidad' });
     await expect(block).toBeVisible();
     await expect(block).toContainText('4,95');
-    await expect(block).toContainText('50,00');
     await expect(block).toContainText('30 días');
+    // El umbral vive en la franja de envío de la portada, no en esta sección (Enmienda 45, CA-145).
+    await expect(page.getByTestId('shipping-banner')).toContainText('50,00');
   });
 
   test('las condiciones no se ocultan tras un asterisco', async ({ page }) => {

@@ -128,10 +128,14 @@ test.describe('CA-123: tarjetas separadas por 24 px', () => {
     for (let i = 1; i < lefts.length; i++) expect((lefts[i]?.left ?? 0) - (lefts[i - 1]?.right ?? 0)).toBeCloseTo(24, 0);
   });
 
-  test('la rejilla de la portada no cambia (16 px)', async ({ page }) => {
+  // Las novedades de la portada ya no son una rejilla de 16 px: son un carrusel con 24 px entre tarjetas (Enmienda 46, CA-146).
+  test('el carrusel de novedades de la portada separa las tarjetas 24 px', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/');
-    const gap = await page.getByTestId('new-arrivals').locator('ul').evaluate((el) => getComputedStyle(el).columnGap);
-    expect(gap).toBe('16px');
+    const cards = page.getByTestId('new-arrivals').locator('article');
+    const first = await cards.nth(0).boundingBox();
+    const second = await cards.nth(1).boundingBox();
+    if (!first || !second) throw new Error('sin medidas');
+    expect(second.x - first.x - first.width).toBeCloseTo(24, 0);
   });
 });

@@ -281,7 +281,7 @@ function FilterForm({
       <div
         className={
           footerSticky
-            ? 'sticky -bottom-5 z-10 -mx-5 -mb-5 mt-auto flex gap-3 border-t border-border bg-surface px-5 py-3'
+            ? 'sticky bottom-0 z-10 -mx-5 -mb-5 mt-auto flex gap-3 border-t border-border bg-surface px-5 py-3'
             : 'flex flex-wrap gap-3'
         }
       >

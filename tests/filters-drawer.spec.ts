@@ -308,3 +308,23 @@ test.describe('sin JavaScript el botón sigue dando acceso al formulario', () =>
     await context.close();
   });
 });
+
+// Defecto corregido: el pie fijo del drawer se pegaba 20 px por debajo del borde de la pantalla y recortaba «Aplicar filtros».
+test.describe('el pie del drawer queda entero dentro del viewport', () => {
+  for (const height of [568, 667, 812]) {
+    test(`«Aplicar filtros» se ve completo y a la vista sin hacer scroll a 375×${height} px`, async ({ page }) => {
+      await page.setViewportSize({ width: MOBILE.width, height });
+      await page.goto('/mujer');
+      await expect(page.locator('article').first()).toBeVisible();
+      await trigger(page).click();
+      await expect(drawer(page)).toBeVisible();
+      const button = drawer(page).getByRole('button', { name: 'Aplicar filtros' });
+      const box = await button.boundingBox();
+      if (!box) throw new Error('sin medidas');
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      // Entero y con aire por debajo (el pie lleva 12 px de relleno).
+      expect(box.y + box.height).toBeLessThanOrEqual(height - 8);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    });
+  }
+});

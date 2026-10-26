@@ -266,12 +266,17 @@ test.describe('interfaz del listado', () => {
     const count = await cards.count();
     expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i++) {
-      const links = cards.nth(i).locator('a');
+      // Un único enlace a la ficha. Desde la Enmienda 47 (T-115) la tarjeta lleva además el corazón de favoritos, que sin
+      // sesión es un enlace al acceso (`card-favorite`).
+      const links = cards.nth(i).locator('a:not([data-testid="card-favorite"])');
       await expect(links).toHaveCount(1);
       expect(await links.first().getAttribute('href')).toMatch(/^\/producto\/[a-z0-9-]+$/);
+      await expect(cards.nth(i).getByTestId('card-favorite')).toHaveCount(1);
     }
-    // Enmienda 32 (T-077): los únicos botones de una tarjeta son los de su panel de compra rápida.
-    await expect(page.locator('article button:not([data-testid^="quick-add"])')).toHaveCount(0);
+    // Enmienda 32 (T-077) y 47 (T-115): los únicos botones de una tarjeta son los de su panel de compra rápida y el corazón.
+    await expect(
+      page.locator('article button:not([data-testid^="quick-add"]):not([data-testid="card-favorite"])'),
+    ).toHaveCount(0);
   });
 
   test('todas las imágenes tienen texto alternativo', async ({ page }) => {
