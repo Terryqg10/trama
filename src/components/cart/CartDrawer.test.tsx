@@ -15,7 +15,9 @@ vi.mock('@/lib/cart/actions', () => ({
   getCartLinesAction: (ids: readonly string[]) => getCartLinesAction(ids),
   saveAccountCartAction: (lines: readonly { variantId: string; qty: number }[]) => saveAccountCartAction(lines),
   mergeGuestCartAction: vi.fn(),
+  getCompleteLookAction: () => Promise.resolve({ status: 'ok', items: [] }),
 }));
+vi.mock('@/lib/coupons/actions', () => ({ applyCartCouponAction: vi.fn() }));
 vi.mock('next/navigation', () => ({ usePathname: () => '/hombre' }));
 
 import { CartDrawer } from './CartDrawer';

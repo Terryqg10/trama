@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCartLinesAction, saveAccountCartAction } from './actions';
-import { maxQty, removeLine, savingsCents, setLineQty, summarize, type CartTotals, type SavedCart, type SavedLine } from './cart';
+import { addToCart, maxQty, removeLine, savingsCents, setLineQty, summarize, type CartTotals, type SavedCart, type SavedLine } from './cart';
 import type { CartLineInfo } from './lines';
 import { announceAccountCart } from './count';
 import { useHydrated, useSavedCart, writeCart } from './store';
@@ -44,6 +44,8 @@ export interface UseCart {
   readonly notice: CartNotice | null;
   readonly change: (variantId: string, requested: number, info: CartLineInfo) => void;
   readonly remove: (variantId: string, name: string) => void;
+  /** Añade una unidad de una variante (p. ej. desde «Completa tu look»); avisa de que se ha añadido o de que no hay más stock. */
+  readonly add: (variantId: string, stock: number, name: string) => void;
   readonly retry: () => void;
 }
 
@@ -143,6 +145,15 @@ export function useCart(initialAccountCart?: SavedCart): UseCart {
     );
   }
 
+  function add(variantId: string, stock: number, name: string) {
+    const result = addToCart(saved, variantId, stock);
+    apply(result.cart);
+    setNotice({
+      variantId: null,
+      text: result.capped ? `Ya tienes en el carrito todas las unidades disponibles de ${name}.` : `${name} añadido a la cesta.`,
+    });
+  }
+
   function remove(variantId: string, name: string) {
     apply(removeLine(saved, variantId));
     setNotice({ variantId: null, text: `${name} se ha quitado del carrito.` });
@@ -159,6 +170,7 @@ export function useCart(initialAccountCart?: SavedCart): UseCart {
     notice,
     change,
     remove,
+    add,
     retry: () => setLoaded(null),
   };
 }

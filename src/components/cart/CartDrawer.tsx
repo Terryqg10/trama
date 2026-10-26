@@ -9,8 +9,13 @@ import type { SavedCart } from '@/lib/cart/cart';
 import { useCart } from '@/lib/cart/use-cart';
 import { capitalize } from '@/lib/catalog/facets';
 import { isPhotoPath } from '@/lib/catalog/image-path';
+import { withDiscount } from '@/lib/coupons/amounts';
+import { readStoredCoupon, type StoredCoupon } from '@/lib/coupons/stored-coupon';
 import { formatEuros } from '@/lib/domain/shop';
 import { useCartDrawer } from './CartDrawerContext';
+import { CartCoupon } from './CartCoupon';
+import { CompleteLook } from './CompleteLook';
+import { PaymentIcons } from './PaymentIcons';
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -165,7 +170,11 @@ function DrawerCart() {
 function DrawerLines({ accountCart }: { readonly accountCart?: SavedCart }) {
   const cart = useCart(accountCart);
   const { closeCart } = useCartDrawer();
-  const { isAccount, status, lines, totals, savingsCents, notice, change, remove, retry } = cart;
+  const { isAccount, status, lines, totals, savingsCents, notice, change, remove, add, retry } = cart;
+  // Código del carrito lateral (CA-151): solo cuenta con sesión. El descuento se recalcula aquí con el porcentaje que dio el servidor.
+  const [storedCoupon, setCoupon] = useState<StoredCoupon | null>(() => readStoredCoupon());
+  const coupon = isAccount ? storedCoupon : null;
+  const discounted = coupon && totals.subtotalCents > 0 ? withDiscount(totals, coupon.percentOff) : null;
 
   if (status === 'loading') {
     return (
@@ -321,9 +330,14 @@ function DrawerLines({ accountCart }: { readonly accountCart?: SavedCart }) {
             );
           })}
         </ul>
+        <CompleteLook
+          cartSlugs={lines.flatMap((line) => (line.info ? [line.info.slug] : []))}
+          onAdd={add}
+          onNavigate={closeCart}
+        />
       </div>
 
-      <div data-testid="cart-drawer-footer" className="shrink-0 space-y-3 border-t border-border bg-surface px-5 py-4">
+      <div data-testid="cart-drawer-footer" className="max-h-3/5 shrink-0 space-y-3 overflow-y-auto border-t border-border bg-surface px-5 py-4">
         {savingsCents > 0 ? (
           <p data-testid="drawer-savings" className="text-sm font-medium text-success">
             Ahorras {formatEuros(savingsCents)} en esta compra
@@ -336,13 +350,21 @@ function DrawerLines({ accountCart }: { readonly accountCart?: SavedCart }) {
               ? `Te faltan ${formatEuros(totals.missingForFreeCents)} para el envío gratis.`
               : 'Tu pedido tiene envío gratis.'}
         </p>
+        <CartCoupon signedIn={isAccount} coupon={coupon} onChange={setCoupon} />
+        {coupon && discounted ? (
+          <p data-testid="drawer-discount" className="flex items-baseline justify-between gap-4 text-sm font-medium text-success">
+            <span>Descuento ({coupon.code})</span>
+            <span>−{formatEuros(discounted.discountCents)}</span>
+          </p>
+        ) : null}
         <div className="flex items-baseline justify-between gap-4">
           <span className="text-base font-semibold text-fg">Total</span>
           <span data-testid="drawer-total" className="text-xl font-bold text-fg">
-            {formatEuros(totals.totalCents)}
+            {formatEuros(discounted ? discounted.totalCents : totals.totalCents)}
           </span>
         </div>
         <p className="text-xs text-fg-muted">IVA incluido. El envío está incluido en el total.</p>
+        <PaymentIcons />
         {totals.subtotalCents > 0 ? (
           <Link
             href={isAccount ? '/checkout' : { pathname: '/acceso', query: { siguiente: '/checkout' } }}

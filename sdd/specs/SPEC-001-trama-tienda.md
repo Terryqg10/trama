@@ -1272,3 +1272,34 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-149 | transversal | Una página de la tienda | Se baja más de 400 px | Aparece un botón «Volver arriba» de 44 px que lleva a `scrollY = 0` (instantáneo con reduced-motion) y deja el foco en el logo; arriba del todo no está; no tapa la barra fija de la ficha en móvil | unitario `ScrollToTop` y e2e `scroll-to-top` |
 
 **Nuevas tareas derivadas:** T-117 (buscador móvil en fila) y T-118 (botón «Volver arriba»).
+
+### Enmienda 49 — 2026-10-26 — sin ADR — carrito lateral avanzado: iconos de pago, código de descuento y «Completa tu look» (CA-150 a CA-153)
+
+**Origen:** el usuario pide (Fase 3) tres mejoras del carrito lateral (CA-124/CA-125, Enmienda 37), con las salvaguardas de seguridad y legales de la regla «Carrito Avanzado» del OS. **Amplía** el pie del carrito lateral; `/carrito` y el pago no cambian salvo lo indicado en CA-152.
+
+**Iconos de pago y mensaje (CA-150)**
+- Bajo el total se muestran Visa, Mastercard, PayPal, Apple Pay y Google Pay. Los iconos salen de la librería oficial `simple-icons` (CC0): **no se dibujan a mano**. Se pintan en un solo color (`currentColor`, token `fg-muted`), sin los colores de marca, que serían hex en un componente (regla de estilos). Cada icono lleva su nombre accesible; el conjunto es un `ul`.
+- El texto es «Entorno de demostración. No se realizarán cargos reales.» (la tienda usa Stripe en modo de pruebas): **no** se dice «Pago seguro» ni «cifrado», que solo valen con una pasarela real operando.
+- **Dependencia nueva:** `simple-icons` (justificada: lo exige la regla del OS y el encargo; ~sin coste de bundle al ser ESM con `sideEffects: false` y usar solo cinco importaciones nombradas).
+
+**Código promocional (CA-151, CA-152)**
+- Un acordeón «¿Tienes un código de descuento?» en el pie (`<details>` nativo: teclado y lector de pantalla sin código propio). Campo de texto + «Aplicar».
+- **Con sesión** valida el código en el servidor con la lógica ya existente del pago (`checkCouponForUser`, RF-27/CA-137: existe, no caducado, no canjeado, primera compra). Muestra «Descuento (CÓDIGO) −X €» **antes del total** y el total ya rebajado; los importes se recalculan en el navegador con el porcentaje devuelto por el servidor (`withDiscount`) cuando cambia el carrito, sin nuevas consultas. «Quitar código» lo descarta.
+- **Invitado:** el acordeón dice «Inicia sesión para usar un código de descuento.» y no consulta nada.
+- **Se arrastra al pago:** al aplicar, el código se guarda en `sessionStorage` y el pago lo vuelve a validar al cargar y lo deja aplicado. Al pagar, el servidor sigue recalculando todo (nada del navegador fija un precio).
+- **Validación (I5):** del navegador solo llega el texto del código; esquema Zod `string().trim().toUpperCase()` de 1 a **20** caracteres (el formato real, `TRAMA-XXXX-XXXX`, mide 15). Rechazo por defecto.
+- **Límite de intentos:** **3 por minuto y por cuenta** (ventana deslizante) sobre la acción nueva `applyCartCouponAction` del carrito lateral, contando aciertos y fallos. Al superarlo no se consulta la BD y se dice «Demasiados intentos. Espera N segundos.». **El pago conserva su acción (`previewCouponAction`) sin límite propio:** su e2e aplica más de 3 códigos por minuto con la misma cuenta; limitarlo también queda como tarea aparte. **Limitación declarada:** el contador vive en la memoria de cada instancia del servidor (suficiente para la demo; con varias instancias serverless el tope efectivo sería mayor). En producción real se sustituye por un almacén compartido (p. ej. Upstash Redis con `@upstash/ratelimit`); no se añade ahora porque exige un servicio y secretos nuevos. La entropía del código (31⁸ combinaciones) hace inviable la fuerza bruta incluso así.
+
+**Completa tu look (CA-153)**
+- Al final del cuerpo del carrito lateral (bajo las líneas, con su scroll), una sección «Completa tu look» con un carrusel horizontal de **3 básicos** (categorías `polos` y `camisetas`) que **no están ya en el carrito** (por producto, no por variante). Cada tarjeta: foto, nombre, precio «desde» y un botón «+» de 44 px.
+- «+» **despliega las tallas** del color por defecto (las agotadas, tachadas y no elegibles) y **al elegir una se añade** a la cesta (cuenta o navegador, igual que «Añadir al carrito»); si solo queda una talla con stock, se añade directamente. Tras añadir, el carrusel se actualiza sin ese producto y se avisa con `aria-live`.
+- Si no hay básicos disponibles o la consulta falla, la sección no se muestra (el carrito no se rompe). Sin JavaScript no aplica (el carrito lateral ya lo necesita).
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-150 | RF-15 | El carrito lateral con prendas | Se mira bajo el total | Aparecen Visa, Mastercard, PayPal, Apple Pay y Google Pay (SVG de `simple-icons`, un color, con nombre accesible) y el texto «Entorno de demostración. No se realizarán cargos reales.»; no aparece «cifrado» ni «Pago seguro» | unitario `PaymentIcons` y e2e `cart-drawer` |
+| CA-151 | RF-27 | Un cliente con sesión y un código válido | Lo aplica en el acordeón del carrito lateral | Se ve «Descuento (código) −X €» antes del total y el total rebajado; al pulsar «Tramitar compra» el pago ya lo trae aplicado; un código inválido, caducado o usado muestra su motivo; un invitado ve «Inicia sesión…» | unitario `CartCoupon` y e2e `cart-coupon` |
+| CA-152 | RF-27 | Un cliente en el carrito lateral | Prueba un código | El texto se valida con Zod (1-20 caracteres, mayúsculas); al 4.º intento en un minuto no se consulta y se pide esperar; pasado el minuto vuelve a poder | unitario `rate-limit` y de la acción |
+| CA-153 | RF-03 | Un carrito con prendas | Se llega al final del cuerpo del carrito lateral | «Completa tu look» muestra hasta 3 básicos que no están en el carrito, cada uno con foto, nombre, precio y «+»; elegir talla lo añade y el producto sale del carrusel; sin básicos, la sección no aparece | unitario `CompleteLook` y e2e `cart-drawer` |
+
+**Nuevas tareas derivadas:** T-119 (iconos de pago y mensaje), T-120 (código de descuento en el carrito lateral) y T-121 (Completa tu look).

@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, startTransition, useActionState, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, startTransition, useActionState, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { previewCouponAction } from '@/lib/coupons/actions';
 import { initialCouponPreview, type CouponPreviewState } from '@/lib/coupons/preview-state';
+import { clearStoredCoupon, readStoredCoupon } from '@/lib/coupons/stored-coupon';
 
 /**
  * Estado del código de descuento en el pago (RF-27, CA-137, T-094). Lo comparten el campo «Código de descuento», los totales del
@@ -57,7 +58,28 @@ export function CheckoutCouponProvider({ children }: { readonly children: ReactN
     },
     [dispatch],
   );
-  const remove = useCallback(() => setRemoved(state), [state]);
+  const remove = useCallback(() => {
+    clearStoredCoupon();
+    setRemoved(state);
+  }, [state]);
+
+  // Un código aplicado en el carrito lateral (CA-151) se vuelve a validar aquí, en el servidor. Si ya no vale (usado, caducado,
+  // límite de intentos), se descarta y el mensaje de error se ve en el campo.
+  const auto = useRef<'todo' | 'enviado' | 'hecho'>('todo');
+  useEffect(() => {
+    if (auto.current === 'todo') {
+      const stored = readStoredCoupon();
+      if (stored) {
+        auto.current = 'enviado';
+        apply(stored.code);
+      } else {
+        auto.current = 'hecho';
+      }
+    } else if (auto.current === 'enviado' && state.status !== 'idle') {
+      auto.current = 'hecho';
+      if (state.status === 'error') clearStoredCoupon();
+    }
+  }, [apply, state]);
 
   const value = useMemo<CheckoutCouponValue>(
     () => ({ state: visible, applied: appliedFrom(visible), pending, apply, remove }),

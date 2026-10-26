@@ -762,3 +762,12 @@ Las tareas nuevas siguen desde T-086.
 |---|---|---|---|
 | Buscador móvil en una fila propia bajo la cabecera, que **no** es fija | Nike, Zalando y ASOS muestran el campo de búsqueda visible en móvil; algunos lo dejan fijo | Fijarlo sumaría ~60 px permanentes a una cabecera ya fija de 65 px (cerca del 20 % de una pantalla de 667 px). Se va con el contenido y se vuelve a él con «Volver arriba» | Campo siempre a la vista al llegar a cada página y más pantalla para el producto. Reversible: mover la fila dentro de `<header>` |
 | «Volver arriba» sube en las fichas de producto en móvil | Botón fijo abajo a la derecha | La ficha tiene una barra fija inferior con «Añadir al carrito» que tapaba el botón | No compite con la acción principal de compra |
+
+## Decisiones de UI — T-119 a T-121 (carrito lateral avanzado)
+
+| Decisión | Convención del sector | Por qué nos apartamos | Qué gana el usuario |
+|---|---|---|---|
+| Iconos de pago en un solo color (`currentColor`) y no con los colores de marca | Zalando, ASOS y Mango muestran los logos a color | Los colores de marca son hex y la regla de estilos los prohíbe en componentes; `simple-icons` permite el uso monocromo | Iconos coherentes con la paleta y sin dibujar SVG a mano |
+| Mensaje «Entorno de demostración…» en vez de «Pago seguro» | Las tiendas reales dicen «Pago seguro» | Trama es una demo con Stripe en modo de pruebas; decir «seguro/cifrado» sería una promesa legal sin respaldo (regla del OS) | Honestidad: nadie cree que se le cobrará |
+| «Completa tu look» al final del cuerpo con scroll y no en el pie fijo | Zalando/ASOS lo ponen bajo las líneas del carrito | El pie fijo ya lleva total, código, iconos y botones; añadirlo ahí dejaría poco sitio a las líneas en móvil | Las líneas siguen visibles; la sugerencia se ve al llegar al final de la lista |
+| «+» despliega las tallas en vez de añadir directo | Algunas tiendas añaden una talla por defecto | Una prenda sin talla elegida acaba en devolución | Dos toques y la talla correcta |

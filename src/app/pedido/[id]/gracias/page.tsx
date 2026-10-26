@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
+import { ClearStoredCoupon } from '@/components/checkout/ClearStoredCoupon';
 import { PageContainer } from '@/components/PageContainer';
 import { requireUser } from '@/lib/auth/session';
 import { formatEuros } from '@/lib/domain/shop';
@@ -21,6 +22,7 @@ export default async function GraciasPage({ params }: { readonly params: Promise
 
   return (
     <PageContainer>
+      {paid ? <ClearStoredCoupon /> : null}
       <div className="mx-auto max-w-xl rounded-container border border-border bg-surface p-8 text-center">
         <h1 className="text-display font-bold">{paid ? 'Gracias por tu compra' : 'Estamos confirmando tu pago'}</h1>
         <p className="mt-4 text-fg-muted">

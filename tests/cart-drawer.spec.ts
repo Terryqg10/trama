@@ -408,7 +408,8 @@ test.describe('carrito de la cuenta (CA-125)', () => {
     await expect(page.getByTestId('drawer-line')).toHaveCount(1);
     await expect(page.getByTestId('drawer-checkout')).toHaveAttribute('href', '/checkout');
     // Los cambios se guardan en la cuenta: se ven al abrir el carrito de nuevo y en /carrito.
-    const saved = page.waitForResponse((response) => response.request().method() === 'POST');
+    // La respuesta del guardado (lleva las cantidades): en el carrito hay otras llamadas al servidor, como «Completa tu look».
+    const saved = page.waitForResponse((response) => response.request().method() === 'POST' && (response.request().postData() ?? '').includes('qty'));
     await page.getByTestId('drawer-plus').click();
     await saved;
     await expect(page.getByTestId('drawer-qty')).toHaveText('2');
@@ -423,5 +424,57 @@ test.describe('carrito de la cuenta (CA-125)', () => {
     await page.getByTestId('drawer-checkout').click();
     await expect(page).toHaveURL(/\/checkout/);
     expect(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY)).toBeNull();
+  });
+});
+
+// CA-150 y CA-153 (T-119 y T-121, Enmienda 49 de SPEC-001): iconos de pago con aviso de demostración y «Completa tu look».
+// El código de descuento (CA-151 y CA-152) está en `cart-coupon.spec.ts`.
+test.describe('carrito avanzado (CA-150, CA-153)', () => {
+  test('bajo el total hay cinco métodos de pago de simple-icons y el aviso de demostración, sin «cifrado»', async ({ page }) => {
+    await addFromProduct(page, POLO);
+    const icons = page.getByTestId('payment-icons');
+    await expect(icons.getByRole('img')).toHaveCount(5);
+    const names = await icons.getByRole('img').evaluateAll((svgs) => svgs.map((svg) => svg.getAttribute('aria-label')));
+    expect(names).toEqual(['Visa', 'MasterCard', 'PayPal', 'Apple Pay', 'Google Pay']);
+    await expect(page.getByTestId('payment-demo-notice')).toHaveText('Entorno de demostración. No se realizarán cargos reales.');
+    await expect(page.getByTestId('cart-drawer')).not.toContainText(/cifrad|pago seguro/i);
+    // Debajo del total.
+    const totalY = (await page.getByTestId('drawer-total').boundingBox())?.y ?? 0;
+    const iconsY = (await icons.boundingBox())?.y ?? 0;
+    expect(iconsY).toBeGreaterThan(totalY);
+  });
+
+  test('«Completa tu look» sugiere hasta 3 básicos que no están en la cesta; «+» elige talla y lo añade', async ({ page }) => {
+    await addFromProduct(page, POLO);
+    const section = page.getByTestId('complete-look');
+    await section.scrollIntoViewIfNeeded();
+    await expect(section.getByRole('heading', { name: 'Completa tu look' })).toBeVisible();
+    const cards = section.getByTestId('complete-look-item');
+    const count = await cards.count();
+    expect(count).toBeGreaterThan(0);
+    expect(count).toBeLessThanOrEqual(3);
+    await expect(section).not.toContainText('Polo piqué básico');
+
+    const name = (await cards.first().locator('a').last().innerText()).trim();
+    await cards.first().getByTestId('complete-look-plus').click();
+    const available = cards.first().locator('[data-testid="complete-look-size"]:not([disabled])');
+    if ((await cards.first().getByTestId('complete-look-sizes').count()) > 0) await available.first().click();
+    await expect(page.getByTestId('drawer-line')).toHaveCount(2);
+    await expect(page.getByTestId('drawer-line').filter({ hasText: name })).toHaveCount(1);
+    await expect(section.getByTestId('complete-look-item').filter({ hasText: name })).toHaveCount(0);
+  });
+
+  test('en móvil la sección entra en el ancho, con un carrusel que se desplaza y sin scroll horizontal de la página', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await addFromProduct(page, POLO);
+    await page.getByTestId('complete-look').scrollIntoViewIfNeeded();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    const panel = await page.getByTestId('cart-drawer').boundingBox();
+    const first = await page.getByTestId('complete-look-item').first().boundingBox();
+    expect((first?.x ?? 0) + (first?.width ?? 0)).toBeLessThanOrEqual((panel?.x ?? 0) + (panel?.width ?? 0));
+    // Con el pie ocupando parte de la pantalla, las líneas siguen teniendo sitio.
+    const footer = await page.getByTestId('cart-drawer-footer').boundingBox();
+    expect((footer?.height ?? 999) / 700).toBeLessThanOrEqual(0.62);
   });
 });

@@ -1,8 +1,10 @@
 'use server';
 
 import { getCurrentUser } from '@/lib/auth/session';
+import { listProducts } from '@/lib/catalog/queries';
 import { loadAccountCart, mergeGuestIntoAccount, saveAccountCart } from './account';
-import { addToCart, savedCartSchema, type SavedCart } from './cart';
+import { addToCart, MAX_CART_LINES, savedCartSchema, type SavedCart } from './cart';
+import { COMPLETE_LOOK_CATEGORIES, pickCompleteLook, type CompleteLookItem } from './complete-look';
 import { fetchCartLines, variantIdsSchema, type CartLineInfo } from './lines';
 import { z } from 'zod';
 
@@ -95,6 +97,29 @@ export async function addToAccountCartAction(variantId: string): Promise<AddToAc
     return { status: 'ok', cart: saved, capped: change.capped, stock: info.stock };
   } catch (error) {
     logFailure('addToAccountCartAction', error);
+    return { status: 'error' };
+  }
+}
+
+const productSlugsSchema = z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(100)).max(MAX_CART_LINES);
+
+export type CompleteLookResult =
+  | { readonly status: 'ok'; readonly items: CompleteLookItem[] }
+  | { readonly status: 'error' };
+
+/**
+ * «Completa tu look» del carrito lateral (CA-153, T-121): hasta 3 básicos (polos y camisetas) que no están ya en el carrito.
+ * Del navegador solo llegan los `slug` de los productos del carrito (validados con Zod) para excluirlos; todo lo demás sale del
+ * catálogo público.
+ */
+export async function getCompleteLookAction(cartSlugs: string[]): Promise<CompleteLookResult> {
+  const parsed = productSlugsSchema.safeParse(cartSlugs);
+  if (!parsed.success) return { status: 'error' };
+  try {
+    const groups = await Promise.all(COMPLETE_LOOK_CATEGORIES.map((category) => listProducts({ category, onlyNew: false, sort: 'novedades' })));
+    return { status: 'ok', items: pickCompleteLook(groups.flat(), new Set(parsed.data)) };
+  } catch (error) {
+    logFailure('getCompleteLookAction', error);
     return { status: 'error' };
   }
 }

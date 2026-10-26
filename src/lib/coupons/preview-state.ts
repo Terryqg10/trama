@@ -8,6 +8,8 @@ export interface CouponPreviewState {
   /** Código normalizado (mayúsculas, sin espacios) cuando se ha aplicado. */
   readonly code?: string;
   readonly discountCents?: number;
+  /** Porcentaje del cupón: el carrito lateral recalcula el descuento con él cuando cambia el carrito (CA-151). */
+  readonly percentOff?: number;
   readonly totalCents?: number;
 }
 

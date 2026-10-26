@@ -10,6 +10,7 @@ y versionado [SemVer](https://semver.org/lang/es/).
 - Ofertas desde `compare_at_cents` y `/ofertas` con banner (T-099, T-100); 8 novedades más (T-101); `/buscar` con la tarjeta completa (T-098).
 - Favoritos: tabla `favorites` con RLS (T-041), corazón en la ficha y la barra fija (T-042), `/cuenta/favoritos` (T-043), corazón en la cabecera (T-114) y en las tarjetas de los listados (T-115).
 - Novedades de la portada como carrusel con efecto peek (T-113).
+- Carrito lateral avanzado (Fase 3): iconos de pago de `simple-icons` con aviso de entorno de demostración (T-119), código de descuento con límite de 3 intentos por minuto que el pago recoge (T-120) y «Completa tu look» con tres básicos (T-121).
 - Franja de envío gratis (T-109), fondo degradado en la newsletter (T-110) y texto sin repeticiones con «Compra con tranquilidad» (T-111).
 
 ### Cambiado
