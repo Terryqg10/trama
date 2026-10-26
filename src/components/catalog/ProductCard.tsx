@@ -6,6 +6,7 @@ import { quickAddData } from '@/lib/catalog/quick-add';
 import { swatchClass } from '@/lib/catalog/swatches';
 import { formatEuros } from '@/lib/domain/shop';
 import type { CatalogProduct } from '@/lib/catalog/product';
+import { CardFavoriteButton } from './CardFavoriteButton';
 import { CardColorProvider, CardImage, ColorDots, QuickAdd } from './QuickAdd';
 
 /**
@@ -22,7 +23,7 @@ export function ProductCard({
 }: {
   readonly product: CatalogProduct;
   /** Activa los círculos interactivos y el panel de compra al pasar el cursor (solo el catálogo, CA-122, T-082). */
-  readonly quickAdd?: { readonly signedIn: boolean };
+  readonly quickAdd?: { readonly signedIn: boolean; readonly favoriteIds?: readonly string[] };
   /** Solo la imagen que será LCP (la primera del listado): carga con prioridad, sin `lazy`. */
   readonly priority?: boolean;
 }) {
@@ -84,6 +85,14 @@ export function ProductCard({
             </span>
           ) : null}
         </div>
+        {quickAdd && quick ? (
+          <CardFavoriteButton
+            productId={product.id}
+            productName={product.name}
+            signedIn={quickAdd.signedIn}
+            initialFavorite={quickAdd.favoriteIds?.includes(product.id) ?? false}
+          />
+        ) : null}
         {quickAdd && quick ? <QuickAdd productName={product.name} colors={quick.colors} signedIn={quickAdd.signedIn} /> : null}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">

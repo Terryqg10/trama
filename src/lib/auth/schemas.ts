@@ -84,6 +84,8 @@ export const nextPathSchema = z.union([
   z.literal('/checkout'),
   // Volver a la ficha de un producto para dejarlo en favoritos (CA-76, T-042): solo `/producto/<slug>?favorito=1`.
   z.string().regex(/^\/producto\/[a-z0-9]+(?:-[a-z0-9]+)*\?favorito=1$/).max(200),
+  // Volver a un listado tras pulsar el corazón de una tarjeta (CA-147, T-115): solo esas rutas y una consulta de caracteres seguros.
+  z.string().regex(/^\/(?:hombre|mujer|novedades|ofertas|buscar)(?:\?[A-Za-z0-9_=&%.+-]*)?$/).max(200),
 ]);
 
 /** Errores por campo: el primer mensaje de cada ruta. */

@@ -258,7 +258,7 @@ test.describe('panel al pasar el cursor (CA-122)', () => {
     await page.mouse.click((image?.x ?? 0) + (image?.width ?? 0) / 2, (image?.y ?? 0) + 60);
     await expect(page).toHaveURL(/\/producto\/abrigo-pano-gris/);
     await page.goBack();
-    await card(page, COAT).getByRole('link', { name: COAT }).click();
+    await card(page, COAT).getByRole('link', { name: COAT, exact: true }).click();
     await expect(page).toHaveURL(/\/producto\/abrigo-pano-gris/);
   });
 });
@@ -273,7 +273,7 @@ test.describe('teclado y movimiento (CA-122)', () => {
     await expect(panel(page, COAT)).toHaveCSS('opacity', '1');
     await page.keyboard.press('Escape');
     await expect(panel(page, COAT)).toHaveCSS('opacity', '0');
-    await expect(card(page, COAT).getByRole('link', { name: COAT })).toBeFocused();
+    await expect(card(page, COAT).getByRole('link', { name: COAT, exact: true })).toBeFocused();
     await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
     await size.focus();
     await expect(panel(page, COAT)).toHaveCSS('opacity', '1');
@@ -336,7 +336,7 @@ test.describe('anchos y otras páginas (CA-122)', () => {
     await expect(target.getByTestId('color-dots')).toBeHidden();
     await expect(target.getByTestId('quick-add-size').first()).toBeHidden();
     await expect(target.getByTestId('quick-add-button')).toBeHidden();
-    await target.getByRole('link', { name: POLO }).click();
+    await target.getByRole('link', { name: POLO, exact: true }).click();
     await expect(page).toHaveURL(/\/producto\/polo-pique-basico/);
   });
 

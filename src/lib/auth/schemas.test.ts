@@ -121,12 +121,19 @@ describe('formDataToObject', () => {
   });
 });
 
-describe('nextPathSchema (T-042)', () => {
+describe('nextPathSchema (T-042, T-115)', () => {
   it('admite /checkout y la ficha con favorito=1, y nada más', () => {
     expect(nextPathSchema.safeParse('/checkout').success).toBe(true);
     expect(nextPathSchema.safeParse('/producto/polo-pique-basico?favorito=1').success).toBe(true);
+    for (const listing of ['/hombre', '/mujer?categoria=polos&talla=M', '/novedades', '/ofertas', '/buscar?q=camisa%20azul']) {
+      expect(nextPathSchema.safeParse(listing).success, listing).toBe(true);
+    }
     for (const value of [
       'https://evil.example',
+      '/hombre//evil.example',
+      '/hombre?x=<script>',
+      '/hombrex',
+      '/cuenta?x=1',
       '//evil.example',
       '/producto/polo?favorito=1&x=2',
       '/producto/../admin?favorito=1',

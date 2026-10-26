@@ -1236,3 +1236,18 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-146 | RF-16 | La portada con novedades | Se ve la sección «Novedades» | Es un carrusel horizontal sin barra de scroll visible con las tarjetas del catálogo: cuentan 4 tarjetas visibles a 1280 px, ≈ 2,5 a 768 px y ≈ 1,2 a 375 px (se asoma la siguiente); la separación es de 1,5 rem; las flechas anterior/siguiente desplazan el carrusel y se desactivan en los extremos; «Ver todo» y el título siguen en la cabecera; sin scroll horizontal de la página de 320 a 1280 px | test unitario `NovedadesCarousel` y e2e `home-sections` |
 
 **Nueva tarea derivada:** T-113 (carrusel de novedades).
+
+### Enmienda 47 — 2026-10-26 — sin ADR — corazón de favoritos en la tarjeta de los listados (CA-147)
+
+**Origen:** el usuario pide el icono de favorito también en las tarjetas del catálogo. **Amplía** la Enmienda 21 (favoritos en la ficha) y **levanta** su límite «el corazón no va en la tarjeta», que se había aplazado porque la tarjeta necesitaba saber la sesión: los listados con tarjeta completa (`/hombre`, `/mujer`, `/novedades`, `/buscar`, `/ofertas`) ya leen la sesión para la compra rápida (CA-120), así que ese coste ya estaba asumido. La portada (carrusel de Novedades, estática) y `/cuenta/favoritos` (que ya tiene «Quitar») **no** llevan corazón.
+
+- **Dónde:** esquina superior derecha de la foto, 44 × 44 px, fondo `surface` redondo, por encima del enlace extendido de la tarjeta (`z-10`), de modo que pulsarlo no abre la ficha.
+- **Con sesión:** alterna con actualización optimista y reversión si falla, usando la acción existente `setFavoriteAction`; `aria-pressed`, `aria-label` «Añadir {nombre} a favoritos» / «Quitar {nombre} de favoritos» y aviso `aria-live`. Los listados cargan los ids de favoritos del cliente (una consulta con RLS) y los pasan a la tarjeta; si la consulta falla, las tarjetas salen sin marcar.
+- **Sin sesión:** enlace a `/acceso?siguiente=<página actual con sus filtros>`; tras entrar vuelve al listado (no marca nada solo).
+- **Fuera de alcance:** contador en la cabecera y marcar automáticamente tras el acceso.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-147 | RF-24 | Un listado con tarjetas completas | Se mira la esquina superior derecha de una tarjeta | Hay un corazón de 44 px que no abre la ficha al pulsarlo; con sesión alterna el favorito (aria-pressed) y aparece en `/cuenta/favoritos`; sin sesión lleva al acceso con retorno al listado; los favoritos ya marcados salen rellenos; sin desbordes de 320 a 1280 px | e2e `card-favorites` y tests de `ProductCard` |
+
+**Nueva tarea derivada:** T-115 (corazón en la tarjeta).

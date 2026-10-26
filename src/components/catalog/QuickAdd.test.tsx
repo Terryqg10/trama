@@ -8,6 +8,13 @@ import { CardColorProvider, CardImage, ColorDots, QuickAdd } from './QuickAdd';
 // CA-122 (T-082, nivel de componente): círculos de color, panel de tallas sobre la parte baja de la foto, imagen por color y Esc. El hover
 // real, el carrito y el umbral por ancho los comprueba el e2e `catalog-quick-add`.
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/hombre',
+  useSearchParams: () => new URLSearchParams(),
+}));
+vi.mock('@/lib/favorites/actions', () => ({ setFavoriteAction: vi.fn() }));
+
 vi.mock('@/components/cart/AddToCartButton', () => ({
   AddToCartButton: ({
     testId,

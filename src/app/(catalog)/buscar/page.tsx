@@ -3,6 +3,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { PageContainer } from '@/components/PageContainer';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { getCurrentUser } from '@/lib/auth/session';
+import { loadCardFavoriteIds } from '@/lib/favorites/card-favorites';
 import { searchProducts } from '@/lib/catalog/queries';
 import { parseSearchQuery } from '@/lib/catalog/search';
 
@@ -18,7 +19,8 @@ export default async function BuscarPage({
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const query = parseSearchQuery((await searchParams).q);
-  const [products, { user }] = await Promise.all([searchProducts(query), getCurrentUser()]);
+  const [products, { client, user }] = await Promise.all([searchProducts(query), getCurrentUser()]);
+  const favoriteIds = await loadCardFavoriteIds(client, user !== null);
 
   return (
     <PageContainer>
@@ -48,7 +50,7 @@ export default async function BuscarPage({
           <ul className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product, index) => (
               <li key={product.id}>
-                <ProductCard product={product} priority={index === 0} quickAdd={{ signedIn: user !== null }} />
+                <ProductCard product={product} priority={index === 0} quickAdd={{ signedIn: user !== null, favoriteIds }} />
               </li>
             ))}
           </ul>

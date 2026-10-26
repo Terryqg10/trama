@@ -137,7 +137,7 @@ test.describe('CA-78: página «Mis favoritos»', () => {
     const credentials = await newUser('fav-empty');
     await page.goto('/acceso');
     await login(page, credentials, /\/cuenta$/);
-    await page.getByRole('link', { name: /Mis favoritos/ }).click();
+    await page.getByTestId('account-nav').getByRole('link', { name: 'Mis favoritos' }).click();
     await expect(page).toHaveURL(/\/cuenta\/favoritos$/);
     await expect(page.getByText('Aún no tienes favoritos')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Ver novedades' })).toHaveAttribute('href', '/novedades');

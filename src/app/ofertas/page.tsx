@@ -4,6 +4,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { OffersBanner } from '@/components/offers/OffersBanner';
 import { getCurrentUser } from '@/lib/auth/session';
+import { loadCardFavoriteIds } from '@/lib/favorites/card-favorites';
 import { maxOfferPercent } from '@/lib/catalog/discount';
 import { getOfferProducts } from '@/lib/catalog/queries';
 
@@ -14,7 +15,8 @@ export const metadata: Metadata = { title: 'Ofertas' };
  * la tarjeta es la completa del catálogo. Los errores de datos se propagan a `error.tsx`.
  */
 export default async function OfertasPage() {
-  const [products, { user }] = await Promise.all([getOfferProducts(), getCurrentUser()]);
+  const [products, { client, user }] = await Promise.all([getOfferProducts(), getCurrentUser()]);
+  const favoriteIds = await loadCardFavoriteIds(client, user !== null);
 
   return (
     <PageContainer>
@@ -39,7 +41,7 @@ export default async function OfertasPage() {
           <ul className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product, index) => (
               <li key={product.id}>
-                <ProductCard product={product} priority={index === 0} quickAdd={{ signedIn: user !== null }} />
+                <ProductCard product={product} priority={index === 0} quickAdd={{ signedIn: user !== null, favoriteIds }} />
               </li>
             ))}
           </ul>

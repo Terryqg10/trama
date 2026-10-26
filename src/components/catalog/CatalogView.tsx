@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getCurrentUser } from '@/lib/auth/session';
+import { loadCardFavoriteIds } from '@/lib/favorites/card-favorites';
 import { deriveFacets } from '@/lib/catalog/facets';
 import {
   parseCatalogParams,
@@ -79,7 +80,8 @@ export async function CatalogView({
 
   const products = await listProducts(filters);
   // La compra rápida de la tarjeta (CA-120) necesita saber si hay sesión: con ella el carrito va a la cuenta.
-  const { user } = await getCurrentUser();
+  const { client, user } = await getCurrentUser();
+  const favoriteIds = await loadCardFavoriteIds(client, user !== null);
 
   const filterProps = { basePath, facets, filters, showGender: scope.gender === undefined };
 
@@ -129,7 +131,7 @@ export async function CatalogView({
               <ProductGrid>
                 {products.map((product, index) => (
                   <li key={product.id}>
-                    <ProductCard product={product} priority={index === 0} quickAdd={{ signedIn: user !== null }} />
+                    <ProductCard product={product} priority={index === 0} quickAdd={{ signedIn: user !== null, favoriteIds }} />
                   </li>
                 ))}
               </ProductGrid>
