@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { CartDrawer } from './cart/CartDrawer';
 import { TopBar } from './layout/TopBar';
+import { ScrollToTop } from './ScrollToTop';
 
 /**
  * Marco de la tienda: barra de anuncios (T-046), cabecera, `main`, pie y carrito lateral (T-085). Las rutas de `/admin` usan su propio marco (sidebar y topbar
@@ -30,6 +31,7 @@ export function ShopFrame({
       </main>
       {footer}
       <CartDrawer />
+      <ScrollToTop />
     </>
   );
 }
