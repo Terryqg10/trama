@@ -755,3 +755,10 @@ Las tareas nuevas siguen desde T-086.
 | Decisión | Convención del sector | Por qué nos apartamos | Qué gana el usuario |
 |---|---|---|---|
 | Por debajo de 370 px el logo pierde la palabra «Trama» y deja el símbolo | Zalando, ASOS y Mango mantienen el logo completo | Con buscar, favoritos, cuenta, cesta y menú a 44 px (WCAG 2.5.8 / invariante I6) no caben en 320-369 px; recortar las áreas táctiles o esconder un icono es peor. Variante `max-[369px]` porque ningún `--bp-*` cae en ese punto | Todos los accesos visibles y tocables en móviles pequeños. Reversible: quitar la clase si se retira un icono |
+
+## Decisiones de UI — T-117 y T-118 (buscador móvil y «Volver arriba»)
+
+| Decisión | Convención del sector | Por qué nos apartamos | Qué gana el usuario |
+|---|---|---|---|
+| Buscador móvil en una fila propia bajo la cabecera, que **no** es fija | Nike, Zalando y ASOS muestran el campo de búsqueda visible en móvil; algunos lo dejan fijo | Fijarlo sumaría ~60 px permanentes a una cabecera ya fija de 65 px (cerca del 20 % de una pantalla de 667 px). Se va con el contenido y se vuelve a él con «Volver arriba» | Campo siempre a la vista al llegar a cada página y más pantalla para el producto. Reversible: mover la fila dentro de `<header>` |
+| «Volver arriba» sube en las fichas de producto en móvil | Botón fijo abajo a la derecha | La ficha tiene una barra fija inferior con «Añadir al carrito» que tapaba el botón | No compite con la acción principal de compra |

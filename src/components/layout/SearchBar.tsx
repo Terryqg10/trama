@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState, useSyncExternalStore, type ChangeEvent, type FocusEvent, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
+import { useEffect, useId, useState, useSyncExternalStore, type ChangeEvent, type FocusEvent, type FormEvent, type KeyboardEvent } from 'react';
 import { Search } from 'lucide-react';
 import {
   MAX_SEARCH_LENGTH,
@@ -39,18 +39,10 @@ const optionClass =
  * Las opciones son enlaces: funcionan el clic derecho y abrir en otra pestaña. La última es «Ver todos los
  * resultados». Flechas mueven la opción activa; Intro la abre (sin opción activa busca); Esc cierra la lista.
  *
- * `inline` (escritorio): lista flotante bajo el campo. `overlay` (móvil, a pantalla completa): lista en el flujo.
+ * `inline` (escritorio, en la cabecera) y `row` (móvil, fila propia bajo la cabecera, CA-148): mismo campo y misma lista
+ * flotante bajo él; `row` añade el botón «Buscar» con la lupa a la derecha.
  */
-export function SearchBar({
-  variant,
-  inputRef,
-  onNavigate,
-}: {
-  readonly variant: 'inline' | 'overlay';
-  readonly inputRef?: RefObject<HTMLInputElement | null>;
-  /** Se llama al navegar (a una ficha o a los resultados): el panel móvil se cierra. */
-  readonly onNavigate?: () => void;
-}) {
+export function SearchBar({ variant }: { readonly variant: 'inline' | 'row' }) {
   const router = useRouter();
   const id = useId();
   const listId = `${id}-lista`;
@@ -102,7 +94,6 @@ export function SearchBar({
   function closeList(): void {
     setOpen(false);
     setActive(-1);
-    onNavigate?.();
   }
 
   function go(href: string): void {
@@ -148,9 +139,7 @@ export function SearchBar({
 
   const activeId = showOptions && active >= 0 ? optionId(active) : undefined;
   const listClass =
-    variant === 'inline'
-      ? 'absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-card border border-border bg-surface shadow-card'
-      : 'mt-4 overflow-hidden rounded-card border border-border bg-surface';
+    'absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-card border border-border bg-surface shadow-card';
 
   return (
     <div className="relative w-full" onBlur={onBlur}>
@@ -158,7 +147,6 @@ export function SearchBar({
         <div className="relative min-w-0 flex-1">
           <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-fg-muted" />
           <input
-            ref={inputRef}
             type="search"
             name="q"
             role="combobox"
@@ -179,12 +167,13 @@ export function SearchBar({
             className="min-h-11 w-full rounded-control border border-border bg-surface-muted pl-10 pr-3 text-sm text-fg placeholder:text-fg-muted"
           />
         </div>
-        {variant === 'overlay' ? (
+        {variant === 'row' ? (
           <button
             type="submit"
-            className="inline-flex min-h-11 items-center rounded-control bg-accent px-4 text-sm font-semibold text-accent-fg hover:bg-accent-hover"
+            aria-label="Buscar"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-control bg-accent text-accent-fg hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
-            Buscar
+            <Search aria-hidden="true" className="size-5" />
           </button>
         ) : null}
       </form>

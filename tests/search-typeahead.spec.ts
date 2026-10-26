@@ -1,11 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
-// CA-107 y CA-108 (T-064): buscador con sugerencias. Escritorio (≥ 1024 px): lista flotante bajo el campo. Móvil
-// (< 1024 px): pantalla completa con las sugerencias debajo. Depende del catálogo de ejemplo (hay 8 «polera»
+// CA-107 y CA-148 (T-064, Enmienda 48): buscador con sugerencias. Escritorio (≥ 1024 px): campo en la cabecera. Móvil
+// (< 1024 px): campo en su fila propia. En los dos, lista flotante bajo el campo. Depende del catálogo de ejemplo (hay 8 «polera»
 // y dos «abrigo»). La región aria-live del buscador no usa role="status": muchas pruebas esperan que no haya ninguno (carga).
 
 const field = (page: Page) => page.locator('header').getByRole('combobox', { name: 'Buscar productos' }).first();
-const panelField = (page: Page) => page.getByTestId('search-panel').getByRole('combobox', { name: 'Buscar productos' });
+const rowField = (page: Page) => page.getByTestId('search-row').getByRole('combobox', { name: 'Buscar productos' });
 const options = (page: Page) => page.getByRole('option');
 
 // En el WebKit móvil, React puede reponer el valor del campo al terminar de hidratar y borrar lo escrito: se reintenta
@@ -177,68 +177,41 @@ test.describe('combobox accesible (CA-107)', () => {
   });
 });
 
-test.describe('pantalla completa en móvil (CA-108)', () => {
-  const trigger = (page: Page) => page.getByTestId('search-open');
-  const panel = (page: Page) => page.getByTestId('search-panel');
-
-  test('la lupa abre el buscador a pantalla completa con el campo enfocado', async ({ page }) => {
+test.describe('sugerencias en móvil (CA-148)', () => {
+  test('la lista sale bajo el campo de la fila, dentro de la pantalla, y elegir una lleva a la ficha', async ({ page }) => {
     await open(page, 375);
-    await trigger(page).click();
-    await expect(panel(page)).toBeVisible();
-    const box = await panel(page).boundingBox();
-    expect([box?.x, box?.y, box?.width, box?.height]).toEqual([0, 0, 375, 812]);
-    await expect(panelField(page)).toBeFocused();
-  });
-
-  test('las sugerencias salen debajo del campo, dentro de la pantalla, y elegir una cierra el panel', async ({ page }) => {
-    await open(page, 375);
-    await trigger(page).click();
-    await typeInto(panelField(page), 'abrigo');
-    const list = panel(page).getByRole('option');
+    await typeInto(rowField(page), 'abrigo');
+    const list = page.getByTestId('search-row').getByRole('option');
     await expect(list.first()).toBeVisible();
-    const fieldBox = await panelField(page).boundingBox();
+    const fieldBox = await rowField(page).boundingBox();
     const optionBox = await list.first().boundingBox();
     expect(optionBox?.y ?? 0).toBeGreaterThan((fieldBox?.y ?? 0) + (fieldBox?.height ?? 0));
     expect((optionBox?.x ?? -1) + (optionBox?.width ?? 0)).toBeLessThanOrEqual(375);
     expect(await overflow(page)).toBeLessThanOrEqual(1);
     await list.first().click();
     await expect(page).toHaveURL(/\/producto\//);
-    await expect(panel(page)).toBeHidden();
   });
 
-  test('sin coincidencias muestra el mensaje en la pantalla completa', async ({ page }) => {
+  test('sin coincidencias muestra el mensaje y Esc cierra la lista dejando el foco en el campo', async ({ page }) => {
     await open(page, 375);
-    await trigger(page).click();
-    await typeInto(panelField(page), 'zzzzzz');
-    await expect(panel(page).getByText('No encontramos nada, prueba con otra palabra')).toBeVisible();
+    await typeInto(rowField(page), 'zzzzzz');
+    await expect(page.getByTestId('search-row').getByText('No encontramos nada, prueba con otra palabra')).toBeVisible();
+    await typeInto(rowField(page), 'abrigo');
+    await expect(page.getByTestId('search-row').getByRole('option').first()).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('option')).toHaveCount(0);
+    await expect(rowField(page)).toBeFocused();
   });
 
-  test('Esc cierra primero la lista y después el panel, y el foco vuelve a la lupa', async ({ page }) => {
-    await open(page, 375);
-    await trigger(page).click();
-    await typeInto(panelField(page), 'abrigo');
-    await expect(panel(page).getByRole('option').first()).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(panel(page).getByRole('option')).toHaveCount(0);
-    await expect(panel(page)).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(panel(page)).toBeHidden();
-    await expect(trigger(page)).toBeFocused();
-  });
-
-  test('de 320 a 1023 px no hay scroll horizontal con las sugerencias abiertas', async ({ page }) => {
+  test('de 320 a 1023 px no hay scroll horizontal con las sugerencias abiertas, y a 1024 px la fila no se ve', async ({ page }) => {
     for (const width of [320, 375, 767, 768, 1023]) {
       await open(page, width);
-      await trigger(page).click();
-      await typeInto(panelField(page), 'camiseta');
-      await expect(panel(page).getByRole('option').first()).toBeVisible();
+      await typeInto(rowField(page), 'camiseta');
+      await expect(page.getByTestId('search-row').getByRole('option').first()).toBeVisible();
       expect(await overflow(page), `scroll a ${width}px`).toBeLessThanOrEqual(1);
     }
-  });
-
-  test('a 1024 px o más no hay lupa: el campo está en la cabecera', async ({ page }) => {
     await open(page, 1024);
-    await expect(trigger(page)).toBeHidden();
+    await expect(page.getByTestId('search-row')).toBeHidden();
     await expect(field(page)).toBeVisible();
   });
 });

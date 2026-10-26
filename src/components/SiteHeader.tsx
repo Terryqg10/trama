@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
-import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { useRef } from 'react';
+import { Heart, Menu, ShoppingBag, User, X } from 'lucide-react';
 import { badgeLabel, cartLinkLabel, useCartCount } from '@/lib/cart/count';
 import { ACTION_NAV, MAIN_NAV } from '@/lib/domain/navigation';
 import { useCartDrawer } from './cart/CartDrawerContext';
@@ -13,7 +13,6 @@ import { Logo } from './Logo';
 import { useHashOverlay } from './useHashOverlay';
 
 const MENU_ID = 'menu-movil';
-const SEARCH_ID = 'buscador';
 
 const linkBase =
   'inline-flex min-h-11 items-center rounded-control px-4 text-sm font-medium';
@@ -46,21 +45,6 @@ export function SiteHeader() {
     close: closeRef,
   });
 
-  const searchTriggerRef = useRef<HTMLAnchorElement>(null);
-  const searchPanelRef = useRef<HTMLDivElement>(null);
-  const searchCloseRef = useRef<HTMLAnchorElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const search = useHashOverlay(SEARCH_ID, '--bp-lg', {
-    trigger: searchTriggerRef,
-    overlay: searchPanelRef,
-    close: searchCloseRef,
-  });
-
-  // El hook enfoca el botón de cerrar al abrir; en el buscador el foco va al campo.
-  useEffect(() => {
-    if (search.open) searchInputRef.current?.focus();
-  }, [search.open]);
-
   function itemClass(href: string): string {
     return `${linkBase} ${pathname === href ? linkCurrent : linkIdle}`;
   }
@@ -70,204 +54,156 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-surface">
-      <div className="mx-auto flex min-h-(--nav-height) max-w-(--layout-container) items-center gap-2 px-(--layout-gutter)">
-        <Logo />
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-surface">
+        <div className="mx-auto flex min-h-(--nav-height) max-w-(--layout-container) items-center gap-2 px-(--layout-gutter)">
+          <Logo />
 
-        <nav aria-label="Principal" className="ml-4 hidden items-center gap-1 md:flex">
-          {MAIN_NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={pathname === item.href ? 'page' : undefined}
-              className={itemClass(item.href)}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="hidden min-w-0 flex-1 justify-center px-4 lg:flex">
-          <SearchBar variant="inline" />
-        </div>
-
-        <div className="ml-auto flex items-center gap-1">
-          <a
-            ref={searchTriggerRef}
-            href={`#${SEARCH_ID}`}
-            data-testid="search-open"
-            aria-haspopup="dialog"
-            aria-expanded={search.open}
-            aria-label="Abrir buscador"
-            onClick={(event) => {
-              event.preventDefault();
-              search.openOverlay();
-            }}
-            className={`${iconButton} lg:hidden`}
-          >
-            <Search aria-hidden="true" />
-          </a>
-          {/* Enlace a /cuenta/favoritos (CA-27): sin sesión, la página lleva al acceso y vuelve. */}
-          <Link href={ACTION_NAV.favorites.href} aria-label="Mis favoritos" data-testid="favorites-link" className={iconButton}>
-            <Heart aria-hidden="true" />
-          </Link>
-          <UserMenu />
-          {/* Sigue siendo un enlace a /carrito (sin JavaScript navega); con JavaScript abre el carrito lateral (CA-124), salvo en
-              /carrito, donde ya está la lista completa. */}
-          <Link
-            href={ACTION_NAV.cart.href}
-            aria-label={cartLinkLabel(cartCount)}
-            aria-haspopup="dialog"
-            data-testid="cart-open"
-            onClick={(event) => {
-              if (pathname === ACTION_NAV.cart.href || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
-              event.preventDefault();
-              openCart();
-            }}
-            className={`${iconButton} relative`}
-          >
-            <ShoppingBag aria-hidden="true" />
-            {cartBadge === null ? null : (
-              <span
-                aria-hidden="true"
-                data-testid="cart-count"
-                className="pointer-events-none absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-accent-fg"
+          <nav aria-label="Principal" className="ml-4 hidden items-center gap-1 md:flex">
+            {MAIN_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={pathname === item.href ? 'page' : undefined}
+                className={itemClass(item.href)}
               >
-                {cartBadge}
-              </span>
-            )}
-          </Link>
-          <a
-            ref={triggerRef}
-            href={`#${MENU_ID}`}
-            data-testid="menu-open"
-            aria-haspopup="dialog"
-            aria-expanded={overlay.open}
-            aria-label="Abrir menú"
-            onClick={(event) => {
-              event.preventDefault();
-              overlay.openOverlay();
-            }}
-            className={`${iconButton} md:hidden`}
-          >
-            <Menu aria-hidden="true" />
-          </a>
-        </div>
-      </div>
-
-      <div className="lg:hidden">
-        <div
-          ref={searchPanelRef}
-          id={SEARCH_ID}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Buscar productos"
-          data-testid="search-panel"
-          onKeyDown={search.onKeyDown}
-          onClick={search.onClick}
-          className={
-            search.open
-              ? 'fixed inset-0 z-50 flex h-dvh flex-col bg-surface'
-              : search.mounted
-                ? 'hidden'
-                : 'hidden target:fixed target:inset-0 target:z-50 target:flex target:h-dvh target:flex-col target:bg-surface'
-          }
-        >
-          <span tabIndex={0} onFocus={() => search.focusEdge('last')} data-focus-guard="start" />
-          <div className="flex min-h-(--nav-height) shrink-0 items-center justify-between border-b border-border px-(--layout-gutter)">
-            <p className="text-lg font-semibold text-fg">Buscar</p>
-            <a
-              ref={searchCloseRef}
-              href="#cerrar-buscador"
-              aria-label="Cerrar buscador"
-              data-testid="search-close"
-              onClick={(event) => {
-                event.preventDefault();
-                search.close();
-              }}
-              className={iconButton}
-            >
-              <X aria-hidden="true" />
-            </a>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-(--layout-gutter) py-4">
-            <SearchBar variant="overlay" inputRef={searchInputRef} onNavigate={search.close} />
-          </div>
-          <span tabIndex={0} onFocus={() => search.focusEdge('first')} data-focus-guard="end" />
-        </div>
-      </div>
-
-      <div className="md:hidden">
-        <div
-          ref={menuRef}
-          id={MENU_ID}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menú"
-          data-testid="menu-overlay"
-          onKeyDown={overlay.onKeyDown}
-          onClick={overlay.onClick}
-          className={
-            overlay.open
-              ? 'fixed inset-0 z-50 flex h-dvh flex-col bg-surface'
-              : overlay.mounted
-                ? 'hidden'
-                : 'hidden target:fixed target:inset-0 target:z-50 target:flex target:h-dvh target:flex-col target:bg-surface'
-          }
-        >
-          <span tabIndex={0} onFocus={() => overlay.focusEdge('last')} data-focus-guard="start" />
-          <div className="flex min-h-(--nav-height) shrink-0 items-center justify-between border-b border-border px-(--layout-gutter)">
-            <Logo />
-            <a
-              ref={closeRef}
-              href="#cerrar-menu"
-              aria-label="Cerrar menú"
-              data-testid="menu-close"
-              onClick={(event) => {
-                event.preventDefault();
-                overlay.close();
-              }}
-              className={iconButton}
-            >
-              <X aria-hidden="true" />
-            </a>
-          </div>
-
-          <nav aria-label="Menú móvil" className="min-h-0 flex-1 overflow-y-auto px-(--layout-gutter) py-6">
-            <ul className="flex flex-col gap-2">
-              {MAIN_NAV.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={pathname === item.href ? 'page' : undefined}
-                    className={overlayItemClass(item.href)}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="flex shrink-0 gap-3 border-t border-border px-(--layout-gutter) py-4">
-            <Link
-              href={ACTION_NAV.account.href}
-              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-control border border-border-strong bg-surface text-sm font-semibold text-fg hover:bg-accent-soft"
-            >
-              <User aria-hidden="true" className="size-5" />
-              {ACTION_NAV.account.label}
+          <div className="hidden min-w-0 flex-1 justify-center px-4 lg:flex">
+            <SearchBar variant="inline" />
+          </div>
+
+          <div className="ml-auto flex items-center gap-1">
+            {/* Enlace a /cuenta/favoritos (CA-27): sin sesión, la página lleva al acceso y vuelve. */}
+            <Link href={ACTION_NAV.favorites.href} aria-label="Mis favoritos" data-testid="favorites-link" className={iconButton}>
+              <Heart aria-hidden="true" />
             </Link>
+            <UserMenu />
+            {/* Sigue siendo un enlace a /carrito (sin JavaScript navega); con JavaScript abre el carrito lateral (CA-124), salvo en
+                /carrito, donde ya está la lista completa. */}
             <Link
               href={ACTION_NAV.cart.href}
-              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-control border border-border-strong bg-surface text-sm font-semibold text-fg hover:bg-accent-soft"
+              aria-label={cartLinkLabel(cartCount)}
+              aria-haspopup="dialog"
+              data-testid="cart-open"
+              onClick={(event) => {
+                if (pathname === ACTION_NAV.cart.href || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+                event.preventDefault();
+                openCart();
+              }}
+              className={`${iconButton} relative`}
             >
-              <ShoppingBag aria-hidden="true" className="size-5" />
-              {ACTION_NAV.cart.label}
+              <ShoppingBag aria-hidden="true" />
+              {cartBadge === null ? null : (
+                <span
+                  aria-hidden="true"
+                  data-testid="cart-count"
+                  className="pointer-events-none absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-accent-fg"
+                >
+                  {cartBadge}
+                </span>
+              )}
             </Link>
+            <a
+              ref={triggerRef}
+              href={`#${MENU_ID}`}
+              data-testid="menu-open"
+              aria-haspopup="dialog"
+              aria-expanded={overlay.open}
+              aria-label="Abrir menú"
+              onClick={(event) => {
+                event.preventDefault();
+                overlay.openOverlay();
+              }}
+              className={`${iconButton} md:hidden`}
+            >
+              <Menu aria-hidden="true" />
+            </a>
           </div>
-          <span tabIndex={0} onFocus={() => overlay.focusEdge('first')} data-focus-guard="end" />
+        </div>
+
+        <div className="md:hidden">
+          <div
+            ref={menuRef}
+            id={MENU_ID}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menú"
+            data-testid="menu-overlay"
+            onKeyDown={overlay.onKeyDown}
+            onClick={overlay.onClick}
+            className={
+              overlay.open
+                ? 'fixed inset-0 z-50 flex h-dvh flex-col bg-surface'
+                : overlay.mounted
+                  ? 'hidden'
+                  : 'hidden target:fixed target:inset-0 target:z-50 target:flex target:h-dvh target:flex-col target:bg-surface'
+            }
+          >
+            <span tabIndex={0} onFocus={() => overlay.focusEdge('last')} data-focus-guard="start" />
+            <div className="flex min-h-(--nav-height) shrink-0 items-center justify-between border-b border-border px-(--layout-gutter)">
+              <Logo />
+              <a
+                ref={closeRef}
+                href="#cerrar-menu"
+                aria-label="Cerrar menú"
+                data-testid="menu-close"
+                onClick={(event) => {
+                  event.preventDefault();
+                  overlay.close();
+                }}
+                className={iconButton}
+              >
+                <X aria-hidden="true" />
+              </a>
+            </div>
+
+            <nav aria-label="Menú móvil" className="min-h-0 flex-1 overflow-y-auto px-(--layout-gutter) py-6">
+              <ul className="flex flex-col gap-2">
+                {MAIN_NAV.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      aria-current={pathname === item.href ? 'page' : undefined}
+                      className={overlayItemClass(item.href)}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <div className="flex shrink-0 gap-3 border-t border-border px-(--layout-gutter) py-4">
+              <Link
+                href={ACTION_NAV.account.href}
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-control border border-border-strong bg-surface text-sm font-semibold text-fg hover:bg-accent-soft"
+              >
+                <User aria-hidden="true" className="size-5" />
+                {ACTION_NAV.account.label}
+              </Link>
+              <Link
+                href={ACTION_NAV.cart.href}
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-control border border-border-strong bg-surface text-sm font-semibold text-fg hover:bg-accent-soft"
+              >
+                <ShoppingBag aria-hidden="true" className="size-5" />
+                {ACTION_NAV.cart.label}
+              </Link>
+            </div>
+            <span tabIndex={0} onFocus={() => overlay.focusEdge('first')} data-focus-guard="end" />
+          </div>
+        </div>
+      </header>
+
+      {/* Buscador móvil en su propia fila (CA-148): no es fijo, se va con el contenido; desde `--bp-lg` el campo está en la cabecera. */}
+      <div data-testid="search-row" className="border-b border-border bg-surface lg:hidden">
+        <div className="mx-auto max-w-(--layout-container) px-(--layout-gutter) py-2">
+          <SearchBar variant="row" />
         </div>
       </div>
-    </header>
+    </>
   );
 }

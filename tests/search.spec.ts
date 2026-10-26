@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectNoReload, markDocument } from './helpers/no-reload';
 
-// CA-91, CA-92 y CA-93 (T-052, ajustados por la Enmienda 27): buscador de la cabecera (campo en escritorio y pantalla
-// completa en móvil) y página /buscar. Las sugerencias están en `search-typeahead.spec.ts`.
+// CA-91, CA-148 y CA-93 (T-052, Enmiendas 27 y 48): buscador de la cabecera (campo en escritorio y fila propia en móvil)
+// y página /buscar. Las sugerencias están en `search-typeahead.spec.ts`.
 
 const desktopField = (page: Page) => page.locator('header').getByRole('combobox', { name: 'Buscar productos' }).first();
-const panel = (page: Page) => page.getByTestId('search-panel');
-const trigger = (page: Page) => page.getByTestId('search-open');
+const row = (page: Page) => page.getByTestId('search-row');
+const rowField = (page: Page) => row(page).getByRole('combobox', { name: 'Buscar productos' });
 
 async function open(page: Page, width: number, url = '/', withScript = true): Promise<void> {
   await page.setViewportSize({ width, height: width < 768 ? 812 : 800 });
@@ -25,7 +25,7 @@ test.describe('buscador en escritorio (CA-91)', () => {
     await expect(field).toBeVisible();
     await expect(field).toHaveAttribute('type', 'search');
     await expect(field).toHaveAttribute('placeholder', 'Buscar productos...');
-    await expect(trigger(page)).toBeHidden();
+    await expect(row(page)).toBeHidden();
     const style = await field.evaluate((el) => {
       const css = getComputedStyle(el);
       return { radius: css.borderTopLeftRadius, background: css.backgroundColor };
@@ -64,75 +64,48 @@ test.describe('buscador en escritorio (CA-91)', () => {
     test(`a ${width} px no hay scroll horizontal ni cortes en la cabecera`, async ({ page }) => {
       await open(page, width);
       expect(await overflow(page)).toBeLessThanOrEqual(1);
-      // A partir de 1024 px hay campo; por debajo, icono de lupa.
+      // A partir de 1024 px el campo está en la cabecera; por debajo, en su fila propia.
       if (width >= 1024) await expect(desktopField(page)).toBeVisible();
-      else await expect(trigger(page)).toBeVisible();
+      else await expect(rowField(page)).toBeVisible();
     });
   }
 });
 
-test.describe('buscador en móvil (CA-92)', () => {
-  test('solo se ve el icono de lupa; al pulsarlo se abre a pantalla completa con el campo enfocado', async ({ page }) => {
-    await open(page, 375);
-    await expect(desktopField(page)).toBeHidden();
-    await expect(trigger(page)).toBeVisible();
-    expect((await trigger(page).boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(44);
-    await expect(panel(page)).toBeHidden();
-    await trigger(page).click();
-    await expect(panel(page)).toBeVisible();
-    await expect(panel(page)).toHaveAttribute('role', 'dialog');
-    await expect(panel(page).getByRole('combobox', { name: 'Buscar productos' })).toBeFocused();
-    await expect(trigger(page)).toHaveAttribute('aria-expanded', 'true');
-    const box = await panel(page).boundingBox();
-    expect([box?.x, box?.y, box?.width, box?.height]).toEqual([0, 0, 375, 812]);
-    expect(await overflow(page)).toBeLessThanOrEqual(1);
-  });
-
-  test('Esc y el botón de cerrar lo cierran y el foco vuelve a la lupa', async ({ page }) => {
-    await open(page, 375);
-    await trigger(page).click();
-    await page.keyboard.press('Escape');
-    await expect(panel(page)).toBeHidden();
-    await expect(trigger(page)).toBeFocused();
-
-    await trigger(page).click();
-    await panel(page).getByRole('link', { name: 'Cerrar buscador' }).click();
-    await expect(panel(page)).toBeHidden();
-    await expect(trigger(page)).toBeFocused();
-
-  });
-
-  test('buscar desde el panel lleva a los resultados y lo cierra', async ({ page }) => {
-    await open(page, 375);
-    await trigger(page).click();
-    await panel(page).getByRole('combobox').fill('camiseta');
-    await panel(page).getByRole('button', { name: 'Buscar' }).click();
-    await expect(page).toHaveURL(/\/buscar\?q=camiseta$/);
-    await expect(panel(page)).toBeHidden();
-    await expect(page.getByRole('heading', { level: 1, name: 'Resultados para «camiseta»' })).toBeVisible();
-  });
-
-  test('el panel cabe en 320 px, 375 px y 767 px sin scroll horizontal', async ({ page }) => {
+test.describe('buscador en móvil (CA-148)', () => {
+  test('el campo está solo en una fila bajo la cabecera, a todo el ancho, con botón «Buscar» de 44 px y sin lupa en la cabecera', async ({ page }) => {
     for (const width of [320, 375, 767]) {
       await open(page, width);
-      await trigger(page).click();
-      await expect(panel(page)).toBeVisible();
+      await expect(desktopField(page)).toBeHidden();
+      await expect(rowField(page)).toBeVisible();
+      const header = await page.locator('header').boundingBox();
+      const field = await rowField(page).boundingBox();
+      const button = await row(page).getByRole('button', { name: 'Buscar' }).boundingBox();
+      if (!header || !field || !button) throw new Error('sin medidas');
+      expect(field.y).toBeGreaterThanOrEqual(header.y + header.height - 1);
+      expect(button.width).toBeGreaterThanOrEqual(44);
+      expect(button.height).toBeGreaterThanOrEqual(44);
+      expect(button.x + button.width, `a ${width}px`).toBeLessThanOrEqual(width);
+      expect(field.width).toBeGreaterThan(width - 120);
       expect(await overflow(page), `scroll a ${width}px`).toBeLessThanOrEqual(1);
-      const box = await panel(page).getByRole('combobox').boundingBox();
-      expect((box?.x ?? -1) + (box?.width ?? 0)).toBeLessThanOrEqual(width);
     }
+    await expect(page.getByRole('link', { name: 'Abrir buscador' })).toHaveCount(0);
+  });
+
+  test('buscar desde la fila lleva a los resultados', async ({ page }) => {
+    await open(page, 375);
+    await rowField(page).fill('camiseta');
+    await row(page).getByRole('button', { name: 'Buscar' }).click();
+    await expect(page).toHaveURL(/\/buscar\?q=camiseta$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Resultados para «camiseta»' })).toBeVisible();
   });
 
   test.describe('sin JavaScript', () => {
     test.use({ javaScriptEnabled: false });
 
-    test('el enlace #buscador abre el panel con :target y el formulario GET busca', async ({ page }) => {
+    test('el formulario GET de la fila busca', async ({ page }) => {
       await open(page, 375, '/', false);
-      await trigger(page).click();
-      await expect(page).toHaveURL(/#buscador$/);
-      await expect(panel(page)).toBeVisible();
-      await panel(page).getByRole('combobox').fill('camiseta');
-      await panel(page).getByRole('button', { name: 'Buscar' }).click();
+      await rowField(page).fill('camiseta');
+      await row(page).getByRole('button', { name: 'Buscar' }).click();
       await expect(page).toHaveURL(/\/buscar\?q=camiseta$/);
       await expect(page.getByRole('heading', { level: 1, name: 'Resultados para «camiseta»' })).toBeVisible();
     });

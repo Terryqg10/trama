@@ -145,7 +145,7 @@ describe('SearchBar: ARIA y teclado', () => {
     const onKeyDown = vi.fn();
     render(
       <div onKeyDown={onKeyDown}>
-        <SearchBar variant="overlay" />
+        <SearchBar variant="row" />
       </div>,
     );
     await type('abrigo');
@@ -170,13 +170,12 @@ describe('SearchBar: ARIA y teclado', () => {
     expect(live?.textContent).toBe('2 sugerencias');
   });
 
-  it('en pantalla completa lleva el botón «Buscar» y llama a onNavigate al buscar', async () => {
-    const onNavigate = vi.fn();
-    render(<SearchBar variant="overlay" onNavigate={onNavigate} />);
-    expect(screen.getByRole('button', { name: 'Buscar' })).toBeTruthy();
-    await type('abrigo');
-    fireEvent.submit(screen.getByRole('search'));
-    expect(onNavigate).toHaveBeenCalled();
+  it('en la fila móvil lleva el botón «Buscar»; en la cabecera de escritorio no', () => {
+    const { unmount } = render(<SearchBar variant="row" />);
+    expect(screen.getByRole('button', { name: 'Buscar' }).getAttribute('type')).toBe('submit');
+    unmount();
+    render(<SearchBar variant="inline" />);
+    expect(screen.queryByRole('button', { name: 'Buscar' })).toBeNull();
   });
 
   it('las opciones no se alcanzan con Tab (el foco se queda en el campo)', async () => {

@@ -56,22 +56,18 @@ test.describe('cabecera fija (CA-105)', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('se queda pegada también en móvil y con el menú y el buscador cerrados', async ({ page }) => {
+  test('se queda pegada también en móvil y con el menú cerrado', async ({ page }) => {
     await open(page, '/', 375);
     await page.evaluate(() => window.scrollTo(0, 1500));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
     expect(Math.abs((await header(page).boundingBox())?.y ?? 99)).toBeLessThanOrEqual(1);
     await expect(page.getByTestId('menu-open')).toBeInViewport();
-    await expect(page.getByTestId('search-open')).toBeInViewport();
   });
 
-  test('con la cabecera pegada, el menú móvil y el buscador siguen abriéndose a pantalla completa', async ({ page }) => {
+  test('con la cabecera pegada, el menú móvil sigue abriéndose a pantalla completa', async ({ page }) => {
     await open(page, '/', 375);
     await page.evaluate(() => window.scrollTo(0, 1500));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
-    await page.getByTestId('search-open').click();
-    expect((await page.getByTestId('search-panel').boundingBox())?.height).toBe(800);
-    await page.keyboard.press('Escape');
     await page.getByTestId('menu-open').click();
     expect((await page.getByTestId('menu-overlay').boundingBox())?.height).toBe(800);
   });

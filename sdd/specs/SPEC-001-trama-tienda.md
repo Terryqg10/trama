@@ -1251,3 +1251,24 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-147 | RF-24 | Un listado con tarjetas completas | Se mira la esquina superior derecha de una tarjeta | Hay un corazón de 44 px que no abre la ficha al pulsarlo; con sesión alterna el favorito (aria-pressed) y aparece en `/cuenta/favoritos`; sin sesión lleva al acceso con retorno al listado; los favoritos ya marcados salen rellenos; sin desbordes de 320 a 1280 px | e2e `card-favorites` y tests de `ProductCard` |
 
 **Nueva tarea derivada:** T-115 (corazón en la tarjeta).
+
+### Enmienda 48 — 2026-10-26 — sin ADR — buscador móvil en su propia fila y botón «Volver arriba» (CA-148, CA-149)
+
+**Origen:** el usuario pide (1) que en móvil el buscador de la cabecera esté **solo, en su propia fila** (como en las referencias que aporta, pero con diseño propio) y (2) un botón para **volver a la parte superior** al hacer scroll, en todas las páginas de la tienda. **Sustituye** del buscador móvil de la Enmienda 27 (CA-108) el «icono de lupa que abre un panel a pantalla completa»: el campo pasa a estar siempre visible. El buscador de escritorio y su sugerencia de productos no cambian.
+
+**Buscador móvil (CA-148)**
+- Por debajo de `--bp-lg` (< 1024 px) hay una **fila propia** bajo la cabecera con el campo a todo el ancho, el mismo campo y las mismas sugerencias que en escritorio (lista flotante bajo el campo) y un botón «Buscar» con icono de lupa a la derecha (44 × 44 px). Desde `--bp-lg` se mantiene el campo en línea de la cabecera.
+- Desaparecen el icono de lupa de la fila de iconos y el panel de búsqueda (`#buscador`): sin JavaScript el campo es un formulario GET a `/buscar` ya funcional.
+- La fila **no es fija**: la cabecera (logo, iconos, menú) sigue fija al hacer scroll y la fila del buscador se va con el contenido, para no gastar ~60 px de pantalla móvil de forma permanente. Con la página ya desplazada se llega al buscador con el botón «Volver arriba» (CA-149).
+
+**Botón «Volver arriba» (CA-149)**
+- Aparece al desplazarse más de 400 px y se oculta al volver arriba; en todas las páginas de la tienda (no en `/admin`, que tiene su marco propio).
+- Botón redondo de 44 × 44 px, abajo a la derecha, con flecha hacia arriba (`ArrowUp`) y `aria-label="Volver arriba"`. Por encima del contenido y por debajo de los diálogos y paneles (`z-40`). En móvil, en las fichas de producto (`/producto/*`), se sube para no tapar la barra fija de «Añadir al carrito».
+- Al pulsarlo, desplaza a la parte superior (suave; **instantáneo con `prefers-reduced-motion`**) y deja el foco en el logo para que quien navega con teclado no pierda su sitio. Oculto, no recibe foco.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-148 | RF-25 | La tienda por debajo de 1024 px | Se mira bajo la cabecera | Hay una fila con el campo de búsqueda a todo el ancho y un botón «Buscar» de 44 px; no hay icono de lupa en la cabecera ni panel de búsqueda; escribir ≥ 2 letras muestra sugerencias y Intro lleva a `/buscar?q=…`; desde 1024 px el campo vuelve a la cabecera y la fila no se ve; sin desbordes de 320 a 1279 px | tests `search`, `search-typeahead` y `header-sticky` actualizados; unitario `SearchBar` |
+| CA-149 | transversal | Una página de la tienda | Se baja más de 400 px | Aparece un botón «Volver arriba» de 44 px que lleva a `scrollY = 0` (instantáneo con reduced-motion) y deja el foco en el logo; arriba del todo no está; no tapa la barra fija de la ficha en móvil | unitario `ScrollToTop` y e2e `scroll-to-top` |
+
+**Nuevas tareas derivadas:** T-117 (buscador móvil en fila) y T-118 (botón «Volver arriba»).
