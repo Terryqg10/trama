@@ -64,10 +64,20 @@ describe('ScrollToTop (CA-149)', () => {
     expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
   });
 
-  it('en las fichas de producto se sube en móvil para no tapar la barra fija', () => {
+  it('en las fichas de producto solo se muestra desde md (en móvil manda el de la barra fija, CA-74)', () => {
     pathname = '/producto/polo-pique-basico';
     render(<ScrollToTop />);
     scrollTo(900);
-    expect(screen.getByRole('button', { name: 'Volver arriba' }).className).toContain('bottom-24');
+    const classes = screen.getByRole('button', { name: 'Volver arriba', hidden: true }).className.split(' ');
+    expect(classes).toContain('hidden');
+    expect(classes).toContain('md:inline-flex');
+  });
+
+  it('en el resto de páginas se muestra siempre', () => {
+    render(<ScrollToTop />);
+    scrollTo(900);
+    const classes = screen.getByRole('button', { name: 'Volver arriba' }).className.split(' ');
+    expect(classes).toContain('inline-flex');
+    expect(classes).not.toContain('hidden');
   });
 });

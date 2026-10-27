@@ -28,18 +28,21 @@ test.describe('botón «Volver arriba» (CA-149)', () => {
     await expect(page.locator('header').getByRole('link', { name: 'Trama, ir al inicio' })).toBeFocused();
   });
 
-  test('está en la portada y en la ficha, y en la ficha en móvil no tapa la barra fija de «Añadir al carrito»', async ({ page }) => {
+  // En la ficha en móvil manda el «Volver arriba» de la barra fija (CA-74, `sticky-back-to-top.spec.ts`): el global no se duplica.
+  test('está en la portada y en la ficha desde 768 px; en la ficha en móvil solo hay uno (el de la barra fija)', async ({ page }) => {
     await open(page, '/', 375);
     await page.evaluate(() => window.scrollTo(0, 1500));
     await expect(button(page)).toBeVisible();
 
     await open(page, '/producto/polo-pique-basico', 375);
-    await page.evaluate(() => window.scrollTo(0, 1200));
+    await page.evaluate(() => window.scrollTo(0, 3000));
+    await expect(page.getByTestId('back-to-top')).toHaveAttribute('aria-hidden', 'false');
+    await expect(button(page)).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Volver arriba' })).toHaveCount(1);
+
+    await open(page, '/producto/polo-pique-basico', 1280);
+    await page.evaluate(() => window.scrollTo(0, 1500));
     await expect(button(page)).toBeVisible();
-    const sticky = await page.locator('div.fixed.inset-x-0.bottom-0').first().boundingBox();
-    const btn = await button(page).boundingBox();
-    if (!sticky || !btn) throw new Error('sin medidas');
-    expect(btn.y + btn.height).toBeLessThanOrEqual(sticky.y);
   });
 
   test('no hay scroll horizontal con el botón visible de 320 a 1280 px', async ({ page }) => {

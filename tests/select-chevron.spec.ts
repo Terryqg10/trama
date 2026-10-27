@@ -59,12 +59,26 @@ test.describe('CA-51: «Ordenar por» lleva el chevrón de lucide, no el nativo'
 
       // Alineado con el padding horizontal del control: la distancia al borde derecho es la
       // misma que la del texto al borde izquierdo (px-4).
-      const paddingLeft = await select.evaluate((el) => parseFloat(getComputedStyle(el).paddingLeft));
+      // WebKit devuelve 0 al leer el padding de un <select> con `appearance: none` aunque lo aplica: se lee de un elemento de
+      // prueba con las mismas clases de padding (px-4 pr-12).
+      const authoredPadding = (side: 'paddingLeft' | 'paddingRight') =>
+        select.evaluate((el, prop) => {
+          const probe = document.createElement('div');
+          probe.className = (el.getAttribute('class') ?? '')
+            .split(' ')
+            .filter((name: string) => /^p[xrl]-/.test(name))
+            .join(' ');
+          document.body.append(probe);
+          const value = parseFloat(getComputedStyle(probe)[prop]);
+          probe.remove();
+          return value;
+        }, side);
+      const paddingLeft = await authoredPadding('paddingLeft');
       const gapRight = selectBox.x + selectBox.width - (chevronBox.x + chevronBox.width);
       expect(Math.abs(gapRight - paddingLeft)).toBeLessThanOrEqual(2);
 
       // El texto no choca con el icono: el padding derecho cubre el icono y un margen.
-      const paddingRight = await select.evaluate((el) => parseFloat(getComputedStyle(el).paddingRight));
+      const paddingRight = await authoredPadding('paddingRight');
       expect(paddingRight).toBeGreaterThanOrEqual(gapRight + chevronBox.width);
     });
   }

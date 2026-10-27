@@ -208,6 +208,9 @@ test.describe('novedades (CA-85)', () => {
 
 // CA-146 (T-113): Novedades como carrusel con efecto peek.
 test.describe('carrusel de novedades (CA-146)', () => {
+  // Las flechas aparecen con el ratón (`hover`): en la emulación táctil del proyecto móvil no hay hover.
+  test.use({ hasTouch: false, isMobile: false });
+
   for (const [width, expected] of [
     [1280, 4],
     [768, 2.5],

@@ -153,6 +153,9 @@ test.describe('cierre y accesibilidad (CA-128)', () => {
   });
 
   test('axe sin violaciones graves con el modal abierto', async ({ page }) => {
+    // axe calcula el contraste con el color pintado en ese instante: a medio fundido de la barra de anuncios rotativa (T-046) sale
+    // un contraste falso (en móvil, más lento, ocurría). Con menos movimiento todo se ve entero (como en `a11y.spec.ts`).
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await openModal(page);
     const results = await new AxeBuilder({ page }).analyze();
     const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');

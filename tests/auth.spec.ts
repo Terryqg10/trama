@@ -110,8 +110,13 @@ test.describe('cuenta: registro e inicio de sesión (CA-06, CA-07)', () => {
         ['abcdefg1', 'buena', 'Contraseña buena'],
         ['Una-Contraseña-Larga-2026!', 'fuerte', 'Contraseña fuerte'],
       ] as const) {
-        await field.fill(value);
-        await expect(indicator).toHaveAttribute('data-level', level);
+        // El indicador solo reacciona cuando React ha hidratado (en el móvil, más lento, un `fill` temprano se perdía): se reintenta.
+        await expect(async () => {
+          // Se vacía antes: reescribir el mismo texto no emite el evento de cambio y el reintento no serviría de nada.
+          await field.fill('');
+          await field.fill(value);
+          await expect(indicator).toHaveAttribute('data-level', level, { timeout: 1000 });
+        }).toPass();
         await expect(indicator).toHaveText(label);
         await expect(indicator).toBeVisible();
       }

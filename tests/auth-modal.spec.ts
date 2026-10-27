@@ -71,9 +71,13 @@ test.describe('CA-12: el modal', () => {
     await expect(page.getByTestId('auth-modal')).toBeHidden();
     await expect(page.getByTestId('account-open')).toBeFocused();
     await page.getByTestId('account-open').click();
+    // Se espera a que el modal esté montado antes de actuar sobre él: con carga, un clic que llega antes cae sobre la página y el
+    // modal acaba abriéndose después, dejando el `body` bloqueado.
+    await expect(page.getByTestId('auth-modal')).toBeVisible();
     await page.getByTestId('auth-modal-close').click();
     await expect(page.getByTestId('auth-modal')).toBeHidden();
     await page.getByTestId('account-open').click();
+    await expect(page.getByTestId('auth-modal')).toBeVisible();
     await page.mouse.click(5, 400);
     await expect(page.getByTestId('auth-modal')).toBeHidden();
     await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');

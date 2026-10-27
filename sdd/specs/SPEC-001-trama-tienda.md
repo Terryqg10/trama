@@ -1350,3 +1350,15 @@ el icono de la cabecera también lo abre. **Amplía RF-03** (carrito); la págin
 | CA-155 | RF-04 | El formulario de registro (página y modal) y el de nueva contraseña | Se escribe una contraseña | Aparece la barra y la etiqueta de fortaleza (débil/buena/fuerte) con tokens del estilo, anunciada con `aria-live`; no aparece con el campo vacío; no bloquea el envío; sin desbordes de 320 a 1280 px | unitario `PasswordStrength` y e2e `auth` |
 
 **Nuevas tareas derivadas:** T-122 (validación en el servidor) y T-123 (indicador de fortaleza).
+
+### Enmienda 52 — 2026-10-27 — sin ADR — «Volver arriba» global sin duplicar el de la ficha en móvil (CA-149 corregido)
+
+**Origen:** el pase final de e2e (T-124) mostró que la barra fija de la ficha en móvil ya tiene su propio «Volver arriba» (CA-74, T-040) y que el botón global de la Enmienda 48 lo duplicaba y lo tapaba: `sticky-back-to-top.spec.ts` no podía pulsar el suyo. Se me escapó al redactar CA-149 (y los tests de ese día solo cubrían la portada y los listados). **Corrige** la frase de la Enmienda 48 «en móvil, en las fichas de producto, se sube para no tapar la barra fija».
+
+**Cambio:** en las fichas de producto (`/producto/*`) el botón global **solo se muestra desde `--bp-md`** (768 px), donde la barra fija no existe; por debajo de 768 px manda el de la barra (CA-74), de modo que en una ficha en móvil hay uno solo. En el resto de páginas, el global se muestra como se dijo (más de 400 px de scroll, 44 px, abajo a la derecha). El resto de CA-149 (instantáneo con reduced-motion, foco en el logo, oculto no recibe foco) no cambia.
+
+| ID | RF | Dado | Cuando | Entonces | Verificación |
+|---|---|---|---|---|---|
+| CA-149 (corregido) | transversal | Una ficha de producto | Se baja más de 400 px | Por debajo de 768 px hay un único «Volver arriba» (el de la barra fija, CA-74); desde 768 px aparece el global; en las demás páginas, el global siempre | unitario `ScrollToTop` y e2e `scroll-to-top` y `sticky-back-to-top` |
+
+**Nueva tarea derivada:** T-124 (corregir la duplicidad).
